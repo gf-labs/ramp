@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport os, json, sys\ntry:\n    inp = os.environ.get('CLAUDE_TOOL_INPUT', '{}')\n    d = json.loads(inp)\n    path = d.get('file_path', d.get('path', ''))\n    if path and path.endswith('.md') and os.path.exists(path):\n        lines = sum(1 for _ in open(path))\n        name = os.path.basename(path)\n        if lines > 600:\n            print(f'[sup] {name}: {lines} lines — prompt files should stay focused')\n        else:\n            print(f'[sup] {name}: {lines} lines')\nexcept Exception:\n    pass\n\""
+          }
+        ]
+      }
+    ]
+  }
+}

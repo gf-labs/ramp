@@ -1,0 +1,9 @@
+{
+  "name": "sup",
+  "version": "0.12.0",
+  "description": "Adaptive learning mode for Claude Code — knowledge trees, spaced repetition, and passive skill observation",
+  "author": {"name": "Bernie Green"},
+  "commands": "commands/",
+  "hooks": "hooks/hooks.json",
+  "repository": "https://github.com/berniegreen/sup"
+}

@@ -1,0 +1,23 @@
+{
+  "name": "sup-marketplace",
+  "owner": {
+    "name": "Bernie Green"
+  },
+  "metadata": {
+    "description": "sup — adaptive learning, knowledge trees, and spaced repetition for Claude Code",
+    "version": "0.12.0"
+  },
+  "plugins": [
+    {
+      "name": "sup",
+      "source": "./",
+      "description": "Adaptive learning mode for Claude Code — knowledge trees, spaced repetition, and passive skill observation",
+      "version": "0.12.0",
+      "author": {"name": "Bernie Green"},
+      "repository": "https://github.com/berniegreen/sup",
+      "license": "MIT",
+      "keywords": ["learning", "onboarding", "knowledge-tree", "spaced-repetition", "productivity"],
+      "category": "productivity"
+    }
+  ]
+}

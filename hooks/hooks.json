@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/skill-observer.py"
+          }
+        ]
+      }
+    ],
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/skill-observer.py"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/skill-observer.py"
+          }
+        ]
+      }
+    ]
+  }
+}
