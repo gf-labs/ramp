@@ -26,6 +26,7 @@ commands/audit.md            # Repo consistency audit — find and fix stale art
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
 .claude-plugin/marketplace.json # Marketplace catalog (source, keywords, install metadata)
 hooks/hooks.json             # Plugin hook config (PostToolUse + WorktreeCreate + SessionStart)
+.claude/settings.json        # Project hook config (file-size-warn + skill-observer, model settings)
 topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 71 nodes total)
 topics/getting-started.md    # Getting started sub-topic (12 nodes)
 topics/build.md              # Build sub-topic (22 nodes)
