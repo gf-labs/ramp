@@ -147,7 +147,7 @@ level: Builder
 
 **Review field:** `| next: YYYY-MM-DD [LN]` on `[✓]` nodes only. Encodes spaced repetition schedule.
 
-**Version migration:** v1 files have all `[✓]` treated as `[✓|historical]`; v2 files get `| next:` fields added. Both upgrade to version 3 on next write with `xp:` computed. Old `~/.claude/skill-trees/` personal tree files are migrated automatically on first `/sup` run.
+**Version migration:** v1 files have all `[✓]` treated as `[✓|historical]`; v2 files get `| next:` fields added. Both upgrade to version 3 on next write with `xp:` computed.
 
 ## How slash commands work
 
