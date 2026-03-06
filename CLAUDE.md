@@ -21,6 +21,8 @@ commands/sup.md              # Adaptive onboarding command — manages knowledge
 commands/tree.md             # Read-only knowledge tree viewer
 commands/review.md           # Spaced repetition review command
 commands/cheatsheet.md       # Personal reference: demonstrated skills + evidence trails
+commands/status.md           # Project status snapshot — git state, architecture, tree health
+commands/audit.md            # Repo consistency audit — find and fix stale artifacts
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
 hooks/hooks.json             # Plugin hook config (PostToolUse + WorktreeCreate + SessionStart)
 topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 71 nodes total)
@@ -35,6 +37,7 @@ topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + WorktreeCreate + SessionStart)
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
 mcp/server.py                # knowledge-tree MCP server (read/write trees; swappable backend)
+docs/tree-format.md          # Annotated v3 knowledge tree format example
 README.md                    # Install instructions, modes, company deployment guide
 ```
 
