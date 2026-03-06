@@ -8,6 +8,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Companies deploy it as a project-level command for engineer onboarding. Solo devs use it to level up.
 
+### Three operating modes
+
+- **Mode A (empty repo)**: Claude asks what to build, then builds it while narrating every Claude Code capability it uses
+- **Mode B (single repo)**: Scans codebase → assesses user → integrated learning path grounded in the actual repo
+- **Mode C (multi-repo directory)**: Surveys all repos, user picks focus, then proceeds as Mode B
+
 ## Structure
 
 ```
@@ -27,20 +33,18 @@ topics/best-practices.md     # Best practices topic schema (15 nodes)
 topics/mcp-development.md    # MCP development topic schema (20 nodes)
 topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + WorktreeCreate + SessionStart)
+scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
+mcp/server.py                # knowledge-tree MCP server (read/write trees; swappable backend)
 README.md                    # Install instructions, modes, company deployment guide
 ```
+
+*This listing is maintained manually — update it when files are added or renamed.*
 
 **Note:** `commands/` at root is the source of truth for command files — used by the plugin system and company deployment (copy to team repo's `.claude/commands/`). `.claude/commands/` is gitignored.
 
 No build steps, no dependencies, no runtime. Commands are pure prompt engineering in Markdown files.
 
-## Three operating modes
-
-- **Mode A (empty repo)**: Claude asks what to build, then builds it while narrating every Claude Code capability it uses
-- **Mode B (single repo)**: Scans codebase → assesses user → integrated learning path grounded in the actual repo
-- **Mode C (multi-repo directory)**: Surveys all repos, user picks focus, then proceeds as Mode B
-
-## Company customization
+## Customization
 
 **Two layers of company customization:**
 
@@ -88,7 +92,7 @@ Both `/sup` and `/tree` render and update a knowledge tree — a structured map 
 **Inference priority (highest to lowest, used only by `/sup`):**
 1. Environmental signals — CLAUDE.md content, hooks/MCP in settings.json, commands in `.claude/commands/`, history scans
 2. Saved tree file — `~/.claude/knowledge-trees/[topic].md` persists progress from prior sessions; `[✓]` nodes are never downgraded
-3. Self-reported assessment — fills gaps via targeted gap questions; Claude applies qualitative rubric
+3. Self-reported assessment — fills gaps via targeted gap questions using Feynman framing ("explain X as you'd teach it") — teaching-level answers earn `[✓]`, surface-level answers stay `[~]`
 
 **`/tree`** is a dumb read-only viewer. It reads `~/.claude/knowledge-trees/[topic].md` and displays it. No inference, no writes.
 
@@ -128,8 +132,8 @@ Merge priority: Local → Team → Personal. A local `[✓]` upgrades anything; 
 ---
 version: 3
 topic: claude-code
-user: Bernie Green
-email: bernie@example.com
+user: [Your Name]
+email: [your@email.com]
 updated: 2026-03-04
 level: Builder
 ---
