@@ -17,7 +17,12 @@ commands/review.md           # Spaced repetition review command
 commands/cheatsheet.md       # Personal reference: demonstrated skills + evidence trails
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
 hooks/hooks.json             # Plugin hook config (PostToolUse + WorktreeCreate + SessionStart)
-topics/claude-code.md        # Claude Code topic schema (36 nodes)
+topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 71 nodes total)
+topics/getting-started.md    # Getting started sub-topic (12 nodes)
+topics/build.md              # Build sub-topic (22 nodes)
+topics/configuration.md      # Configuration sub-topic (13 nodes)
+topics/deployment.md         # Deployment sub-topic (11 nodes)
+topics/administration.md     # Administration sub-topic (13 nodes)
 topics/best-practices.md     # Best practices topic schema (15 nodes)
 topics/mcp-development.md    # MCP development topic schema (20 nodes)
 topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
@@ -54,13 +59,12 @@ No build steps, no dependencies, no runtime. Commands are pure prompt engineerin
 
 Both `/sup` and `/tree` render and update a knowledge tree — a structured map of a developer's Claude Code capabilities.
 
-**Tree structure (ROOT unlocks all; A → B → C → D → E sequentially, 36 nodes total):**
-- **[ROOT] Configure Claude** — CLAUDE.md, settings.json, model/budget tuning, /memory audit, CLI fundamentals
-- **[A] Memory and Context Management** — /compact, session naming/resumption, rewind/checkpointing, @file references, plan mode, permissions system
-- **[B] Codebase Navigation** — Read/Glob/Grep, module explanation, call tracing, pattern auditing, verification patterns
-- **[C] Code Change Workflows** — single-file edits, multi-file changes, commit/PR generation, test-first, refactoring, long-running tasks, bash/headless mode
-- **[D] Agents and Orchestration** — parallel subagents, worktrees, custom subagent defs, slash commands, MCP, agent teams
-- **[E] Automation and Extension** — PreToolUse hooks, PostToolUse hooks, Notification hooks, scoped hooks, !bash injection, custom MCP server, Claude Code SDK
+**Tree structure (71 nodes across 5 sub-topics):**
+- **[Getting Started]** Core Foundations, Working Effectively, Best Practices — what Claude Code is, tool loop, memory, workflow patterns (12 nodes)
+- **[Build]** Agents and Orchestration, Skills and Plugins, Hooks System, Headless and MCP — subagents, slash commands, hooks, headless mode (22 nodes)
+- **[Configuration]** Settings Fundamentals, Permissions and Security, Interface Customization — settings hierarchy, allow/deny rules, keybindings (13 nodes)
+- **[Deployment]** Cloud Provider Integration, Network and Infrastructure, Deployment Patterns — Bedrock, Vertex, Foundry, LLM gateways, CI/CD (11 nodes)
+- **[Administration]** Setup and Authentication, Data and Compliance, Cost and Usage Management — org setup, ZDR, analytics, chargeback (13 nodes)
 
 **Status markers:**
 - `[✓]` **Demonstrated** — artifact found, exercise completed, or historical evidence verified
@@ -104,7 +108,12 @@ Merge priority: Local → Team → Personal. A local `[✓]` upgrades anything; 
 
 | Topic | File | Nodes | Focus |
 |-------|------|-------|-------|
-| `claude-code` | `topics/claude-code.md` | 36 | Claude Code features across 6 branches |
+| `claude-code` | `topics/claude-code.md` | 71 | Claude Code features — meta-topic sourcing 5 sub-topics |
+| ↳ `getting-started` | `topics/getting-started.md` | 12 | Foundations: tool loop, memory, workflow patterns |
+| ↳ `build` | `topics/build.md` | 22 | Agents, skills, hooks, headless mode, MCP |
+| ↳ `configuration` | `topics/configuration.md` | 13 | Settings hierarchy, permissions, interface customization |
+| ↳ `deployment` | `topics/deployment.md` | 11 | Bedrock, Vertex, Foundry, network, CI/CD |
+| ↳ `administration` | `topics/administration.md` | 13 | Org setup, auth, security, data, costs, analytics |
 | `best-practices` | `topics/best-practices.md` | 15 | CLAUDE.md design, config, session hygiene |
 | `mcp-development` | `topics/mcp-development.md` | 20 | Building MCP servers from fundamentals to production |
 | `anthropic-api` | `topics/anthropic-api.md` | 18 | Claude API from basic completions to tool use loops |

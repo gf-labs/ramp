@@ -30,7 +30,7 @@ It's not a report. It's a mode.
 
 | Topic | Command (plugin) | Nodes | Focus |
 |-------|---------|-------|-------|
-| `claude-code` (default) | `/sup:sup` | 36 | Claude Code features: navigation, code changes, agents, automation |
+| `claude-code` (default) | `/sup:sup` | 71 | Claude Code features — meta-topic sourcing 5 sub-topics |
 | `best-practices` | `/sup:sup best-practices` | 15 | CLAUDE.md design, configuration patterns, session hygiene |
 | `mcp-development` | `/sup:sup mcp-development` | 20 | Building MCP servers: tools, resources, prompts, distribution |
 | `anthropic-api` | `/sup:sup anthropic-api` | 18 | Claude API: completions, tool use, agentic loops, production patterns |
@@ -52,45 +52,50 @@ Future topics planned (not yet built): `bash`, `react`, `typescript`, `dsa`, `gi
 
 ## The knowledge tree (claude-code topic)
 
-36 nodes across 6 branches. Every node grounded in Claude Code's actual feature surface.
+71 nodes across 5 sub-topics. Every node grounded in Claude Code's actual feature surface.
 
 ```
-[ROOT] Configure Claude
-    [✓] CLAUDE.md with project guidance
-    [✓] settings.json / settings.local.json exists
-    [~] Model or budget settings configured
-    [★] /memory audit and CLAUDE.md hierarchy
-    [ ] CLI fundamentals (/help, /doctor, /usage)
+[Getting Started] Core Foundations
+    [✓] What Claude Code does and when to use it
+    [✓] How Claude Code uses computers (tool loop)
+    [★] Memory types and scope hierarchy
 
-[~] Memory and Context Management
-    [★] Context window and /compact usage
-    [ ] Session naming and resumption
-    [ ] Rewind / checkpointing (Esc+Esc)
-    [✓] @file references, images, piped input
-    [✓] Plan mode (Shift+Tab)
-    [~] Permissions system (/permissions, globs)
+[Getting Started] Working Effectively
+    [✓] Common workflow patterns
+    [~] Writing effective prompts for code tasks
 
-[✓] Codebase Navigation
-    [✓] Read + Glob + Grep exploration
-    [✓] Explain an unfamiliar module
-    [~] Trace a call path across files
-    [ ] Repo-wide pattern audit
-    [ ] Verification patterns after changes
+[Getting Started] Best Practices
+    [★] CLAUDE.md as living project memory
 
-[~] Code Change Workflows
-    [✓] Single-file edits with context
-    [★] Multi-file coordinated changes
-    [ ] Commit / PR description generation
-    [ ] Test-first workflow
-    [ ] Refactor with safety net
-    [ ] Long-running agentic tasks
-    [ ] Bash mode (!command) and -p
+[Build] Agents and Orchestration
+    [✓] Subagent basics: spawning and tool access
+    [~] Foreground vs. background subagents
+    [★] Custom subagent definitions (.claude/agents/)
 
-[·] Agents and Orchestration   (unlock: complete 4 Code Change skills)
-[·] Automation and Extension   (unlock: complete 4 Agents skills)
+[Build] Skills and Plugins
+    [✓] Skills (slash commands): creation and syntax
+    [✓] Skill mechanics: $ARGUMENTS, !bash, @file
 
-Your frontier: → /memory audit [★]  → /compact usage [★]  → Multi-file changes [★]
-Level: Builder — solid navigation, ready to go deeper on changes and context management
+[Build] Hooks System
+    [✓] PostToolUse hooks (linting, reactions)
+    [★] PreToolUse hooks (validation, blocking)
+
+[Build] Headless and MCP
+    [~] Headless mode (-p flag, non-interactive)
+    [ ] MCP: configure and use servers
+
+[Configuration] Settings Fundamentals
+    [✓] Settings scope hierarchy: global, project, local
+    [✓] Model selection and budget configuration
+
+[Configuration] Permissions and Security
+    [✓] Permissions: allow/deny rules and glob patterns
+
+[·] Deployment   (unlock: complete Configuration)
+[·] Administration   (unlock: complete Deployment)
+
+Your frontier: → Memory types [★]  → CLAUDE.md as living memory [★]  → PreToolUse hooks [★]
+Level: Builder — hooks and commands demonstrated, moving into orchestration
 ```
 
 Marker key: `[✓]` demonstrated · `[~]` self-reported · `[ ]` not yet · `[★]` mastery target · `[·]` locked

@@ -474,57 +474,13 @@ level: [Explorer / Builder / Practitioner / Expert]
 xp: [CURRENT_XP]
 ---
 
-# Claude Code Knowledge Tree
+# [Topic] Knowledge Tree
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 
-## [ROOT] Configure Claude
-- [STATUS|TYPE] CLAUDE.md with project guidance
-- [STATUS|TYPE] settings.json / settings.local.json exists
-- [STATUS|TYPE] Model or budget settings configured
-- [STATUS|TYPE] /memory audit and CLAUDE.md hierarchy
-- [STATUS|TYPE] CLI fundamentals (/help, /doctor, /usage)
-
-## [A] Memory and Context Management
-- [STATUS|TYPE] Context window and /compact usage
-- [STATUS|TYPE] Session naming and resumption
-- [STATUS|TYPE] Rewind / checkpointing (Esc+Esc)
-- [STATUS|TYPE] @file references, images, piped input
-- [STATUS|TYPE] Plan mode (Shift+Tab)
-- [STATUS|TYPE] Permissions system (/permissions, globs)
-
-## [B] Codebase Navigation
-- [STATUS|TYPE] Read + Glob + Grep exploration
-- [STATUS|TYPE] Explain an unfamiliar module
-- [STATUS|TYPE] Trace a call path across files
-- [STATUS|TYPE] Repo-wide pattern audit
-- [STATUS|TYPE] Verification patterns after changes
-
-## [C] Code Change Workflows
-- [STATUS|TYPE] Single-file edits with context
-- [STATUS|TYPE] Multi-file coordinated changes
-- [STATUS|TYPE] Commit / PR description generation
-- [STATUS|TYPE] Test-first workflow
-- [STATUS|TYPE] Refactor with safety net
-- [STATUS|TYPE] Long-running agentic tasks
-- [STATUS|TYPE] Bash mode (!command) and -p
-
-## [D] Agents and Orchestration
-- [STATUS|TYPE] Parallel subagents
-- [STATUS|TYPE] Worktrees for parallel development
-- [STATUS|TYPE] Custom subagent definitions
-- [STATUS|TYPE] Custom slash commands
-- [STATUS|TYPE] MCP servers configured and used
-- [STATUS|TYPE] Agent teams and headless mode
-
-## [E] Automation and Extension
-- [STATUS|TYPE] PreToolUse hooks
-- [STATUS|TYPE] PostToolUse hooks
-- [STATUS|TYPE] Notification hooks (Stop, idle)
-- [STATUS|TYPE] Hooks scoped to skills/subagents
-- [STATUS|TYPE] !bash context injection in skill files
-- [STATUS|TYPE] Custom MCP server
-- [STATUS|TYPE] Claude Code SDK (custom agent apps)
+<!-- Emit one section per branch from the loaded schema, in dependency order.
+     Branch headings must match the schema's branch names exactly.
+     Node lines: - [STATUS|TYPE] Node name — [evidence | next: date [LN]] -->
 
 ## Frontier
 - [frontier node name] — [criterion one-liner]
