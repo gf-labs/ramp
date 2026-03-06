@@ -67,11 +67,6 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 **Topic schema** (loaded from ~/.claude/knowledge-trees/schemas/[topic].md):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-trees/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-trees/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat .claude/knowledge-trees/schemas/$TOPIC.md 2>/dev/null || cat ~/.claude/knowledge-trees/schemas/$TOPIC.md 2>/dev/null || echo "SCHEMA_NOT_FOUND: Create a schema at .claude/knowledge-trees/schemas/$TOPIC.md (project-local) or ~/.claude/knowledge-trees/schemas/$TOPIC.md (global)"`
 
-**Knowledge tree migration** (one-time: copies personal tree files from ~/.claude/skill-trees/ — skips schemas/):
-!`[ -d ~/.claude/skill-trees ] && [ ! -d ~/.claude/knowledge-trees ] && mkdir -p ~/.claude/knowledge-trees && find ~/.claude/skill-trees -maxdepth 1 -name "*.md" -exec cp {} ~/.claude/knowledge-trees/ \; && echo "MIGRATED: personal tree files moved to knowledge-trees/ (schemas NOT migrated — reinstall with: cp topics/*.md ~/.claude/knowledge-trees/schemas/)" || echo "OK"`
-
-**v1 file migration** (one-time: moves ~/.claude/skill-tree.md → ~/.claude/knowledge-trees/claude-code.md):
-!`[ -f ~/.claude/skill-tree.md ] && [ ! -f ~/.claude/knowledge-trees/claude-code.md ] && mkdir -p ~/.claude/knowledge-trees && mv ~/.claude/skill-tree.md ~/.claude/knowledge-trees/claude-code.md && echo "MIGRATED: skill-tree.md → knowledge-trees/claude-code.md" || echo "OK"`
 
 **Existing knowledge tree** (for active topic):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-trees/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-trees/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-trees/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE"`
@@ -111,9 +106,9 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 !`find ~/.claude/agents .claude/agents -name "*.md" 2>/dev/null | wc -l | tr -d ' '` custom subagent definitions
 !`grep -r "claude -p\|claude --print" scripts/ Makefile .github/ 2>/dev/null | wc -l | tr -d ' '` headless claude invocations in repo
 !`ls .claude/worktrees/ 2>/dev/null | wc -l | tr -d ' '` project worktree dirs
-!`python3 -c "import glob; print(sum(1 for f in glob.glob('.claude/commands/*.md') + glob.glob('.claude/skills/*.md') if any(line.lstrip().startswith('!') for line in open(f))))" 2>/dev/null || echo "0"` skill files with bash injection
+!`python3 -c "import glob; print(sum(1 for f in glob.glob('.claude/commands/*.md') + glob.glob('.claude/agents/*.md') if any(line.lstrip().startswith('!') for line in open(f))))" 2>/dev/null || echo "0"` agent files with bash injection
 
-**Historical skill evidence** (git log signals — corroborate knowledge tree inference):
+**Historical knowledge tree evidence** (git log signals — corroborate knowledge tree inference):
 !`{ echo "=== commits mentioning claude/mcp/hook/worktree ==="; git log --all --oneline --grep="worktree\|mcp\|hook\|claude -p\|subagent" -5 2>/dev/null | head -5; echo "=== .claude/ files added historically ==="; git log --all --diff-filter=A --name-only --pretty="" 2>/dev/null | grep -E "\.claude/" | head -10; echo "=== hooks or mcpServers in settings history ==="; git log --all -p -- ".claude/settings.json" 2>/dev/null | grep -E '"hooks"|"mcpServers"' | head -3; } 2>/dev/null || echo "none"`
 
 ---
@@ -209,7 +204,7 @@ After the user answers, proceed directly to Phase 2 and Phase 3. Do not ask foll
 
 ## Phase 2: Knowledge Tree Inference (silent — do not display this section header)
 
-Populate the skill tree by combining three evidence sources in priority order.
+Populate the knowledge tree by combining three evidence sources in priority order.
 
 ### Qualitative answer rubric
 

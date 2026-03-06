@@ -22,14 +22,10 @@ topics/best-practices.md     # Best practices topic schema (15 nodes)
 topics/mcp-development.md    # MCP development topic schema (20 nodes)
 topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + WorktreeCreate + SessionStart)
-scripts/dev-setup.sh         # Dev: symlink commands + schemas for project-scope testing
-scripts/dev-teardown.sh      # Dev: remove symlinks, convert schemas back to copies
-scripts/install-hook.sh      # Install passive observer hook (standalone path)
-install.sh                   # Standalone install: commands/ + topics/ → ~/.claude/
 README.md                    # Install instructions, modes, company deployment guide
 ```
 
-**Note:** `commands/` at root is the source of truth for command files — used by both `install.sh` and the plugin system. `.claude/commands/` is gitignored; `dev-setup.sh` creates symlinks there for project-scope testing.
+**Note:** `commands/` at root is the source of truth for command files — used by the plugin system and company deployment (copy to team repo's `.claude/commands/`). `.claude/commands/` is gitignored.
 
 No build steps, no dependencies, no runtime. Commands are pure prompt engineering in Markdown files.
 
@@ -56,7 +52,7 @@ No build steps, no dependencies, no runtime. Commands are pure prompt engineerin
 
 ## Knowledge tree
 
-Both `/sup` and `/tree` render and update a knowledge tree — a structured map of a developer's Claude Code capabilities. (Previously called "skill tree"; renamed to avoid conflict with Claude Code's internal skills terminology.)
+Both `/sup` and `/tree` render and update a knowledge tree — a structured map of a developer's Claude Code capabilities.
 
 **Tree structure (ROOT unlocks all; A → B → C → D → E sequentially, 36 nodes total):**
 - **[ROOT] Configure Claude** — CLAUDE.md, settings.json, model/budget tuning, /memory audit, CLI fundamentals
@@ -102,9 +98,7 @@ Both `/sup` and `/tree` render and update a knowledge tree — a structured map 
 | **Team** | Project | `.claude/knowledge-trees/[topic].md` | Yes | option `d` |
 | **Local** | Local | `.claude/knowledge-trees/local/[topic].md` | No (gitignored) | option `e` |
 
-Merge priority (highest to lowest): Local → Team → Personal. A local `[✓]` upgrades anything; nothing ever downgrades a `[✓]`. `/sup` reads all three layers in Phase 2 and merges them into a working tree before any output.
-
-Claude Code does **not** walk up the directory tree. A `.claude/` directory at a parent level (e.g., `~/Repos/.claude/`) is treated as the project scope for sessions launched from that directory — it is not an intermediate layer. The knowledge tree system respects the same two-scope-per-session model (user + current project), extended with the local layer for gitignored personal notes.
+Merge priority: Local → Team → Personal. A local `[✓]` upgrades anything; nothing downgrades a `[✓]`. `/sup` reads all three layers in Phase 2 and merges before output. Note: Claude Code does not walk up the directory tree — a `.claude/` at a parent level is treated as the project scope for sessions launched there.
 
 ## Topics
 
@@ -153,10 +147,7 @@ level: Builder
 
 **Review field:** `| next: YYYY-MM-DD [LN]` on `[✓]` nodes only. Encodes spaced repetition schedule.
 
-**Version migration:**
-- `version: 1` files: all `[✓]` treated as `[✓|historical]`; upgraded to version 3 on next write; `xp:` computed and added
-- `version: 2` files: paths updated; `| next:` field added to `[✓]` nodes; `xp:` computed and added; upgraded to version 3
-- Old path `~/.claude/skill-trees/` — personal tree files (not schemas) are migrated to `~/.claude/knowledge-trees/` automatically on first `/sup` run; schemas must be reinstalled manually from `topics/`
+**Version migration:** v1 files have all `[✓]` treated as `[✓|historical]`; v2 files get `| next:` fields added. Both upgrade to version 3 on next write with `xp:` computed. Old `~/.claude/skill-trees/` personal tree files are migrated automatically on first `/sup` run.
 
 ## How slash commands work
 

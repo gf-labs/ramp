@@ -3,31 +3,19 @@
 skill-observer.py — Passive Claude Code knowledge tree observer
 
 Hook that watches sessions and updates ~/.claude/knowledge-trees/claude-code.md
-when skill evidence is detected from tool calls and lifecycle events.
+when knowledge tree evidence is detected from tool calls and lifecycle events.
 
-Install:
-  cp scripts/skill-observer.py ~/.claude/hooks/skill-observer.py
-  chmod +x ~/.claude/hooks/skill-observer.py
+Install (via plugin — automatic):
+  /plugin install sup@sup-marketplace
+  Hooks are auto-registered. No manual setup needed.
+
+For standalone use, register in ~/.claude/settings.json:
+  PostToolUse (matcher: ".*"), WorktreeCreate, SessionStart
+  → command: "python3 /path/to/skill-observer.py"
 
 Writes to: ~/.claude/knowledge-trees/claude-code.md (created automatically if absent)
 Note: this observer is Claude Code–specific. For other topics, create a separate
 observer script with topic-specific detection rules.
-
-Register in ~/.claude/settings.json:
-  {
-    "hooks": {
-      "PostToolUse": [{
-        "matcher": ".*",
-        "hooks": [{"type": "command", "command": "python3 ~/.claude/hooks/skill-observer.py"}]
-      }],
-      "WorktreeCreate": [{
-        "hooks": [{"type": "command", "command": "python3 ~/.claude/hooks/skill-observer.py"}]
-      }],
-      "SessionStart": [{
-        "hooks": [{"type": "command", "command": "python3 ~/.claude/hooks/skill-observer.py"}]
-      }]
-    }
-  }
 
 Note: built-in CLI commands (/help, /compact, /cost, /doctor) fire NO hook events —
 they are handled by the CLI itself before any tool loop runs. Mastery of these is
@@ -293,7 +281,7 @@ def main():
     elif hook_event == "SessionStart":
         # Plugin path: auto-symlink schemas from plugin cache to ~/.claude/knowledge-trees/schemas/
         # This runs when installed as a plugin (CLAUDE_PLUGIN_ROOT is set by Claude Code).
-        # On standalone install (via install-hook.sh), CLAUDE_PLUGIN_ROOT is not set — skipped.
+        # On standalone installs, CLAUDE_PLUGIN_ROOT is not set — skipped.
         plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT", "")
         if plugin_root:
             topics_dir = Path(plugin_root) / "topics"
@@ -308,7 +296,7 @@ def main():
                             dst.symlink_to(topic_file)
                     elif not dst.exists():
                         dst.symlink_to(topic_file)
-                    # Real file (from install.sh) → leave it alone
+                    # Real file (manually placed) → leave it alone
 
         source = data.get("source", "")
         if source == "compact":
