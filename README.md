@@ -166,7 +166,7 @@ After the session, `/sup` also offers to **bootstrap the repo's Claude Code setu
 
 **Plugin install:**
 ```bash
-/plugin marketplace add berniegreen/sup
+/plugin marketplace add gf-labs/claude-code-slash-getting-started
 /plugin install sup@sup-marketplace
 ```
 
