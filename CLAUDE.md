@@ -24,6 +24,7 @@ commands/cheatsheet.md       # Personal reference: demonstrated skills + evidenc
 commands/status.md           # Project status snapshot — git state, architecture, tree health
 commands/audit.md            # Repo consistency audit — find and fix stale artifacts
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
+.claude-plugin/marketplace.json # Marketplace catalog (source, keywords, install metadata)
 hooks/hooks.json             # Plugin hook config (PostToolUse + WorktreeCreate + SessionStart)
 topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 71 nodes total)
 topics/getting-started.md    # Getting started sub-topic (12 nodes)
@@ -38,6 +39,9 @@ scripts/skill-observer.py    # Passive observer hook (PostToolUse + WorktreeCrea
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
 mcp/server.py                # knowledge-tree MCP server (read/write trees; swappable backend)
 docs/tree-format.md          # Annotated v3 knowledge tree format example
+docs/docs-map.md             # Maps all doc pages to topics and nodes
+BACKLOG.md                   # Prioritized work items — immediate, medium, icebox
+.mcp.json.example            # MCP server config template (copy → .mcp.json, fill in paths)
 README.md                    # Install instructions, modes, company deployment guide
 ```
 
