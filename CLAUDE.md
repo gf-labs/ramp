@@ -46,9 +46,9 @@ No build steps, no dependencies, no runtime. Commands are pure prompt engineerin
 
 ## Customization
 
-**Two layers of company customization:**
+sup adapts at three levels of scope:
 
-**1. `## Onboarding` in CLAUDE.md** — team context injected into every `/sup` session and the generated `ONBOARDING.md`:
+**1. Session context** — add `## Onboarding` to CLAUDE.md in any repo:
 ```markdown
 ## Onboarding
 - Run `make setup` before anything else
@@ -56,8 +56,13 @@ No build steps, no dependencies, no runtime. Commands are pure prompt engineerin
 - Auth system owned by @alice, data pipeline by @bob
 - Ask in #dev-help — 30-minute rule before escalating
 ```
+Injected into every `/sup` session and the generated `ONBOARDING.md`.
 
-**2. Custom topic schema** — a full project-specific curriculum committed to `.claude/knowledge-trees/schemas/[topic].md`. Engineers run `/sup [topic]` and get a personalized onboarding path grounded in the actual codebase, with exercises, evidence tracking, and spaced repetition. No separate install step — the schema is discovered automatically from the project-local path. See `topics/claude-code.md` for the schema format.
+**2. Project curriculum** — commit a schema to `.claude/knowledge-trees/schemas/[topic].md`:
+Engineers run `/sup [topic]` and get a codebase-grounded learning path with exercises, evidence tracking, and spaced repetition. Auto-discovered from the project-local path — no install step. See `topics/claude-code.md` for the schema format.
+
+**3. Backend / org-wide** — set `KNOWLEDGE_TREE_API_URL` (via `mcp/server.py`):
+Trees are loaded from a central backend at session start and synced back on save. Enables org-level curricula, team skill matrices, and cross-device sync. Without this env var, sup runs fully local — no setup required.
 
 ## Knowledge tree
 
@@ -110,51 +115,23 @@ Merge priority: Local → Team → Personal. A local `[✓]` upgrades anything; 
 
 ## Topics
 
-| Topic | File | Nodes | Focus |
-|-------|------|-------|-------|
-| `claude-code` | `topics/claude-code.md` | 71 | Claude Code features — meta-topic sourcing 5 sub-topics |
-| ↳ `getting-started` | `topics/getting-started.md` | 12 | Foundations: tool loop, memory, workflow patterns |
-| ↳ `build` | `topics/build.md` | 22 | Agents, skills, hooks, headless mode, MCP |
-| ↳ `configuration` | `topics/configuration.md` | 13 | Settings hierarchy, permissions, interface customization |
-| ↳ `deployment` | `topics/deployment.md` | 11 | Bedrock, Vertex, Foundry, network, CI/CD |
-| ↳ `administration` | `topics/administration.md` | 13 | Org setup, auth, security, data, costs, analytics |
-| `best-practices` | `topics/best-practices.md` | 15 | CLAUDE.md design, config, session hygiene |
-| `mcp-development` | `topics/mcp-development.md` | 20 | Building MCP servers from fundamentals to production |
-| `anthropic-api` | `topics/anthropic-api.md` | 18 | Claude API from basic completions to tool use loops |
+Topic schemas live in `topics/` — `/sup` discovers them at runtime by scanning that directory. To add a custom topic: create `topics/[name].md` following the format in any existing file.
+
+**Core (meta-topic + sub-topics):**
+`claude-code` (71 nodes) — full Claude Code curriculum, sources all five sub-topics:
+`getting-started` · `build` · `configuration` · `deployment` · `administration`
+
+**Standalone:**
+`best-practices` (15 nodes) — CLAUDE.md design, config, session hygiene
+`mcp-development` (20 nodes) — building MCP servers from fundamentals to production
+`anthropic-api` (18 nodes) — Claude API from basic completions to tool use loops
 
 ## Knowledge tree file
 
 **Location:** `~/.claude/knowledge-trees/[topic].md` (global, personal — follows the developer across all projects)
 
-**Format:** YAML frontmatter (machine-parseable) + Markdown body (human-readable):
-
-```markdown
----
-version: 3
-topic: claude-code
-user: [Your Name]
-email: [your@email.com]
-updated: 2026-03-04
-level: Builder
----
-
-# Claude Code Knowledge Tree
-
-*[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
-
-## [ROOT] Configure Claude
-- [✓|artifact] CLAUDE.md with project guidance — sup, 2026-03-04: 80+ lines | next: 2026-03-05 [L1]
-- [✓|artifact] settings.json / settings.local.json exists — sup, 2026-03-04: global + project | next: 2026-03-05 [L1]
-- [~|reported] Model or budget settings configured
-- [ ] /memory audit and CLAUDE.md hierarchy
-...
-
-## Frontier
-- Context window and /compact usage — has used /compact deliberately; can explain difference
-
-## Notes
-<!-- personal notes -->
-```
+**Format:** YAML frontmatter (machine-parseable) + Markdown body (human-readable).
+Full annotated example: `docs/tree-format.md`
 
 **Status + TYPE fields:** `[✓|artifact]`, `[✓|exercise]`, `[✓|historical]`, `[~|reported]`, `[ ]`. Type records how mastery was demonstrated.
 

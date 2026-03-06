@@ -1,4 +1,4 @@
-# sup
+# sup `v0.12.0`
 
 Claude Code adoption stalls for a predictable reason: the documentation is complete, but it doesn't adapt to *you* — your codebase, your current level, what you've already demonstrated. Most developers plateau at basic edits and multi-file changes. Hooks, worktrees, custom agents, MCP servers, and pipeline integration remain unexplored. The capability gap compounds.
 
@@ -186,6 +186,63 @@ Once the repo is public on GitHub, submit at [claude.ai/settings/plugins/submit]
 cp your-topic.md ~/.claude/knowledge-trees/schemas/your-topic.md
 # Then use it: /sup your-topic
 ```
+
+---
+
+## MCP server (`knowledge-tree`)
+
+`mcp/server.py` is an optional MCP server that gives `/sup` structured read/write access to your knowledge trees — atomic saves, cross-device sync, and a clear upgrade path to team and org layers.
+
+**Why use it:** Without the MCP, `/sup` reads trees via a bash `cat` at session start and writes via the Write tool. With the MCP, reads and writes go through structured tools — enabling swappable backends (local files → hosted API) without changing `sup.md`.
+
+**Setup:**
+
+```bash
+pip install mcp
+```
+
+Add to `~/.claude/.mcp.json` (global, all repos):
+```json
+{
+  "mcpServers": {
+    "knowledge-tree": {
+      "command": "python3",
+      "args": ["/absolute/path/to/sup/mcp/server.py"]
+    }
+  }
+}
+```
+
+Or project-local (`.mcp.json` in the repo root):
+```json
+{
+  "mcpServers": {
+    "knowledge-tree": {
+      "command": "python3",
+      "args": ["./mcp/server.py"]
+    }
+  }
+}
+```
+
+**Tools exposed:**
+
+| Tool | Description |
+|------|-------------|
+| `read_tree(topic)` | Read a knowledge tree — returns markdown |
+| `save_tree(topic, content)` | Atomic write + optional backend sync |
+| `list_topics()` | All topics with level and XP — returns JSON |
+| `get_benchmarks(topic)` | Personal stats; team/org when backend configured |
+| `export_delta(topic, since_date)` | Demonstrated nodes since a date — for team sharing |
+
+**Hosted backend (team/org):**
+
+Set `KNOWLEDGE_TREE_API_URL` to point the MCP at a backend API:
+```bash
+export KNOWLEDGE_TREE_API_URL=https://your-backend.example.com
+```
+
+The server proxies `read_tree` and `save_tree` to `GET/PUT /trees/{topic}` and `get_benchmarks` to `GET /benchmarks/{topic}`. The backend enables cross-device sync, team skill matrices, org dashboards, and the global curriculum feedback loop. Falls back to local files if the backend is unreachable.
 
 ---
 

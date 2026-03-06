@@ -2,3 +2,7 @@
 .claude/commands/
 .claude/knowledge-trees/local/
 .claude/settings.local.json
+.mcp.json
+.venv/
+__pycache__/
+*.pyc

@@ -1,6 +1,6 @@
 ---
 description: Learning mode — ramp up on any topic (Claude Code, best-practices, or a custom topic) through your codebase and workflows
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit
+allowed-tools: Read, Glob, Grep, Bash, Write, Edit, mcp__knowledge-tree__read_tree, mcp__knowledge-tree__save_tree, mcp__knowledge-tree__list_topics, mcp__knowledge-tree__get_benchmarks, mcp__knowledge-tree__export_delta
 argument-hint: [topic?] [optional: who you are, what you're starting, what you want to learn]
 ---
 
@@ -236,6 +236,12 @@ The schema file contains:
 
 ### Inference rules
 
+**Step 0 — MCP tree source (if `knowledge-tree` MCP is configured):**
+
+Check the "MCP servers configured" line in the auto-collected context above. If `knowledge-tree` appears (project-level or global), call `mcp__knowledge-tree__read_tree` with the active topic now. Use the result as the authoritative tree for all Phase 2 inference — it takes precedence over the bash-injected "Existing knowledge tree" content, which was a fallback snapshot taken at invocation time.
+
+If `knowledge-tree` MCP is not configured, skip this step and use the bash-injected tree as normal.
+
 **Step 1 — Apply environmental signals (primary evidence, takes precedence over self-report):**
 
 Apply every signal from the "Detection signals" section of the loaded schema. Cross-reference each auto-collected signal (above) against the detection table. Environmental signals take precedence over self-report.
@@ -461,7 +467,7 @@ Execute only what's selected. For option **b**, write `ONBOARDING.md` to the rep
 - [ ] [3–5 specific, time-boxed actions grounded in this repo]
 ```
 
-For option **a**, write `~/.claude/knowledge-trees/[active-topic].md` (e.g., `~/.claude/knowledge-trees/claude-code.md`). Include `xp: [CURRENT_XP]` in the YAML frontmatter. Use the "Saved tree file template" from the loaded schema for exact format. If the schema doesn't include a template, use this generic format:
+For option **a**, save the knowledge tree for the active topic. If `knowledge-tree` MCP is configured (per the auto-collected context), call `mcp__knowledge-tree__save_tree(topic=[active-topic], content=[full-tree-markdown])` — this handles the write atomically and syncs to any configured backend. If MCP is not configured, write `~/.claude/knowledge-trees/[active-topic].md` using the Write tool. Either way, include `xp: [CURRENT_XP]` in the YAML frontmatter. Use the "Saved tree file template" from the loaded schema for exact format. If the schema doesn't include a template, use this generic format:
 
 ```markdown
 ---
