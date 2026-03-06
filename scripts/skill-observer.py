@@ -132,13 +132,38 @@ def update_node_reported(tree: str, node_pattern: str, evidence: str) -> tuple[s
     return "\n".join(lines) + ("\n" if tree.endswith("\n") else ""), changed
 
 
+BRANCH_XP = {"ROOT": 10, "A": 15, "B": 20, "C": 25}
+
+
+def compute_xp(tree: str) -> int:
+    """Compute total XP from the tree file content.
+
+    Branch tier is determined by the nearest ## [ header above each node.
+    Header format: ## [SubTopic · BRANCH] Section name
+    XP: [✓ = full, [~ = half (floor), [ ] = 0
+    """
+    xp = 0
+    current_branch_xp = 0
+    for line in tree.splitlines():
+        if line.startswith("## ["):
+            m = re.search(r"\·\s*(ROOT|A|B|C)\]", line)
+            current_branch_xp = BRANCH_XP.get(m.group(1), 0) if m else 0
+        elif line.strip().startswith("- [✓"):
+            xp += current_branch_xp
+        elif line.strip().startswith("- [~"):
+            xp += current_branch_xp // 2
+    return xp
+
+
 def save_tree(tree: str):
-    # Update the `updated:` date in frontmatter
+    # Update the `updated:` date and recompute `xp:` in frontmatter
+    new_xp = compute_xp(tree)
     lines = tree.splitlines()
     for i, line in enumerate(lines):
         if line.startswith("updated:"):
             lines[i] = f"updated: {TODAY}"
-            break
+        elif line.startswith("xp:"):
+            lines[i] = f"xp: {new_xp}"
     SKILL_TREE_PATH.parent.mkdir(parents=True, exist_ok=True)
     SKILL_TREE_PATH.write_text("\n".join(lines) + ("\n" if tree.endswith("\n") else ""))
 
@@ -155,61 +180,61 @@ DETECTION_RULES = [
         "pattern": r"git\s+worktree\s+add",
         "node": "Worktrees for parallel development",
     },
-    # Bash: claude -p → C: Bash mode / D: Agent teams
+    # Bash: claude -p → C: Headless mode / Build ROOT: Agent teams
     {
         "tool": "Bash",
         "field": "command",
         "pattern": r"claude\s+(-p|--print)\b",
-        "node": "Bash mode (!command) and -p",
+        "node": "Headless mode (-p flag, non-interactive)",
     },
     {
         "tool": "Bash",
         "field": "command",
         "pattern": r"claude\s+(-p|--print)\b",
-        "node": "Agent teams and headless mode",
+        "node": "Agent teams: orchestration patterns",
     },
-    # Write/Edit to ~/.claude/agents/*.md → D: Custom subagent defs
+    # Write/Edit to ~/.claude/agents/*.md → Build ROOT: Custom subagent defs
     {
         "tool": "Write",
         "field": "file_path",
         "pattern": r"\.claude/agents/.*\.md$",
-        "node": "Custom subagent definitions",
+        "node": "Custom subagent definitions (.claude/agents/)",
     },
     {
         "tool": "Edit",
         "field": "file_path",
         "pattern": r"\.claude/agents/.*\.md$",
-        "node": "Custom subagent definitions",
+        "node": "Custom subagent definitions (.claude/agents/)",
     },
-    # Write/Edit to .claude/commands/*.md → D: Custom slash commands
+    # Write/Edit to .claude/commands/*.md → Build A: Skills
     {
         "tool": "Write",
         "field": "file_path",
         "pattern": r"\.claude/commands/.*\.md$",
-        "node": "Custom slash commands",
+        "node": "Skills (slash commands): creation and syntax",
     },
     {
         "tool": "Edit",
         "field": "file_path",
         "pattern": r"\.claude/commands/.*\.md$",
-        "node": "Custom slash commands",
+        "node": "Skills (slash commands): creation and syntax",
     },
-    # Write/Edit to .github/workflows/ with 'claude' → D: Agent teams
+    # Write/Edit to .github/workflows/ with 'claude' → Build ROOT: Agent teams
     {
         "tool": "Write",
         "field": "file_path",
         "pattern": r"\.github/workflows/",
         "content_pattern": r"claude",
-        "node": "Agent teams and headless mode",
+        "node": "Agent teams: orchestration patterns",
     },
-    # Write/Edit to ~/.claude/settings.json with 'hooks' → E: hooks
+    # Write/Edit to settings.json with 'hooks' → Build B: hooks
     {
         "tool": "Write",
         "field": "file_path",
         "pattern": r"settings\.json$",
         "content_field": "content",
         "content_pattern": r'"hooks"',
-        "node": "PostToolUse hooks",  # generic — could be any hook type
+        "node": "PostToolUse hooks (linting, reactions)",
     },
     {
         "tool": "Edit",
@@ -217,16 +242,16 @@ DETECTION_RULES = [
         "pattern": r"settings\.json$",
         "content_field": "new_string",
         "content_pattern": r'"hooks"',
-        "node": "PostToolUse hooks",
+        "node": "PostToolUse hooks (linting, reactions)",
     },
-    # Write/Edit to settings.json with 'mcpServers' → D: MCP servers
+    # Write/Edit to settings.json with 'mcpServers' → Build C: MCP servers
     {
         "tool": "Write",
         "field": "file_path",
         "pattern": r"settings\.json$",
         "content_field": "content",
         "content_pattern": r'"mcpServers"',
-        "node": "MCP servers configured and used",
+        "node": "MCP: configure and use servers",
     },
     {
         "tool": "Edit",
@@ -234,7 +259,56 @@ DETECTION_RULES = [
         "pattern": r"settings\.json$",
         "content_field": "new_string",
         "content_pattern": r'"mcpServers"',
-        "node": "MCP servers configured and used",
+        "node": "MCP: configure and use servers",
+    },
+    # General activity rules — produce [~|historical] (corroborating evidence, not proof)
+    # Glob (any) → Getting Started ROOT: Core feature surface [~]
+    {
+        "tool": "Glob",
+        "field": "pattern",
+        "pattern": r".*",
+        "node": "Core feature surface (interactive vs. headless, key tools)",
+        "reported": True,
+    },
+    # Grep (any) → Getting Started ROOT: Core feature surface [~]
+    {
+        "tool": "Grep",
+        "field": "pattern",
+        "pattern": r".*",
+        "node": "Core feature surface (interactive vs. headless, key tools)",
+        "reported": True,
+    },
+    # Agent (any) → Build ROOT: Subagent basics [~]
+    {
+        "tool": "Agent",
+        "field": "prompt",
+        "pattern": r".*",
+        "node": "Subagent basics: spawning and tool access",
+        "reported": True,
+    },
+    # Bash: git workflow → Getting Started A: Common workflow patterns [~]
+    {
+        "tool": "Bash",
+        "field": "command",
+        "pattern": r"git\s+(commit|push|diff|log|status|pull|merge)\b",
+        "node": "Common workflow patterns",
+        "reported": True,
+    },
+    # Bash: test runner → Getting Started A: Reading and verifying Claude's output [~]
+    {
+        "tool": "Bash",
+        "field": "command",
+        "pattern": r"\b(pytest|npm\s+test|yarn\s+test|go\s+test|cargo\s+test|make\s+test)\b",
+        "node": "Reading and verifying Claude's output",
+        "reported": True,
+    },
+    # Bash: git commit (implies reviewing before committing) → same node [~]
+    {
+        "tool": "Bash",
+        "field": "command",
+        "pattern": r"git\s+commit\b",
+        "node": "Reading and verifying Claude's output",
+        "reported": True,
     },
 ]
 
@@ -292,7 +366,7 @@ def main():
                     dst = schemas_dir / topic_file.name
                     if dst.is_symlink():
                         if dst.resolve() != topic_file.resolve():
-                            dst.unlink()
+                            dst.unlink(missing_ok=True)
                             dst.symlink_to(topic_file)
                     elif not dst.exists():
                         dst.symlink_to(topic_file)
@@ -300,14 +374,14 @@ def main():
 
         source = data.get("source", "")
         if source == "compact":
-            node = "Context window and /compact usage"
+            node = "Common workflow patterns"
             if not node_already_demonstrated(tree, node):
                 evidence = f"{repo}, {TODAY}: session started via /compact"
                 tree, did_change = update_node_reported(tree, node, evidence)
                 if did_change:
                     changed = True
         elif source == "resume":
-            node = "Session naming and resumption"
+            node = "Interactive mode features"
             if not node_already_demonstrated(tree, node):
                 evidence = f"{repo}, {TODAY}: session resumed"
                 tree, did_change = update_node_reported(tree, node, evidence)
@@ -326,10 +400,15 @@ def main():
             if not matches_rule(rule, tool_name, tool_input):
                 continue
             node = rule["node"]
-            if node_already_demonstrated(tree, node):
-                continue
             evidence = f"{repo}, {TODAY}: detected via {tool_name} tool call"
-            tree, did_change = update_node(tree, node, "[✓|historical]", evidence)
+            if rule.get("reported", False):
+                # General-activity rule → [~|historical] (update_node_reported skips [~ and [✓)
+                tree, did_change = update_node_reported(tree, node, evidence)
+            else:
+                # Specific-evidence rule → [✓|historical]
+                if node_already_demonstrated(tree, node):
+                    continue
+                tree, did_change = update_node(tree, node, "[✓|historical]", evidence)
             if did_change:
                 changed = True
 
