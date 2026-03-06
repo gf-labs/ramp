@@ -64,8 +64,8 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 **Active topic** (derived from first word of $ARGUMENTS if it matches a known topic keyword):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-trees/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-trees/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
 
-**Topic schema** (loaded from ~/.claude/knowledge-trees/schemas/[topic].md):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-trees/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-trees/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat .claude/knowledge-trees/schemas/$TOPIC.md 2>/dev/null || cat ~/.claude/knowledge-trees/schemas/$TOPIC.md 2>/dev/null || echo "SCHEMA_NOT_FOUND: Create a schema at .claude/knowledge-trees/schemas/$TOPIC.md (project-local) or ~/.claude/knowledge-trees/schemas/$TOPIC.md (global)"`
+**Topic schema** (loaded from ~/.claude/knowledge-trees/schemas/[topic].md — composite if sources: declared):
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-trees/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-trees/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; SCHEMA=$(cat .claude/knowledge-trees/schemas/$TOPIC.md 2>/dev/null || cat ~/.claude/knowledge-trees/schemas/$TOPIC.md 2>/dev/null || echo "SCHEMA_NOT_FOUND: Create a schema at .claude/knowledge-trees/schemas/$TOPIC.md (project-local) or ~/.claude/knowledge-trees/schemas/$TOPIC.md (global)"); echo "$SCHEMA"; if echo "$SCHEMA" | grep -q "^sources:"; then for SRC in $(echo "$SCHEMA" | grep "^sources:" | head -1 | sed 's/sources: *//' | tr -d '[]' | tr ',' '\n' | tr -d ' '); do [ -n "$SRC" ] && { echo ""; echo "---"; echo "# Sourced schema: $SRC"; cat ".claude/knowledge-trees/schemas/$SRC.md" 2>/dev/null || cat "$HOME/.claude/knowledge-trees/schemas/$SRC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: $SRC"; }; done; fi`
 
 
 **Existing knowledge tree** (for active topic):
