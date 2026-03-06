@@ -25,7 +25,7 @@ Read the knowledge tree above and render a **personal cheat sheet** — a struct
 
 This is personal documentation generated from what they've actually done, not generic docs.
 
-**If `NO_TREE_FILE:[topic]`:** Say "No knowledge tree yet for **[topic]**. Run `/sup [topic]` to start one — your demonstrated skills will appear here."
+**If `NO_TREE_FILE:[topic]`:** Say "No knowledge tree yet for **[topic]**. Run `/sup:sup [topic]` to start one — your demonstrated skills will appear here."
 
 ---
 

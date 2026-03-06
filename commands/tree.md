@@ -1,5 +1,5 @@
 ---
-description: Display your knowledge tree — /tree, /tree [topic], or /tree all
+description: Display your knowledge tree — /sup:tree, /sup:tree [topic], or /sup:tree all
 argument-hint: [optional: topic name or "all"]
 allowed-tools: Bash
 ---
@@ -26,11 +26,11 @@ Read the "Active topic" and "Requested tree contents" above.
 **If `$ARGUMENTS` is empty or defaults to `claude-code`:**
 1. Show the Available knowledge trees list (as a summary — topic name + level)
 2. Display the `claude-code` tree contents cleanly
-3. End with: "To show a different topic: `/tree [topic]`. To show all: `/tree all`."
+3. End with: "To show a different topic: `/sup:tree [topic]`. To show all: `/sup:tree all`."
 
 **If `$ARGUMENTS` is a specific topic (e.g., `best-practices`):**
 1. Display that topic's tree contents cleanly
-2. If `NO_TREE_FILE:[topic]`, say: "No tree yet for **[topic]**. Run `/sup [topic]` to create one."
+2. If `NO_TREE_FILE:[topic]`, say: "No tree yet for **[topic]**. Run `/sup:sup [topic]` to create one."
 3. End with: "To share: copy the contents of `~/.claude/knowledge-trees/[topic].md`"
 
 **If `$ARGUMENTS` is `all`:**

@@ -351,7 +351,7 @@ After the tree:
 
 **If `HAS_REVIEW_DUE = true`** (from Phase 0b), add this after the Level line:
 > **Due for review ([N] nodes):** [list due node names, bullet format]
-> Run `/review` (or `/review [topic]`) to keep them solid.
+> Run `/sup:review` (or `/sup:review [topic]`) to keep them solid.
 
 *Tip: `/rename [topic]` saves this session name so you can resume it tomorrow.* (Standard/Full mode only)
 

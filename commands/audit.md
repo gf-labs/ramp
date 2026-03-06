@@ -73,6 +73,9 @@ for f in files:
 **Python syntax check**:
 !`python3 -m py_compile scripts/skill-observer.py 2>&1 && echo "OK: scripts/skill-observer.py" || echo "ERROR: scripts/skill-observer.py"; python3 -m py_compile scripts/file-size-warn.py 2>&1 && echo "OK: scripts/file-size-warn.py" || echo "ERROR: scripts/file-size-warn.py"; python3 -m py_compile mcp/server.py 2>&1 && echo "OK: mcp/server.py" || echo "ERROR: mcp/server.py"`
 
+**Stale plugin command syntax** (unnamespaced /cmd refs in committed files):
+!`grep -rn --include="*.md" -E "/(sup|tree|review|cheatsheet|status|audit)[ \`\[]" commands/ CLAUDE.md README.md 2>/dev/null | grep -v "sup:" || echo "none"`
+
 **Knowledge tree frontmatter** (user's actual trees):
 !`python3 -c "
 import os, glob
@@ -186,6 +189,14 @@ Interpret the "Knowledge tree frontmatter" output. For each tree file found:
 - `[WARN]` if `version:` is missing or not `3`
 - `[WARN]` if any required field is absent: `topic`, `user`, `updated`, `level`, `xp`
 - `[INFO]` if `email:` is absent (optional but recommended for multi-device sync)
+
+### Check 13 — Plugin command syntax [LINT]
+
+Interpret the "Stale plugin command syntax" output. For each match:
+- `[WARN]` if a committed file contains a user-facing command reference like `/tree`, `/sup`, `/review`, `/cheatsheet`, `/status`, or `/audit` without the `sup:` namespace prefix
+- Fix: replace with the namespaced form (`/sup:tree`, `/sup:sup`, `/sup:review`, `/sup:cheatsheet`, `/sup:status`, `/sup:audit`)
+
+Exclude: lines beginning with `!` (bash injections), and lines in sections explicitly documenting historical or old syntax.
 
 ---
 

@@ -34,9 +34,9 @@ You are running a focused spaced repetition review session. No full assessment, 
 
 Read the knowledge tree above. Find all `[✓]` nodes where the `next: YYYY-MM-DD` date is **≤ today's date**.
 
-If `NO_TREE_FILE:[topic]`: say "No knowledge tree found for **[topic]**. Run `/sup [topic]` to create one." Stop.
+If `NO_TREE_FILE:[topic]`: say "No knowledge tree found for **[topic]**. Run `/sup:sup [topic]` to create one." Stop.
 
-If no due nodes today: say "Nothing due today for **[topic]**." Then show the earliest upcoming review date from the tree (lowest future `next:` date). Check the "All topics" list above and mention if other topics have due nodes. End with: "Run `/sup [topic]` to practice new skills."
+If no due nodes today: say "Nothing due today for **[topic]**." Then show the earliest upcoming review date from the tree (lowest future `next:` date). Check the "All topics" list above and mention if other topics have due nodes. End with: "Run `/sup:sup [topic]` to practice new skills."
 
 If due nodes exist: proceed to Step 2.
 
@@ -95,7 +95,7 @@ Reviewed [N] nodes. [N passed] passed, [N failed] reset. +[total XP] XP this ses
 Next session: [earliest next: date across all nodes in this topic]
 ```
 
-If other topics have due nodes today (from the "All topics" context above), mention: "Also due today: [topic] ([N] nodes). Run `/review [topic]` when ready."
+If other topics have due nodes today (from the "All topics" context above), mention: "Also due today: [topic] ([N] nodes). Run `/sup:review [topic]` when ready."
 
 ---
 
