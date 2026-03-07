@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 """
-skill-observer.py — Passive Claude Code knowledge tree observer
+skill-observer.py — Passive Claude Code knowledge graph observer
 
-Hook that watches sessions and updates ~/.claude/knowledge-trees/claude-code.md
-when knowledge tree evidence is detected from tool calls and lifecycle events.
+Hook that watches sessions and updates ~/.claude/knowledge-graphs/claude-code.md
+when knowledge graph evidence is detected from tool calls and lifecycle events.
 
 Install (via plugin — automatic):
-  /plugin install sup@sup-marketplace
+  /plugin install ramp@gfl-marketplace
   Hooks are auto-registered. No manual setup needed.
 
 For standalone use, register in ~/.claude/settings.json:
   PostToolUse (matcher: ".*"), WorktreeCreate, SessionStart
   → command: "python3 /path/to/skill-observer.py"
 
-Writes to: ~/.claude/knowledge-trees/claude-code.md (created automatically if absent)
+Writes to: ~/.claude/knowledge-graphs/claude-code.md (created automatically if absent)
 Note: this observer is Claude Code–specific. For other topics, create a separate
 observer script with topic-specific detection rules.
 
 Note: built-in CLI commands (/help, /compact, /cost, /doctor) fire NO hook events —
 they are handled by the CLI itself before any tool loop runs. Mastery of these is
-captured via /sup assessment, not this observer.
+captured via /ramp:up assessment, not this observer.
 
 Claude Code passes hook input as JSON on stdin. Event shapes:
   PostToolUse:   {"hook_event_name": "PostToolUse", "tool_name": "Bash", "tool_input": {...}}
@@ -37,7 +37,7 @@ from pathlib import Path
 # All current detection rules are Claude Code–specific, so always writes to claude-code topic.
 # Future topic-specific observers can be separate scripts with their own detection rules
 # registered under separate hook matchers (e.g., matcher: "bash_runner_.*").
-SKILL_TREE_PATH = Path.home() / ".claude" / "knowledge-trees" / "claude-code.md"
+SKILL_GRAPH_PATH = Path.home() / ".claude" / "knowledge-graphs" / "claude-code.md"
 TODAY = date.today().isoformat()
 
 
@@ -64,8 +64,8 @@ def get_repo_name():
 
 
 def read_tree() -> str:
-    if SKILL_TREE_PATH.exists():
-        return SKILL_TREE_PATH.read_text()
+    if SKILL_GRAPH_PATH.exists():
+        return SKILL_GRAPH_PATH.read_text()
     return ""
 
 
@@ -132,7 +132,7 @@ def update_node_reported(tree: str, node_pattern: str, evidence: str) -> tuple[s
     return "\n".join(lines) + ("\n" if tree.endswith("\n") else ""), changed
 
 
-BRANCH_XP = {"ROOT": 10, "A": 15, "B": 20, "C": 25}
+BRANCH_XP = {"ROOT": 10, "A": 15, "B": 20, "C": 25, "D": 35, "E": 50}
 
 
 def compute_xp(tree: str) -> int:
@@ -146,7 +146,7 @@ def compute_xp(tree: str) -> int:
     current_branch_xp = 0
     for line in tree.splitlines():
         if line.startswith("## ["):
-            m = re.search(r"\·\s*(ROOT|A|B|C)\]", line)
+            m = re.search(r"\·\s*(ROOT|A|B|C|D|E)\]", line)
             current_branch_xp = BRANCH_XP.get(m.group(1), 0) if m else 0
         elif line.strip().startswith("- [✓"):
             xp += current_branch_xp
@@ -164,8 +164,8 @@ def save_tree(tree: str):
             lines[i] = f"updated: {TODAY}"
         elif line.startswith("xp:"):
             lines[i] = f"xp: {new_xp}"
-    SKILL_TREE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    SKILL_TREE_PATH.write_text("\n".join(lines) + ("\n" if tree.endswith("\n") else ""))
+    SKILL_GRAPH_PATH.parent.mkdir(parents=True, exist_ok=True)
+    SKILL_GRAPH_PATH.write_text("\n".join(lines) + ("\n" if tree.endswith("\n") else ""))
 
 
 # Detection rules: (tool_name, input_field, pattern, node_pattern, node_label)
@@ -353,19 +353,23 @@ def main():
                 changed = True
 
     elif hook_event == "SessionStart":
-        # Plugin path: auto-symlink schemas from plugin cache to ~/.claude/knowledge-trees/schemas/
+        # Plugin path: auto-symlink schemas from plugin cache to ~/.claude/knowledge-graphs/schemas/
         # This runs when installed as a plugin (CLAUDE_PLUGIN_ROOT is set by Claude Code).
         # On standalone installs, CLAUDE_PLUGIN_ROOT is not set — skipped.
         plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT", "")
         if plugin_root:
             topics_dir = Path(plugin_root) / "topics"
-            schemas_dir = Path.home() / ".claude" / "knowledge-trees" / "schemas"
+            schemas_dir = Path.home() / ".claude" / "knowledge-graphs" / "schemas"
             if topics_dir.is_dir():
                 schemas_dir.mkdir(parents=True, exist_ok=True)
                 for topic_file in topics_dir.glob("*.md"):
                     dst = schemas_dir / topic_file.name
                     if dst.is_symlink():
-                        if dst.resolve() != topic_file.resolve():
+                        try:
+                            dst.resolve(strict=True)  # raises OSError if symlink is broken
+                            # Valid symlink — leave it alone regardless of target path
+                        except OSError:
+                            # Broken symlink — replace it
                             dst.unlink(missing_ok=True)
                             dst.symlink_to(topic_file)
                     elif not dst.exists():

@@ -1,5 +1,5 @@
 ---
-description: Spaced repetition review — practice knowledge tree nodes due today
+description: Spaced repetition review — practice knowledge graph nodes due today
 argument-hint: [optional: topic name]
 allowed-tools: Bash, Write, Edit
 ---
@@ -9,15 +9,15 @@ allowed-tools: Bash, Write, Edit
 **Requested topic**: $ARGUMENTS
 
 **Active topic** (first word if it matches a known topic, otherwise "claude-code"):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-trees/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-trees/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
 
 **Today's date**: !`date +%Y-%m-%d`
 
 **Knowledge tree contents** (for active topic):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-trees/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-trees/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-trees/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
 
 **All topics — earliest due dates** (to check if other topics have due nodes):
-!`for f in ~/.claude/knowledge-trees/*.md; do [ -f "$f" ] || continue; TOPIC=$(basename "$f" .md); EARLIEST=$(grep -oP "next: \K[0-9]{4}-[0-9]{2}-[0-9]{2}" "$f" 2>/dev/null | sort | head -1); [ -n "$EARLIEST" ] && echo "$TOPIC: next review $EARLIEST"; done 2>/dev/null || echo "none"`
+!`for f in ~/.claude/knowledge-graphs/*.md; do [ -f "$f" ] || continue; TOPIC=$(basename "$f" .md); EARLIEST=$(grep -oP "next: \K[0-9]{4}-[0-9]{2}-[0-9]{2}" "$f" 2>/dev/null | sort | head -1); [ -n "$EARLIEST" ] && echo "$TOPIC: next review $EARLIEST"; done 2>/dev/null || echo "none"`
 
 ---
 
@@ -32,21 +32,24 @@ You are running a focused spaced repetition review session. No full assessment, 
 
 ## Step 1: Find due nodes
 
-Read the knowledge tree above. Find all `[✓]` nodes where the `next: YYYY-MM-DD` date is **≤ today's date**.
+Read the knowledge tree above.
 
-If `NO_TREE_FILE:[topic]`: say "No knowledge tree found for **[topic]**. Run `/sup:sup [topic]` to create one." Stop.
+1. Find all `[✓]` nodes where the `next: YYYY-MM-DD` date is **≤ today's date** — the primary SR queue.
+2. Count all `[~]` nodes in the tree — the secondary verification queue.
 
-If no due nodes today: say "Nothing due today for **[topic]**." Then show the earliest upcoming review date from the tree (lowest future `next:` date). Check the "All topics" list above and mention if other topics have due nodes. End with: "Run `/sup:sup [topic]` to practice new skills."
+If `NO_TREE_FILE:[topic]`: say "No knowledge tree found for **[topic]**. Run `/ramp:up [topic]` to create one." Stop.
 
-If due nodes exist: proceed to Step 2.
+If no `[✓]` nodes due AND no `[~]` nodes: say "Nothing due and no claimed skills to verify for **[topic]**." Show the earliest upcoming review date. Check the "All topics" list above and mention if other topics have due nodes.
+
+If no `[✓]` nodes due BUT `[~]` nodes exist: skip the "nothing due" message. Go directly to Step 2b.
+
+If `[✓]` due nodes exist: say "**[N] node(s) due for review in [topic]**." Proceed with Step 2a, then offer Step 2b afterward.
 
 ---
 
-## Step 2: Run reviews
+## Step 2a: SR pass — review due `[✓]` nodes
 
-Open with: "**[N] node(s) due for review in [topic]** — let's go through them."
-
-For each due node, one at a time:
+For each due `[✓]` node, one at a time:
 
 **Present the node:**
 ```
@@ -74,11 +77,35 @@ Move to the next due node.
 
 ---
 
+## Step 2b: Feynman verification — claimed `[~]` nodes
+
+After the SR pass (or if no `[✓]` nodes were due), check if `[~]` nodes exist.
+
+If `[~]` nodes exist, offer: "You have [N] claimed (unverified) skill(s). Want to verify one? A teaching-level answer earns `[✓]`."
+
+If user agrees (or if there were no `[✓]` nodes due and `[~]` nodes exist):
+
+- Pick the highest-priority `[~]` node: ROOT > A > B > C > D > E; leftmost first within each branch.
+- Present it:
+  ```
+  Verifying: [Node name]
+  What mastery looks like: [the mastery criterion — one sentence]
+  ```
+- Ask one Feynman question: "Explain [X] as you'd teach it — include the *why*, a concrete scenario, and one edge case or tradeoff."
+- Apply the Feynman rubric:
+  - **Pass** — answer includes why, a scenario with context, and an edge/tradeoff: upgrade `[~]` → `[✓|exercise]`, add evidence trail `— [repo], [today]: verified via Feynman in /ramp:review | next: [today+1d] [L1]`, award full node XP.
+  - **Fail** — vague or affirmation-only ("I've used it", "it does X"): stays `[~]`. Say "Let's revisit — it'll come up again."
+
+Do **one** `[~]` verification per session. End after one regardless of outcome.
+
+---
+
 ## Step 3: Update the saved file
 
-After all due nodes are reviewed, update `~/.claude/knowledge-trees/[topic].md`:
+After all reviews and any Feynman verification, update `~/.claude/knowledge-graphs/[topic].md`:
 
-- For each reviewed node, update the `| next: YYYY-MM-DD [LN]` field on its line
+- For each SR-reviewed `[✓]` node: update the `| next: YYYY-MM-DD [LN]` field on its line
+- If a `[~]` node passed Feynman verification: replace its full line from `[~|reported] Node name — [old evidence]` to `[✓|exercise] Node name — [repo], [today]: verified via Feynman in /ramp:review | next: [today+1d] [L1]`
 - Recompute total XP (XP per branch: ROOT=10, A=15, B=20, C=25, D=35, E=50; [✓]=full, [~]=half, [ ]=0) and update the `xp:` field in YAML frontmatter
 - Update the `updated: YYYY-MM-DD` field in the YAML frontmatter to today's date
 - Do not change any other fields, statuses, or content
@@ -92,17 +119,21 @@ Use Edit tool to make targeted replacements.
 Show a brief summary:
 ```
 Reviewed [N] nodes. [N passed] passed, [N failed] reset. +[total XP] XP this session.
+[If Feynman ran] Verified: [node name] → [✓] +[XP] XP   OR   Unverified: [node name] — try again after practicing it.
 Next session: [earliest next: date across all nodes in this topic]
 ```
 
-If other topics have due nodes today (from the "All topics" context above), mention: "Also due today: [topic] ([N] nodes). Run `/sup:review [topic]` when ready."
+If `[~]` nodes remain unverified: "Run `/ramp:review` again to verify more claimed skills, or `/ramp:up` to demonstrate them in-session."
+
+If other topics have due nodes today (from the "All topics" context above), mention: "Also due today: [topic] ([N] nodes). Run `/ramp:review [topic]` when ready."
 
 ---
 
 ## Constraints
 
-- One node at a time — do not show all nodes upfront
+- One node at a time in both queues — do not show all nodes upfront
 - Do not ask follow-up questions after the user answers — accept at face value and apply the rubric
 - Do not explain the spaced repetition system unless asked
-- Do not offer to practice new skills in this command — that's `/sup`
+- Do not offer to practice new skills in this command — that's `/ramp:up`
+- Feynman verification: one `[~]` node per session, always offered after the SR pass
 - Keep the whole session under 5 exchanges per node

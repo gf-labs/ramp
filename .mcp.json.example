@@ -1,10 +1,10 @@
 {
   "mcpServers": {
-    "knowledge-tree": {
+    "knowledge-graph": {
       "command": "/absolute/path/to/sup/.venv/bin/python3",
       "args": ["/absolute/path/to/sup/mcp/server.py"],
       "env": {
-        "KNOWLEDGE_TREE_API_URL": ""
+        "KNOWLEDGE_GRAPH_API_URL": ""
       }
     }
   }

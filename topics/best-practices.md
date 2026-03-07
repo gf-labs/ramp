@@ -161,7 +161,7 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 
 ## Saved tree file template
 
-When writing to `~/.claude/knowledge-trees/best-practices.md`, use this format:
+When writing to `~/.claude/knowledge-graphs/best-practices.md`, use this format:
 
 ```markdown
 ---

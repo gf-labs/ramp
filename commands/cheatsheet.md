@@ -9,13 +9,13 @@ allowed-tools: Bash
 **Requested topic**: $ARGUMENTS
 
 **Active topic** (first word if it matches a known topic, otherwise "claude-code"):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-trees/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-trees/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
 
 **Knowledge tree contents** (for active topic):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-trees/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-trees/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-trees/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
 
 **Topic schema** (for source_url links):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-trees/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-trees/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-trees/schemas/$TOPIC.md 2>/dev/null | grep -E "^\|.*http" | head -40 || echo "NO_SCHEMA"`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-graphs/schemas/$TOPIC.md 2>/dev/null | grep -E "^\|.*http" | head -40 || echo "NO_SCHEMA"`
 
 ---
 
@@ -25,7 +25,7 @@ Read the knowledge tree above and render a **personal cheat sheet** — a struct
 
 This is personal documentation generated from what they've actually done, not generic docs.
 
-**If `NO_TREE_FILE:[topic]`:** Say "No knowledge tree yet for **[topic]**. Run `/sup:sup [topic]` to start one — your demonstrated skills will appear here."
+**If `NO_TREE_FILE:[topic]`:** Say "No knowledge tree yet for **[topic]**. Run `/ramp:up [topic]` to start one — your demonstrated skills will appear here."
 
 ---
 
@@ -55,7 +55,7 @@ Skip all `[~]`, `[ ]`, `[·]` nodes entirely — this is a reference of what's b
 - No review dates (`| next: ...`) — strip these from the evidence trail display
 - Each node fits in 2–4 lines: name, evidence, reference
 - Branch headers only appear if the branch has demonstrated nodes
-- If all branches are empty (no `[✓]` nodes at all): "Nothing demonstrated yet. Run `/sup` to start your first session."
+- If all branches are empty (no `[✓]` nodes at all): "Nothing demonstrated yet. Run `/ramp:up` to start your first session."
 
 ---
 
@@ -66,7 +66,7 @@ End with one line:
 [N] skills documented · Level: [level from frontmatter] · [XP] XP
 ```
 
-Then: "Run `/sup` to add more demonstrated skills to this reference."
+Then: "Run `/ramp:up` to add more demonstrated skills to this reference."
 
 ---
 

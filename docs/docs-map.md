@@ -3,7 +3,7 @@
 Generated: 2026-03-05 | Source: https://code.claude.com/docs/en/
 
 This file maps every Claude Code documentation page to its topic schema and the nodes it informs.
-Purpose: human-readable reference now; machine-parseable foundation for a future `/sup:sync` command.
+Purpose: human-readable reference now; machine-parseable foundation for a future `/ramp:sync` command.
 
 ---
 

@@ -1,7 +1,8 @@
 .git/
 .claude/commands/
-.claude/knowledge-trees/local/
+.claude/knowledge-graphs/local/
 .claude/settings.local.json
+.env
 .mcp.json
 .venv/
 __pycache__/

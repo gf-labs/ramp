@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-knowledge-tree MCP server for sup
+knowledge-graph MCP server for ramp
 
-Provides structured read/write access to Claude Code knowledge trees.
-Backend: local files at ~/.claude/knowledge-trees/ by default.
-Set KNOWLEDGE_TREE_API_URL to proxy reads/writes to a hosted backend,
+Provides structured read/write access to Claude Code knowledge graphs.
+Backend: local files at ~/.claude/knowledge-graphs/ by default.
+Set KNOWLEDGE_GRAPH_API_URL to proxy reads/writes to a hosted backend,
 enabling cross-device sync, team skill matrices, and org analytics.
 
 Quick setup:
@@ -13,7 +13,7 @@ Quick setup:
 Configure in ~/.claude/.mcp.json (global) or .mcp.json (project-local):
   {
     "mcpServers": {
-      "knowledge-tree": {
+      "knowledge-graph": {
         "command": "python3",
         "args": ["/absolute/path/to/sup/mcp/server.py"]
       }
@@ -21,7 +21,7 @@ Configure in ~/.claude/.mcp.json (global) or .mcp.json (project-local):
   }
 
 Environment variables:
-  KNOWLEDGE_TREE_API_URL  If set, read/write proxies to this backend URL.
+  KNOWLEDGE_GRAPH_API_URL  If set, read/write proxies to this backend URL.
                           Enables team/org/global benchmark layers.
                           Format: https://your-backend.example.com
 """
@@ -46,15 +46,15 @@ except ImportError:
 # Configuration
 # ---------------------------------------------------------------------------
 
-TREE_DIR = Path.home() / ".claude" / "knowledge-trees"
-API_URL = os.environ.get("KNOWLEDGE_TREE_API_URL", "").rstrip("/")
+GRAPH_DIR = Path.home() / ".claude" / "knowledge-graphs"
+API_URL = os.environ.get("KNOWLEDGE_GRAPH_API_URL", "").rstrip("/")
 TODAY = date.today().isoformat()
 
 # ---------------------------------------------------------------------------
 # Server
 # ---------------------------------------------------------------------------
 
-mcp = FastMCP("knowledge-tree")
+mcp = FastMCP("knowledge-graph")
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -103,12 +103,12 @@ def _safe_xp(value: str) -> int:
 
 
 @mcp.tool()
-def read_tree(topic: str) -> str:
+def read_graph(topic: str) -> str:
     """
-    Read the knowledge tree for a topic.
+    Read the knowledge graph for a topic.
 
-    Returns the full markdown content of ~/.claude/knowledge-trees/{topic}.md,
-    or 'NO_TREE_FILE' if not found. When KNOWLEDGE_TREE_API_URL is set,
+    Returns the full markdown content of ~/.claude/knowledge-graphs/{topic}.md,
+    or 'NO_TREE_FILE' if not found. When KNOWLEDGE_GRAPH_API_URL is set,
     fetches from the remote backend instead (local file is a fallback cache).
 
     Args:
@@ -118,7 +118,7 @@ def read_tree(topic: str) -> str:
         try:
             import urllib.request
             req = urllib.request.Request(
-                f"{API_URL}/trees/{topic}",
+                f"{API_URL}/graphs/{topic}",
                 headers={"Accept": "text/plain"},
             )
             with urllib.request.urlopen(req, timeout=5) as resp:
@@ -126,24 +126,24 @@ def read_tree(topic: str) -> str:
         except Exception:
             pass  # Fall through to local file
 
-    path = TREE_DIR / f"{topic}.md"
+    path = GRAPH_DIR / f"{topic}.md"
     return path.read_text(encoding="utf-8") if path.exists() else "NO_TREE_FILE"
 
 
 @mcp.tool()
-def save_tree(topic: str, content: str) -> str:
+def save_graph(topic: str, content: str) -> str:
     """
-    Save the knowledge tree for a topic.
+    Save the knowledge graph for a topic.
 
-    Performs an atomic write to ~/.claude/knowledge-trees/{topic}.md.
-    When KNOWLEDGE_TREE_API_URL is set, also syncs to the remote backend.
+    Performs an atomic write to ~/.claude/knowledge-graphs/{topic}.md.
+    When KNOWLEDGE_GRAPH_API_URL is set, also syncs to the remote backend.
     Returns a confirmation string with topic, level, and XP.
 
     Args:
         topic:   Topic name, e.g. 'claude-code'
-        content: Full markdown content of the tree (version 3 format)
+        content: Full markdown content of the graph (version 3 format)
     """
-    path = TREE_DIR / f"{topic}.md"
+    path = GRAPH_DIR / f"{topic}.md"
     _atomic_write(path, content)
 
     fm = _parse_frontmatter(content)
@@ -155,7 +155,7 @@ def save_tree(topic: str, content: str) -> str:
             import urllib.request
             data = content.encode("utf-8")
             req = urllib.request.Request(
-                f"{API_URL}/trees/{topic}",
+                f"{API_URL}/graphs/{topic}",
                 data=data,
                 method="PUT",
                 headers={"Content-Type": "text/plain; charset=utf-8"},
@@ -170,16 +170,16 @@ def save_tree(topic: str, content: str) -> str:
 @mcp.tool()
 def list_topics() -> str:
     """
-    List all knowledge tree topics with their current level and XP.
+    List all knowledge graph topics with their current level and XP.
 
-    Scans ~/.claude/knowledge-trees/*.md and extracts frontmatter.
+    Scans ~/.claude/knowledge-graphs/*.md and extracts frontmatter.
     Returns a JSON array of objects: [{topic, level, xp, updated}].
     """
-    if not TREE_DIR.exists():
+    if not GRAPH_DIR.exists():
         return json.dumps([])
 
     topics = []
-    for path in sorted(TREE_DIR.glob("*.md")):
+    for path in sorted(GRAPH_DIR.glob("*.md")):
         try:
             fm = _parse_frontmatter(path.read_text(encoding="utf-8"))
             topics.append({
@@ -199,8 +199,8 @@ def get_benchmarks(topic: str) -> str:
     """
     Get peer benchmarks for a topic: team median XP, common gaps, org percentile.
 
-    In local mode (no KNOWLEDGE_TREE_API_URL), returns personal stats only.
-    Set KNOWLEDGE_TREE_API_URL to enable team and org benchmark layers.
+    In local mode (no KNOWLEDGE_GRAPH_API_URL), returns personal stats only.
+    Set KNOWLEDGE_GRAPH_API_URL to enable team and org benchmark layers.
     Returns JSON.
 
     Args:
@@ -208,7 +208,7 @@ def get_benchmarks(topic: str) -> str:
     """
     # Read personal stats from local tree
     user_stats: dict = {"level": None, "xp": None}
-    path = TREE_DIR / f"{topic}.md"
+    path = GRAPH_DIR / f"{topic}.md"
     if path.exists():
         fm = _parse_frontmatter(path.read_text(encoding="utf-8"))
         user_stats = {
@@ -246,7 +246,7 @@ def get_benchmarks(topic: str) -> str:
         "backend_url": None,
         "message": (
             "Local mode — personal stats only. "
-            "Set KNOWLEDGE_TREE_API_URL for team/org benchmarks."
+            "Set KNOWLEDGE_GRAPH_API_URL for team/org benchmarks."
         ),
     }, indent=2)
 
@@ -257,7 +257,7 @@ def export_delta(topic: str, since_date: str) -> str:
     Export demonstrated ([✓]) nodes added since a given date.
 
     Returns a markdown delta in the project-local tree format, suitable for
-    committing to .claude/knowledge-trees/{topic}.md to share with teammates,
+    committing to .claude/knowledge-graphs/{topic}.md to share with teammates,
     or for seeding a remote backend.
 
     Args:
@@ -265,7 +265,7 @@ def export_delta(topic: str, since_date: str) -> str:
         since_date: ISO date string (YYYY-MM-DD). Nodes with evidence on or
                     after this date are included.
     """
-    path = TREE_DIR / f"{topic}.md"
+    path = GRAPH_DIR / f"{topic}.md"
     if not path.exists():
         return f"NO_TREE_FILE: {topic}"
 
@@ -308,7 +308,7 @@ def export_delta(topic: str, since_date: str) -> str:
         f"---\n\n"
         f"# {topic} Knowledge Tree — {repo}\n\n"
         f"*Project evidence log — nodes demonstrated since {since_date}. "
-        f"Merges with personal tree on /sup run.*\n\n"
+        f"Merges with personal graph on /ramp:up run.*\n\n"
         f"## Evidence\n"
     )
     return header + "\n".join(delta_lines) + "\n"

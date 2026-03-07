@@ -1,27 +1,26 @@
-# sup — Backlog
+# ramp — Backlog
 
 ## In Progress
 (nothing)
 
 ## Up Next
 
-### Rename `knowledge-tree` → `knowledge-graph`
-- **Size:** M — 101 occurrences across 18 files
-- 5 change types: directory paths, MCP tool names, MCP server config key, human-readable text, plugin metadata
-- MCP tool names are breaking (`mcp__knowledge-tree__*` → `mcp__knowledge-graph__*`)
-- Requires migrating `~/.claude/knowledge-trees/` on local machine
-- Must be done as a single coordinated session (touches everything)
-
 ## Backlog
+
+### Schema symlinks should prefer live repo over plugin cache
+- **Size:** S
+- The SessionStart hook updates schema symlinks to point to `CLAUDE_PLUGIN_ROOT/topics/` — but when `CLAUDE_PLUGIN_ROOT` is the plugin cache, edits to the live repo's `topics/` are invisible to `/ramp:up` until the plugin version is bumped
+- Root cause: global hook fires with cache as `CLAUDE_PLUGIN_ROOT`; project hook fires with live repo path; last writer wins (or race condition picks one)
+- Fix options: (a) prefer live repo symlinks when both point to valid files, (b) don't update symlinks if target already valid (skip re-pointing to cache), or (c) separate env vars for cache vs. dev root
 
 ### Dynamic `.mcp.json` resolution
 - **Size:** S
 - Replace static `.mcp.json.example` + manual setup with a script that detects `.venv/`, generates `.mcp.json` from a template, and registers the MCP server automatically
-- Triggered by: `scripts/setup-mcp.py` or a new `/sup:setup` command
+- Triggered by: `scripts/setup-mcp.py` or a new `/ramp:setup` command
 
 ### MCP server logs
 - **Size:** S
-- Add `logging` module to `mcp/server.py`; write to `~/.claude/logs/knowledge-tree.log` or stderr
+- Add `logging` module to `mcp/server.py`; write to `~/.claude/logs/knowledge-graph.log` or stderr
 - Include: tool call name, topic, read/write result, timestamp
 
 ### Cleanup/simplify Python scripts
@@ -39,7 +38,7 @@
 - **Size:** M
 - Add PostToolUse hook that runs JSON/Python lint checks (Checks 9–10) after every Edit/Write
 - Shell-only — no Claude invocation; fast enough for every tool use
-- Full `/sup:audit` remains on-demand
+- Full `/audit` remains on-demand
 
 ### Expand audit rules + underlying dependencies
 - **Size:** M
@@ -48,18 +47,34 @@
 
 ### Per-command model configuration
 - **Size:** S
-- Set `model:` frontmatter in command files to right-size token usage: e.g., Haiku for `/sup:tree` and `/sup:cheatsheet` (read-only, no inference), Sonnet for `/sup:audit`, full model for `/sup:sup` and `/sup:review`
+- Set `model:` frontmatter in command files to right-size token usage: e.g., Haiku for `/ramp:tree` and `/ramp:cheatsheet` (read-only, no inference), full model for `/ramp:up` and `/ramp:review`
 - Measure actual token usage per command to inform assignments
 
-### Permissions policy for `~/.claude/knowledge-trees/`
+### Permissions policy for `~/.claude/knowledge-graphs/`
 - **Size:** S
-- Add allow rules to `~/.claude/settings.json` covering `~/.claude/knowledge-trees/` read/write — currently this directory is accessed by the MCP server and skill-observer.py without explicit permission entries, unlike other governed paths
+- Add allow rules to `~/.claude/settings.json` covering `~/.claude/knowledge-graphs/` read/write — currently this directory is accessed by the MCP server and skill-observer.py without explicit permission entries, unlike other governed paths
 - Audit what rules currently cover it and fill any gaps
 
 ### Add design docs (`docs/`)
 - **Size:** M
 - Architecture docs for: knowledge-graph file format, hook system design, MCP server architecture, plugin install flow
 - One doc per subsystem; linked from CLAUDE.md `## Structure`
+
+### Global `/doctor` command — base + project extension pattern
+- **Size:** S
+- Create `~/.claude/commands/doctor.md` — a global base command that defines the check framework: environment health, tool availability, config validity
+- Each repo extends it via a local `.claude/commands/doctor.md` that sources the global base with `@~/.claude/commands/doctor.md` and adds project-specific checks (e.g., venv present, `.mcp.json` configured, dependencies installed)
+- No native command inheritance in Claude Code — purely prompt engineering convention
+- Open question: per-command extension via `@file` injection vs. per-section override; pick one approach and document as the pattern
+- Prototype in `dotfiles` or `sup` first; generalize after
+
+### Global command toolbox — audit, abstract, and extend
+- **Size:** M
+- Evaluate all commands across all projects (`~/.claude/commands/`, `.claude/commands/` in each repo, plugin commands) for abstraction opportunities
+- Pattern to consider: a "base" command in `~/.claude/commands/` defines shared behavior; a project-local `.claude/commands/` file extends or overrides it — similar to class inheritance. Example: a global `/doctor` defines the check framework; each repo's `/doctor` adds project-specific checks.
+- Questions to resolve: does Claude Code support command inheritance natively, or is this purely a prompt-engineering convention? What's the right granularity (per-command extension vs. per-section injection via `@file`)?
+- Candidates for promotion to global scope: `doctor`, `audit`, `phase-status` (currently dotfiles-only)
+- Candidates for base+extend pattern: `audit` (global base checks + per-repo additions)
 
 ### XP / knowledge-graph / levels / spaced repetition — integrated ecosystem
 - **Size:** L
@@ -71,7 +86,7 @@
 
 ### Company deployment and onboarding model — reevaluate
 - **Size:** M
-- Current model: ONBOARDING.md (static doc) + custom topic schema (active learning path); both generated by `/sup:sup`
+- Current model: ONBOARDING.md (static doc) + custom topic schema (active learning path); both generated by `/ramp:up`
 - Questions to resolve: what does a company actually install? what do engineers run on day 1? how does the knowledge tree integrate with team onboarding vs. personal ramp-up? is the two-tool model (doc + session) the right split?
 - Review the full Phase 4 options (a–e) for coherence; check README company deployment section against current plugin arch
 
@@ -81,7 +96,7 @@
 - **Size:** L
 - REST/GraphQL API to store knowledge-graphs for all users; replaces local `~/.claude/knowledge-graphs/`
 - Powers org-level curricula, team skill matrices, cross-device sync
-- `KNOWLEDGE_GRAPH_API_URL` env var (currently `KNOWLEDGE_TREE_API_URL` in `mcp/server.py`)
+- `KNOWLEDGE_GRAPH_API_URL` env var (currently `KNOWLEDGE_GRAPH_API_URL` in `mcp/server.py`)
 
 ### Expertise comparison across users
 - **Size:** L — depends on backend
@@ -91,4 +106,4 @@
 ### Live topic updater (agent + backend service)
 - **Size:** L
 - Crawls Claude/Anthropic docs on a schedule; diffs against `topics/` schemas; proposes node additions/removals
-- Likely a separate backend service with a `/sup:sync-topics` trigger command
+- Likely a separate backend service with a `/ramp:sync-topics` trigger command

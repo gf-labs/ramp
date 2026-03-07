@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`sup` activates a **learning mode** — Claude becomes a co-pilot for ramping developers up on Claude Code as an organizational tool, the codebase, and the team's workflows (commits, PRs, testing, CI). It scans the environment, assesses the user, delivers a personalized knowledge tree and learning path, then stays engaged to work through exercises together. Writes an `ONBOARDING.md` artifact and updates `~/.claude/knowledge-trees/[topic].md`.
+`ramp` activates a **learning mode** — Claude becomes a co-pilot for ramping developers up on Claude Code as an organizational tool, the codebase, and the team's workflows (commits, PRs, testing, CI). It scans the environment, assesses the user, delivers a personalized knowledge graph and learning path, then stays engaged to work through exercises together. Writes an `ONBOARDING.md` artifact and updates `~/.claude/knowledge-graphs/[topic].md`.
 
 Companies deploy it as a project-level command for engineer onboarding. Solo devs use it to level up.
 
@@ -17,12 +17,10 @@ Companies deploy it as a project-level command for engineer onboarding. Solo dev
 ## Structure
 
 ```
-commands/sup.md              # Adaptive onboarding command — manages knowledge tree
+commands/up.md               # Adaptive onboarding command — manages knowledge graph
 commands/tree.md             # Read-only knowledge tree viewer
 commands/review.md           # Spaced repetition review command
 commands/cheatsheet.md       # Personal reference: demonstrated skills + evidence trails
-commands/status.md           # Project status snapshot — git state, architecture, tree health
-commands/audit.md            # Repo consistency audit — find and fix stale artifacts
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
 .claude-plugin/marketplace.json # Marketplace catalog (source, keywords, install metadata)
 hooks/hooks.json             # Plugin hook config (PostToolUse + WorktreeCreate + SessionStart)
@@ -38,7 +36,7 @@ topics/mcp-development.md    # MCP development topic schema (20 nodes)
 topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + WorktreeCreate + SessionStart)
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
-mcp/server.py                # knowledge-tree MCP server (read/write trees; swappable backend)
+mcp/server.py                # knowledge-graph MCP server (read/write graphs; swappable backend)
 docs/tree-format.md          # Annotated v3 knowledge tree format example
 docs/docs-map.md             # Maps all doc pages to topics and nodes
 BACKLOG.md                   # Prioritized work items — immediate, medium, icebox
@@ -54,7 +52,7 @@ No build steps, no dependencies, no runtime. Commands are pure prompt engineerin
 
 ## Customization
 
-sup adapts at three levels of scope:
+ramp adapts at three levels of scope:
 
 **1. Session context** — add `## Onboarding` to CLAUDE.md in any repo:
 ```markdown
@@ -64,17 +62,17 @@ sup adapts at three levels of scope:
 - Auth system owned by @alice, data pipeline by @bob
 - Ask in #dev-help — 30-minute rule before escalating
 ```
-Injected into every `/sup` session and the generated `ONBOARDING.md`.
+Injected into every `/ramp:up` session and the generated `ONBOARDING.md`.
 
-**2. Project curriculum** — commit a schema to `.claude/knowledge-trees/schemas/[topic].md`:
-Engineers run `/sup [topic]` and get a codebase-grounded learning path with exercises, evidence tracking, and spaced repetition. Auto-discovered from the project-local path — no install step. See `topics/claude-code.md` for the schema format.
+**2. Project curriculum** — commit a schema to `.claude/knowledge-graphs/schemas/[topic].md`:
+Engineers run `/ramp:up [topic]` and get a codebase-grounded learning path with exercises, evidence tracking, and spaced repetition. Auto-discovered from the project-local path — no install step. See `topics/claude-code.md` for the schema format.
 
-**3. Backend / org-wide** — set `KNOWLEDGE_TREE_API_URL` (via `mcp/server.py`):
-Trees are loaded from a central backend at session start and synced back on save. Enables org-level curricula, team skill matrices, and cross-device sync. Without this env var, sup runs fully local — no setup required.
+**3. Backend / org-wide** — set `KNOWLEDGE_GRAPH_API_URL` (via `mcp/server.py`):
+Graphs are loaded from a central backend at session start and synced back on save. Enables org-level curricula, team skill matrices, and cross-device sync. Without this env var, ramp runs fully local — no setup required.
 
-## Knowledge tree
+## Knowledge graph
 
-Both `/sup` and `/tree` render and update a knowledge tree — a structured map of a developer's Claude Code capabilities.
+Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a structured map of a developer's Claude Code capabilities.
 
 **Tree structure (71 nodes across 5 sub-topics):**
 - **[Getting Started]** Core Foundations, Working Effectively, Best Practices — what Claude Code is, tool loop, memory, workflow patterns (12 nodes)
@@ -88,9 +86,9 @@ Both `/sup` and `/tree` render and update a knowledge tree — a structured map 
 - `[~]` **Self-reported** — claimed but not corroborated by artifact or exercise (weaker signal)
 - `[ ]` not yet · `[★]` mastery target (frontier) · `[·]` locked
 
-**Spaced repetition:** `[✓]` nodes carry a `| next: YYYY-MM-DD [LN]` field (interval ladder: L1=1d, L2=3d, L3=7d, L4=21d, L5=60d, L6=permanent). `/sup` surfaces due nodes in Phase 3. `/review` runs focused review sessions.
+**Spaced repetition:** `[✓]` nodes carry a `| next: YYYY-MM-DD [LN]` field (interval ladder: L1=1d, L2=3d, L3=7d, L4=21d, L5=60d, L6=permanent). `/ramp:up` surfaces due nodes in Phase 3. `/ramp:review` runs focused review sessions.
 
-**Per-node doc links:** Each node in topic schemas has a `source_url` column. `/sup` surfaces these as `**Reference:** [official docs](url)` in mastery mission exercises.
+**Per-node doc links:** Each node in topic schemas has a `source_url` column. `/ramp:up` surfaces these as `**Reference:** [official docs](url)` in mastery mission exercises.
 
 **XP system:** Each demonstrated `[✓]` node earns XP by branch tier (ROOT=10, A=15, B=20, C=25, D=35, E=50). `[~]` = half XP. Total stored as `xp:` in frontmatter. Displayed as "Level: Builder · 240 XP". `/review` pass awards a per-node XP bonus.
 
@@ -102,28 +100,28 @@ Both `/sup` and `/tree` render and update a knowledge tree — a structured map 
 - **Qualitative** — answer a targeted question; Claude applies an explicit rubric
 - **Historical** — evidence from past work (git log, session files, worktree directories)
 
-**Inference priority (highest to lowest, used only by `/sup`):**
+**Inference priority (highest to lowest, used only by `/ramp:up`):**
 1. Environmental signals — CLAUDE.md content, hooks/MCP in settings.json, commands in `.claude/commands/`, history scans
-2. Saved tree file — `~/.claude/knowledge-trees/[topic].md` persists progress from prior sessions; `[✓]` nodes are never downgraded
+2. Saved graph file — `~/.claude/knowledge-graphs/[topic].md` persists progress from prior sessions; `[✓]` nodes are never downgraded
 3. Self-reported assessment — fills gaps via targeted gap questions using Feynman framing ("explain X as you'd teach it") — teaching-level answers earn `[✓]`, surface-level answers stay `[~]`
 
-**`/tree`** is a dumb read-only viewer. It reads `~/.claude/knowledge-trees/[topic].md` and displays it. No inference, no writes.
+**`/ramp:tree`** is a dumb read-only viewer. It reads `~/.claude/knowledge-graphs/[topic].md` and displays it. No inference, no writes.
 
-**`/review`** is a focused spaced repetition command. It reads due `[✓]` nodes, steps through them one at a time, applies the qualitative rubric, updates `| next:` fields, and awards XP for passes.
+**`/ramp:review`** is a focused spaced repetition command. It reads due `[✓]` nodes, steps through them one at a time, applies the qualitative rubric, updates `| next:` fields, and awards XP for passes.
 
 **Three-layer tree architecture** (maps to Claude Code's native scope model):
 
 | Tree layer | Claude Code scope | Location | Git? | Phase 4 |
 |-----------|------------------|----------|------|---------|
-| **Personal global** | User | `~/.claude/knowledge-trees/[topic].md` | No | option `a` |
-| **Team** | Project | `.claude/knowledge-trees/[topic].md` | Yes | option `d` |
-| **Local** | Local | `.claude/knowledge-trees/local/[topic].md` | No (gitignored) | option `e` |
+| **Personal global** | User | `~/.claude/knowledge-graphs/[topic].md` | No | option `a` |
+| **Team** | Project | `.claude/knowledge-graphs/[topic].md` | Yes | option `d` |
+| **Local** | Local | `.claude/knowledge-graphs/local/[topic].md` | No (gitignored) | option `e` |
 
-Merge priority: Local → Team → Personal. A local `[✓]` upgrades anything; nothing downgrades a `[✓]`. `/sup` reads all three layers in Phase 2 and merges before output. Note: Claude Code does not walk up the directory tree — a `.claude/` at a parent level is treated as the project scope for sessions launched there.
+Merge priority: Local → Team → Personal. A local `[✓]` upgrades anything; nothing downgrades a `[✓]`. `/ramp:up` reads all three layers in Phase 2 and merges before output. Note: Claude Code does not walk up the directory tree — a `.claude/` at a parent level is treated as the project scope for sessions launched there.
 
 ## Topics
 
-Topic schemas live in `topics/` — `/sup` discovers them at runtime by scanning that directory. To add a custom topic: create `topics/[name].md` following the format in any existing file.
+Topic schemas live in `topics/` — `/ramp:up` discovers them at runtime by scanning that directory. To add a custom topic: create `topics/[name].md` following the format in any existing file.
 
 **Core (meta-topic + sub-topics):**
 `claude-code` (71 nodes) — full Claude Code curriculum, sources all five sub-topics:
@@ -134,9 +132,9 @@ Topic schemas live in `topics/` — `/sup` discovers them at runtime by scanning
 `mcp-development` (20 nodes) — building MCP servers from fundamentals to production
 `anthropic-api` (18 nodes) — Claude API from basic completions to tool use loops
 
-## Knowledge tree file
+## Knowledge graph file
 
-**Location:** `~/.claude/knowledge-trees/[topic].md` (global, personal — follows the developer across all projects)
+**Location:** `~/.claude/knowledge-graphs/[topic].md` (global, personal — follows the developer across all projects)
 
 **Format:** YAML frontmatter (machine-parseable) + Markdown body (human-readable).
 Full annotated example: `docs/tree-format.md`
@@ -151,8 +149,8 @@ Full annotated example: `docs/tree-format.md`
 
 Claude Code discovers `.md` files in `.claude/commands/` (project-level) or `~/.claude/commands/` (global) and exposes them as `/` commands. The filename becomes the command name. YAML frontmatter sets `description`, `argument-hint`, `allowed-tools`, and `model`.
 
-Key mechanisms used in `sup.md`:
-- `$ARGUMENTS`: replaced with whatever the user types after `/sup`
+Key mechanisms used in `ramp.md`:
+- `$ARGUMENTS`: replaced with whatever the user types after `/ramp:up`
 - `!bash-command`: executes shell commands at invocation and injects their output into the prompt (used for context collection: git log, file listing, tech stack detection, hooks/MCP config, etc.)
 - `@filename`: injects file contents (alternative to `!cat filename`)
 - `allowed-tools`: grants Claude permission to use Read, Glob, Grep, Bash, Write, Edit during the session

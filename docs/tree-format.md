@@ -1,10 +1,10 @@
-# Knowledge Tree File Format
+# Knowledge Graph File Format
 
-Canonical reference for the v3 knowledge tree file format.
+Canonical reference for the v3 knowledge graph file format.
 
-**Location:** `~/.claude/knowledge-trees/[topic].md`
-**Written by:** `/sup` (Phase 4, option a) and `skill-observer.py`
-**Read by:** `/sup` (Phase 2 inference), `/tree`, `/review`, `/cheatsheet`
+**Location:** `~/.claude/knowledge-graphs/[topic].md`
+**Written by:** `/ramp:up` (Phase 4, option a) and `skill-observer.py`
+**Read by:** `/ramp:up` (Phase 2 inference), `/ramp:tree`, `/ramp:review`, `/ramp:cheatsheet`
 
 ---
 
@@ -21,7 +21,7 @@ level: Builder                      # Derived tier: Explorer / Builder / Practit
 xp: 240                             # Computed XP total (see XP system below)
 ---
 
-# Claude Code Knowledge Tree
+# Claude Code Knowledge Graph
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 

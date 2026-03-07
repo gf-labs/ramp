@@ -19,35 +19,35 @@ This is the master topic for Claude Code. It sources five focused sub-topic sche
 
 **Total: 71 nodes across 5 sub-topics.**
 
-When `/sup` loads this topic, it concatenates all five sourced schemas. The engine sees one combined schema document with all node definitions, detection signals, gap questions, and mastery criteria.
+When `/ramp:up` loads this topic, it concatenates all five sourced schemas. The engine sees one combined schema document with all node definitions, detection signals, gap questions, and mastery criteria.
 
 ---
 
 ## Usage
 
 ```
-/sup:sup                    → claude-code (this meta-topic, full curriculum)
-/sup:sup getting-started    → focused on foundations only
-/sup:sup build              → focused on agents, skills, hooks, MCP
-/sup:sup configuration      → focused on settings and permissions
-/sup:sup deployment         → focused on cloud providers and CI/CD
-/sup:sup administration     → focused on org management and compliance
+/ramp:up                    → claude-code (this meta-topic, full curriculum)
+/ramp:up getting-started    → focused on foundations only
+/ramp:up build              → focused on agents, skills, hooks, MCP
+/ramp:up configuration      → focused on settings and permissions
+/ramp:up deployment         → focused on cloud providers and CI/CD
+/ramp:up administration     → focused on org management and compliance
 ```
 
 ## Tree file behavior
 
-Running `/sup:sup` (claude-code topic) saves to `~/.claude/knowledge-trees/claude-code.md` — a comprehensive tree containing all nodes from all sub-topics. Each sub-topic also has its own tree file for focused use.
+Running `/ramp:up` (claude-code topic) saves to `~/.claude/knowledge-graphs/claude-code.md` — a comprehensive tree containing all nodes from all sub-topics. Each sub-topic also has its own tree file for focused use.
 
 ## Merge priority for composite trees
 
 When loading tree files for a composite session:
-1. Load `~/.claude/knowledge-trees/claude-code.md` as the personal tree
+1. Load `~/.claude/knowledge-graphs/claude-code.md` as the personal tree
 2. Cross-reference nodes against all sourced sub-topic trees for any `[✓]` evidence
 3. Merge rules: never downgrade `[✓]`; sub-topic `[✓]` upgrades composite `[~]` for same node
 
 ## Saved tree file template
 
-When writing `~/.claude/knowledge-trees/claude-code.md` from a composite session, use this structure — all nodes from all sub-topics in sequence:
+When writing `~/.claude/knowledge-graphs/claude-code.md` from a composite session, use this structure — all nodes from all sub-topics in sequence:
 
 ```markdown
 ---

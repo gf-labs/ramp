@@ -1,22 +1,22 @@
 {
-  "name": "sup-marketplace",
+  "name": "gfl-marketplace",
   "owner": {
     "name": "Bernie Green"
   },
   "metadata": {
-    "description": "sup — adaptive learning, knowledge trees, and spaced repetition for Claude Code",
-    "version": "0.12.0"
+    "description": "ramp — adaptive learning, knowledge graphs, and spaced repetition for Claude Code",
+    "version": "0.13.0"
   },
   "plugins": [
     {
-      "name": "sup",
+      "name": "ramp",
       "source": "./",
-      "description": "Adaptive learning mode for Claude Code — knowledge trees, spaced repetition, and passive skill observation",
-      "version": "0.12.0",
+      "description": "Adaptive learning mode for Claude Code — knowledge graphs, spaced repetition, and passive skill observation",
+      "version": "0.13.0",
       "author": {"name": "Bernie Green"},
       "repository": "https://github.com/gf-labs/claude-code-slash-getting-started",
       "license": "MIT",
-      "keywords": ["learning", "onboarding", "knowledge-tree", "spaced-repetition", "productivity"],
+      "keywords": ["learning", "onboarding", "knowledge-graph", "spaced-repetition", "productivity"],
       "category": "productivity"
     }
   ]
