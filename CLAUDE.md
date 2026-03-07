@@ -2,6 +2,18 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Motivation
+
+`ramp` is a portfolio project by Bernie Green targeting two Anthropic roles:
+
+- **Design Engineer, AI Capability Development (Education Labs)** — The `[✓]` vs `[~]` distinction (demonstrated mastery vs. self-reported engagement) is a direct expression of Education Labs' thesis: capability growth over engagement metrics. The knowledge graph, spaced repetition, and Feynman verification are the interaction paradigm.
+- **Software Engineer, Claude Code** — ramp is built entirely within Claude Code's extension model (commands, hooks, MCP, plugin marketplace, settings hierarchy). It demonstrates deep product knowledge from the inside.
+
+Best case: ramp is adopted by Anthropic and Bernie joins to build it out.
+Full reference: `~/.claude/docs/job-applications.md`
+
+When making prioritization decisions, ask: **what best demonstrates fit for these two roles?**
+
 ## Project
 
 `ramp` activates a **learning mode** — Claude becomes a co-pilot for ramping developers up on Claude Code as an organizational tool, the codebase, and the team's workflows (commits, PRs, testing, CI). It scans the environment, assesses the user, delivers a personalized knowledge graph and learning path, then stays engaged to work through exercises together. Writes an `ONBOARDING.md` artifact and updates `~/.claude/knowledge-graphs/[topic].md`.
