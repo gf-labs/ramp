@@ -76,13 +76,24 @@
 - Candidates for promotion to global scope: `doctor`, `audit`, `phase-status` (currently dotfiles-only)
 - Candidates for base+extend pattern: `audit` (global base checks + per-repo additions)
 
-### XP / knowledge-graph / levels / spaced repetition — integrated ecosystem
+### Integrated learning system — unified capability loop
 - **Size:** L
-- All four systems (XP, knowledge graphs, levels, spaced repetition) should form a coherent, integrated loop — progress in one updates the others
-- Currently: XP is computed from tree status, levels are a label, spaced repetition is a `| next:` field, and graphs are flat files; no cross-system feedback
-- Goal: modular design — each subsystem has a defined interface; changes to one don't require touching the others
-- Example integrations: SR pass → XP bonus + level recalc; level threshold → unlock new graph branches; graph node upgrade → SR schedule reset
-- Prerequisite: backend server (or well-defined local storage contract) to hold shared state
+- **Vision:** ramp's learning components should form a single coherent system — a capability loop where progress through one component feeds all others. Currently each component is implemented independently with no cross-system feedback.
+- **The five components:**
+  1. **Knowledge graph** — structured map of demonstrated vs. claimed skills; the shared state all other components read and write
+  2. **Passive observer** (`skill-observer.py`) — detects skill signals from tool use; upgrades nodes to `[✓|artifact]` or `[✓|historical]` silently
+  3. **XP + levels** — computed from graph node status and branch tier; represents cumulative capability
+  4. **Spaced repetition** (`/ramp:review` Step 2a) — surfaces due `[✓]` nodes; advances interval ladder on pass; resets on fail
+  5. **Feynman verification** (`/ramp:review` Step 2b) — upgrades `[~]` (claimed) → `[✓|exercise]` through teaching-level demonstration
+- **Currently missing feedback loops:**
+  - SR pass → XP bonus + level recalc
+  - Feynman pass → SR schedule initialized at L1 (partially implemented)
+  - Level threshold → unlock new graph branches (frontier nodes)
+  - Passive observer upgrade → SR schedule reset (newly demonstrated nodes should enter SR)
+  - Graph node upgrade (any path) → consistent XP recompute + level display update
+- **Goal:** modular design with a defined interface per component — changes to one don't require touching the others. Each component reads/writes a shared graph contract; no component owns the full pipeline.
+- **Why this matters:** the distinction between `[✓]` (demonstrated) and `[~]` (claimed) is the core product thesis — capability over engagement. The loop is what makes that distinction durable over time, not just meaningful at first run.
+- **Prerequisite:** well-defined local storage contract (or backend). The MCP server (`mcp/server.py`) is the natural integration point — read/write operations should enforce the contract and trigger cross-component updates.
 
 ### Company deployment and onboarding model — reevaluate
 - **Size:** M
