@@ -21,7 +21,7 @@
     },
     {
       "name": "tools",
-      "source": "../claude-toolbox",
+      "source": "./toolbox",
       "description": "Personal global toolbox — audit, cleanup, doctor, history, snapshot, status",
       "version": "0.1.0",
       "author": {"name": "Bernie Green"},
