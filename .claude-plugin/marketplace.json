@@ -4,7 +4,7 @@
     "name": "Bernie Green"
   },
   "metadata": {
-    "description": "ramp — adaptive learning, knowledge graphs, and spaced repetition for Claude Code",
+    "description": "ramp and tools — Claude Code learning system and personal global toolbox",
     "version": "0.13.0"
   },
   "plugins": [
@@ -17,6 +17,16 @@
       "repository": "https://github.com/gf-labs/claude-code-slash-getting-started",
       "license": "MIT",
       "keywords": ["learning", "onboarding", "knowledge-graph", "spaced-repetition", "productivity"],
+      "category": "productivity"
+    },
+    {
+      "name": "tools",
+      "source": "../claude-toolbox",
+      "description": "Personal global toolbox — audit, cleanup, doctor, history, snapshot, status",
+      "version": "0.1.0",
+      "author": {"name": "Bernie Green"},
+      "license": "MIT",
+      "keywords": ["productivity", "cleanup", "maintenance"],
       "category": "productivity"
     }
   ]
