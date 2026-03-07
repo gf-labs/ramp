@@ -5,7 +5,7 @@ source_url: https://docs.anthropic.com/en/api/
 description: Using the Claude API and Anthropic SDK to build custom applications, pipelines, and agentic systems — from basic completions through production tool-use loops.
 ---
 
-# Anthropic API Knowledge Tree Schema
+# Anthropic API Knowledge Graph Schema
 
 This topic covers **building with the Claude API** — making completion requests, handling tool use, managing multi-turn conversations, and deploying production pipelines. A developer who completes this tree can build a reliable Claude-powered application from scratch.
 
@@ -177,7 +177,7 @@ level: [Explorer / Builder / Practitioner / Expert]
 xp: [CURRENT_XP]
 ---
 
-# Anthropic API Knowledge Tree
+# Anthropic API Knowledge Graph
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 

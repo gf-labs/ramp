@@ -5,7 +5,7 @@ source_url: https://code.claude.com/docs/en/third-party-integrations
 description: Deploying Claude Code in enterprise environments — cloud providers (Bedrock, Vertex, Foundry), network configuration, LLM gateways, and dev containers.
 ---
 
-# Deployment Knowledge Tree Schema
+# Deployment Knowledge Graph Schema
 
 This file defines the curriculum for the `deployment` topic. Covers the Deployment docs section: third-party-integrations, amazon-bedrock, google-vertex-ai, microsoft-foundry, network-config, llm-gateway, devcontainer.
 
@@ -145,7 +145,7 @@ level: [Explorer / Builder / Practitioner / Expert]
 xp: [CURRENT_XP]
 ---
 
-# Deployment Knowledge Tree
+# Deployment Knowledge Graph
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 

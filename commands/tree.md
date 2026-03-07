@@ -11,7 +11,7 @@ allowed-tools: Bash
 **Active topic** (first word if it matches a known topic, otherwise "claude-code"):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ "$FIRST" = "all" ]; then echo "all"; elif [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
 
-**Available knowledge trees**:
+**Available knowledge graphs**:
 !`ls ~/.claude/knowledge-graphs/*.md 2>/dev/null | while read f; do TOPIC=$(basename "$f" .md); LEVEL=$(python3 -c "import re; lines=open('$f').read(); m=re.search(r'^level: (.+)$', lines, re.M); print(m.group(1) if m else 'unknown')" 2>/dev/null || echo "?"); echo "  $TOPIC — $LEVEL"; done || echo "  none yet"`
 
 **Requested tree contents**:
@@ -24,7 +24,7 @@ allowed-tools: Bash
 Read the "Active topic" and "Requested tree contents" above.
 
 **If `$ARGUMENTS` is empty or defaults to `claude-code`:**
-1. Show the Available knowledge trees list (as a summary — topic name + level)
+1. Show the Available knowledge graphs list (as a summary — topic name + level)
 2. Display the `claude-code` tree contents cleanly
 3. End with: "To show a different topic: `/ramp:tree [topic]`. To show all: `/ramp:tree all`."
 

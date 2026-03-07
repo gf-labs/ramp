@@ -13,7 +13,7 @@ allowed-tools: Bash, Write, Edit
 
 **Today's date**: !`date +%Y-%m-%d`
 
-**Knowledge tree contents** (for active topic):
+**Knowledge graph contents** (for active topic):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
 
 **All topics — earliest due dates** (to check if other topics have due nodes):
@@ -32,12 +32,12 @@ You are running a focused spaced repetition review session. No full assessment, 
 
 ## Step 1: Find due nodes
 
-Read the knowledge tree above.
+Read the knowledge graph above.
 
 1. Find all `[✓]` nodes where the `next: YYYY-MM-DD` date is **≤ today's date** — the primary SR queue.
 2. Count all `[~]` nodes in the tree — the secondary verification queue.
 
-If `NO_TREE_FILE:[topic]`: say "No knowledge tree found for **[topic]**. Run `/ramp:up [topic]` to create one." Stop.
+If `NO_TREE_FILE:[topic]`: say "No knowledge graph found for **[topic]**. Run `/ramp:up [topic]` to create one." Stop.
 
 If no `[✓]` nodes due AND no `[~]` nodes: say "Nothing due and no claimed skills to verify for **[topic]**." Show the earliest upcoming review date. Check the "All topics" list above and mention if other topics have due nodes.
 

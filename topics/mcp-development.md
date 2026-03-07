@@ -5,7 +5,7 @@ source_url: https://modelcontextprotocol.io/
 description: Building MCP (Model Context Protocol) servers — expose tools, resources, and prompts that Claude can call. Covers fundamentals through production deployment.
 ---
 
-# MCP Development Knowledge Tree Schema
+# MCP Development Knowledge Graph Schema
 
 This topic covers **building MCP servers** — not just using them, but creating them. MCP (Model Context Protocol) is the standard for giving Claude access to external tools and data. A developer who completes this tree can build, test, and ship an MCP server that any Claude user can install.
 
@@ -181,7 +181,7 @@ level: [Explorer / Builder / Practitioner / Expert]
 xp: [CURRENT_XP]
 ---
 
-# MCP Development Knowledge Tree
+# MCP Development Knowledge Graph
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 

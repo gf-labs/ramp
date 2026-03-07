@@ -18,7 +18,7 @@ Companies deploy it as a project-level command for engineer onboarding. Solo dev
 
 ```
 commands/up.md               # Adaptive onboarding command — manages knowledge graph
-commands/tree.md             # Read-only knowledge tree viewer
+commands/tree.md             # Read-only knowledge graph viewer
 commands/review.md           # Spaced repetition review command
 commands/cheatsheet.md       # Personal reference: demonstrated skills + evidence trails
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
@@ -37,7 +37,7 @@ topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + WorktreeCreate + SessionStart)
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
 mcp/server.py                # knowledge-graph MCP server (read/write graphs; swappable backend)
-docs/tree-format.md          # Annotated v3 knowledge tree format example
+docs/tree-format.md          # Annotated v3 knowledge graph format example
 docs/docs-map.md             # Maps all doc pages to topics and nodes
 BACKLOG.md                   # Prioritized work items — immediate, medium, icebox
 .mcp.json.example            # MCP server config template (copy → .mcp.json, fill in paths)

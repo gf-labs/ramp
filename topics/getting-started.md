@@ -5,7 +5,7 @@ source_url: https://code.claude.com/docs/en/overview
 description: Claude Code fundamentals — what it is, how it works, core workflows, memory system, and best practices for effective use.
 ---
 
-# Getting Started Knowledge Tree Schema
+# Getting Started Knowledge Graph Schema
 
 This file defines the curriculum for the `getting-started` topic. Covers the foundational Claude Code docs: overview, quickstart, how it works, features, memory, common workflows, and best practices.
 
@@ -150,7 +150,7 @@ level: [Explorer / Builder / Practitioner / Expert]
 xp: [CURRENT_XP]
 ---
 
-# Getting Started Knowledge Tree
+# Getting Started Knowledge Graph
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 

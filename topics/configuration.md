@@ -5,7 +5,7 @@ source_url: https://code.claude.com/docs/en/settings
 description: Claude Code configuration — settings hierarchy, permissions, sandboxing, model selection, terminal, keybindings, and interface customization.
 ---
 
-# Configuration Knowledge Tree Schema
+# Configuration Knowledge Graph Schema
 
 This file defines the curriculum for the `configuration` topic. Covers the Configuration docs section: settings, permissions, sandboxing, terminal-config, model-config, fast-mode, statusline, keybindings.
 
@@ -153,7 +153,7 @@ level: [Explorer / Builder / Practitioner / Expert]
 xp: [CURRENT_XP]
 ---
 
-# Configuration Knowledge Tree
+# Configuration Knowledge Graph
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 

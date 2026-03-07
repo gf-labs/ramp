@@ -68,22 +68,22 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; SCHEMA=$(cat .claude/knowledge-graphs/schemas/$TOPIC.md 2>/dev/null || cat ~/.claude/knowledge-graphs/schemas/$TOPIC.md 2>/dev/null || echo "SCHEMA_NOT_FOUND: Create a schema at .claude/knowledge-graphs/schemas/$TOPIC.md (project-local) or ~/.claude/knowledge-graphs/schemas/$TOPIC.md (global)"); echo "$SCHEMA"; if echo "$SCHEMA" | grep -q "^sources:"; then for SRC in $(echo "$SCHEMA" | grep "^sources:" | head -1 | sed 's/sources: *//' | tr -d '[]' | tr ',' '\n' | tr -d ' '); do [ -n "$SRC" ] && { echo ""; echo "---"; echo "# Sourced schema: $SRC"; cat ".claude/knowledge-graphs/schemas/$SRC.md" 2>/dev/null || cat "$HOME/.claude/knowledge-graphs/schemas/$SRC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: $SRC"; }; done; fi`
 
 
-**Existing knowledge tree** (for active topic):
+**Existing knowledge graph** (for active topic):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE"`
 
-**Project-local knowledge tree** (team layer — at .claude/knowledge-graphs/ in this repo, committed):
+**Project-local knowledge graph** (team layer — at .claude/knowledge-graphs/ in this repo, committed):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat .claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_PROJECT_TREE"`
 
-**Local knowledge tree** (personal layer — at .claude/knowledge-graphs/local/, gitignored):
+**Local knowledge graph** (personal layer — at .claude/knowledge-graphs/local/, gitignored):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat .claude/knowledge-graphs/local/$TOPIC.md 2>/dev/null || echo "NO_LOCAL_TREE"`
 
-**Knowledge tree freshness** (days since last update — for returning-user path):
+**Knowledge graph freshness** (days since last update — for returning-user path):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; TREE="$HOME/.claude/knowledge-graphs/$TOPIC.md"; if [ -f "$TREE" ]; then UPDATED=$(python3 -c "import re; lines=open('$TREE').read(); m=re.search(r'^updated: (.+)$', lines, re.M); print(m.group(1).strip() if m else '')" 2>/dev/null); [ -n "$UPDATED" ] && python3 -c "from datetime import date; d=date.fromisoformat('$UPDATED'); print((date.today()-d).days, 'days since update')" 2>/dev/null || echo "unknown"; else echo "NO_TREE_FILE"; fi`
 
 **Review-due nodes** (nodes with next: date ≤ today):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; TODAY=$(date +%Y-%m-%d); TREE="$HOME/.claude/knowledge-graphs/$TOPIC.md"; if [ -f "$TREE" ]; then DUE=$(grep -E "^\- \[✓" "$TREE" | grep -oE "next: [0-9]{4}-[0-9]{2}-[0-9]{2}" | sed 's/next: //' | awk -v today="$TODAY" '$1 <= today' | wc -l | tr -d ' '); [ "$DUE" -gt 0 ] && echo "REVIEW_DUE: $DUE node(s) due for review" || echo "REVIEW_DUE: 0"; else echo "REVIEW_DUE: 0"; fi`
 
-**All topics** (available knowledge trees):
+**All topics** (available knowledge graphs):
 !`ls ~/.claude/knowledge-graphs/*.md 2>/dev/null | xargs -I{} sh -c 'echo -n "{}: "; python3 -c "import re; lines=open(\"{}\").read(); m=re.search(r\"^level: (.+)$\", lines, re.M); print(m.group(1) if m else \"unknown\")" 2>/dev/null || echo "?"' || echo "none yet"`
 
 **Git user identity**:
@@ -108,7 +108,7 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 !`ls .claude/worktrees/ 2>/dev/null | wc -l | tr -d ' '` project worktree dirs
 !`python3 -c "import glob; print(sum(1 for f in glob.glob('.claude/commands/*.md') + glob.glob('.claude/agents/*.md') if any(line.lstrip().startswith('!') for line in open(f))))" 2>/dev/null || echo "0"` agent files with bash injection
 
-**Historical knowledge tree evidence** (git log signals — corroborate knowledge tree inference):
+**Historical knowledge graph evidence** (git log signals — corroborate knowledge graph inference):
 !`{ echo "=== commits mentioning claude/mcp/hook/worktree ==="; git log --all --oneline --grep="worktree\|mcp\|hook\|claude -p\|subagent" -5 2>/dev/null | head -5; echo "=== .claude/ files added historically ==="; git log --all --diff-filter=A --name-only --pretty="" 2>/dev/null | grep -E "\.claude/" | head -10; echo "=== hooks or mcpServers in settings history ==="; git log --all -p -- ".claude/settings.json" 2>/dev/null | grep -E '"hooks"|"mcpServers"' | head -3; } 2>/dev/null || echo "none"`
 
 ---
@@ -141,8 +141,8 @@ If the remaining text contains any of: `?`, `tips`, `apply`, `relevant`, `which 
 - **Mode C (Multi-repo)**: Multiple `.git` directories found in subdirectories.
 
 **User continuity:**
-- **Fresh start**: Existing knowledge tree shows `NO_TREE_FILE` → no prior tree → full Phase 1 assessment
-- **Returning user**: Existing knowledge tree has content → abbreviated re-calibration → jump to frontier
+- **Fresh start**: Existing knowledge graph shows `NO_TREE_FILE` → no prior tree → full Phase 1 assessment
+- **Returning user**: Existing knowledge graph has content → abbreviated re-calibration → jump to frontier
 
 ---
 
@@ -150,9 +150,9 @@ If the remaining text contains any of: `?`, `tips`, `apply`, `relevant`, `which 
 
 This mode replaces all other phases. Do not ask assessment questions. Do not render the full tree. Do not update the tree.
 
-1. Read the active topic's knowledge tree from the "Existing knowledge tree" auto-collected above.
+1. Read the active topic's knowledge graph from the "Existing knowledge graph" auto-collected above.
 2. Read the situation described in `$ARGUMENTS` (minus topic keyword).
-3. Identify 2–3 knowledge tree nodes most relevant to the task at hand. Use the loaded schema to know the full node list. Consider both demonstrated `[✓]` nodes (can apply right now) and frontier `[★]` nodes (good moment to practice).
+3. Identify 2–3 knowledge graph nodes most relevant to the task at hand. Use the loaded schema to know the full node list. Consider both demonstrated `[✓]` nodes (can apply right now) and frontier `[★]` nodes (good moment to practice).
 4. For each node, output:
    - **Node name** (exact, from tree)
    - *Why it applies*: one sentence connecting this node to the specific task described
@@ -168,7 +168,7 @@ Keep the whole response under 200 words. This is a fast mid-session interrupt �
 **For Returning users** (tree exists — use this branch regardless of repo mode):
 
 1. Run Phase 2 inference immediately using env signals + saved tree (no questions yet).
-2. Check "Knowledge tree freshness" from auto-collected context:
+2. Check "Knowledge graph freshness" from auto-collected context:
    - **Fresh tree (≤ 7 days since update)**: Skip gap question entirely. Open with: "Welcome back — **[Level] · [CURRENT_XP] XP**. Frontier: **[frontier node names]**." If new signals detected since last update (new hooks, MCP, commands), add one line: "Picked up: [node name] — updated from the env scan." Then go directly to Phase 3.
    - **Stale tree (> 7 days) or new signals**: Ask the highest-priority undetected gap from the schema as a simple yes/no: "Have you used/done X before?" One question only. Yes/a-bit → `[~]`; no → `[ ]`. Apply silently, go to Phase 3. (Feynman verification of `[~]` nodes lives in `/ramp:review` — mention it at the end of Phase 3 if `[~]` nodes exist.)
 3. Never ask more than 1 question in the returning-user path.
@@ -202,9 +202,9 @@ After the user answers, proceed directly to Phase 2 and Phase 3. Do not ask foll
 
 ---
 
-## Phase 2: Knowledge Tree Inference (silent — do not display this section header)
+## Phase 2: Knowledge Graph Inference (silent — do not display this section header)
 
-Populate the knowledge tree by combining three evidence sources in priority order.
+Populate the knowledge graph by combining three evidence sources in priority order.
 
 ### Self-reported answer rubric
 
@@ -222,7 +222,7 @@ Do not prompt for more specifics. Accept the answer as given.
 
 ---
 
-### Knowledge tree schema reference
+### Knowledge graph schema reference
 
 The node definitions, detection signals, gap questions, and answer mappings for the active topic are loaded from the "Topic schema" injected above. Use that content as the authoritative reference for all inference. If the schema shows `SCHEMA_NOT_FOUND`, tell the user: "No schema found for **[topic]**. Place a schema file at `.claude/knowledge-graphs/schemas/[topic].md` (project-local) or `~/.claude/knowledge-graphs/schemas/[topic].md` (global). See `topics/claude-code.md` in the ramp repo for the format." Then stop — do not proceed with inference.
 
@@ -238,7 +238,7 @@ The schema file contains:
 
 **Step 0 — MCP tree source (if `knowledge-graph` MCP is configured):**
 
-Check the "MCP servers configured" line in the auto-collected context above. If `knowledge-graph` appears (project-level or global), call `mcp__knowledge-graph__read_graph` with the active topic now. Use the result as the authoritative tree for all Phase 2 inference — it takes precedence over the bash-injected "Existing knowledge tree" content, which was a fallback snapshot taken at invocation time.
+Check the "MCP servers configured" line in the auto-collected context above. If `knowledge-graph` appears (project-level or global), call `mcp__knowledge-graph__read_graph` with the active topic now. Use the result as the authoritative tree for all Phase 2 inference — it takes precedence over the bash-injected "Existing knowledge graph" content, which was a fallback snapshot taken at invocation time.
 
 If `knowledge-graph` MCP is not configured, skip this step and use the bash-injected tree as normal.
 
@@ -255,23 +255,23 @@ Also cross-reference the "Historical skill evidence" (git log signals) injected 
 
 Apply the same inference rules as detection signals: upgrade `[ ]`/`[~]` to `[✓|historical]`; never downgrade existing `[✓]`.
 
-**Step 2 — Apply saved knowledge trees (global + project-local):**
+**Step 2 — Apply saved knowledge graphs (global + project-local):**
 
 *Step 2a — Global tree (personal):*
-- Parse the "Existing knowledge tree" auto-collected above for node statuses
+- Parse the "Existing knowledge graph" auto-collected above for node statuses
 - Nodes marked `[✓]` or `[✓|*]` in the saved file remain `[✓]` unless env signals contradict them
 - This preserves progress from previous sessions and other projects
 - Never downgrade a `[✓]` to `[ ]` based solely on absence of current env evidence — absence ≠ undone
 - `version: 1` files: treat all `[✓]` as `[✓|historical]`
 
 *Step 2b — Project-local tree (team, if present):*
-- Parse the "Project-local knowledge tree" auto-collected above (from `.claude/knowledge-graphs/[topic].md`)
+- Parse the "Project-local knowledge graph" auto-collected above (from `.claude/knowledge-graphs/[topic].md`)
 - If it shows `NO_PROJECT_TREE`, skip this step
 - Merge rules: a project-local `[✓]` **upgrades** a global `[~]` for the same node to `[✓|historical]`. Never downgrade: a global `[✓]` is preserved regardless of project-local status.
 - Add a note in the working tree for any node upgraded from project-local: `[✓|historical] Node name — [project evidence]`
 
 *Step 2c — Local tree (personal project-specific, if present):*
-- Parse the "Local knowledge tree" auto-collected above (from `.claude/knowledge-graphs/local/[topic].md`)
+- Parse the "Local knowledge graph" auto-collected above (from `.claude/knowledge-graphs/local/[topic].md`)
 - If it shows `NO_LOCAL_TREE`, skip this step
 - This is the highest-priority personal layer: a local `[✓]` upgrades anything (global `[~]` or team `[~]`). Never downgrade.
 - Local trees are gitignored — personal notes and progress not shared with teammates.
@@ -333,7 +333,7 @@ If CLAUDE.md has a `## Onboarding` section, show it verbatim under **"Team onboa
 
 ---
 
-### Step 3c — Render knowledge tree
+### Step 3c — Render knowledge graph
 
 **Compact mode:** Show ROOT branch + first unlocked branch only. Locked branches: omit entirely.
 
@@ -403,20 +403,20 @@ These are the top `[★]` frontier nodes. For each, use this format:
 
 **Expert, add:** One proactive suggestion about something they haven't reached yet but their tree positions them to explore.
 
-The mode is now active. Stay engaged for the full session. When they pick an exercise or describe a task, work through it with them — narrating tool use, explaining decisions, connecting what you're doing to the knowledge tree nodes as they come up.
+The mode is now active. Stay engaged for the full session. When they pick an exercise or describe a task, work through it with them — narrating tool use, explaining decisions, connecting what you're doing to the knowledge graph nodes as they come up.
 
 ---
 
 ### [Mode A] Building Together
 
-Instead of the repo overview and knowledge tree (no existing code to scan), do this:
+Instead of the repo overview and knowledge graph (no existing code to scan), do this:
 
 If the user gave a project idea: confirm it in 1 sentence and ask one scoping question.
 If they didn't: suggest 3 ideas that naturally showcase different Claude Code capabilities (e.g., a CLI = Write + Bash; a web scraper = agents; a linter = Glob + Grep + multi-file editing).
 
 Once you have a project: "Let's build it — I'll narrate what I'm doing as we go." Then build, calling out each tool use as it happens. Stop at natural checkpoints to explain what capability was demonstrated.
 
-At the end of each Mode A session, render a knowledge tree based on what was demonstrated during the build.
+At the end of each Mode A session, render a knowledge graph based on what was demonstrated during the build.
 
 ---
 
@@ -426,13 +426,13 @@ After Phase 3, present a consolidated save prompt. Tailor options to the tier:
 
 **Explorer (compact Phase 4):**
 > "Want me to save your progress?
-> **a)** Save your knowledge tree (`~/.claude/knowledge-graphs/[topic].md`)
+> **a)** Save your knowledge graph (`~/.claude/knowledge-graphs/[topic].md`)
 >
 > Reply `a` or `none`"
 
 **Builder/Practitioner/Expert (full Phase 4):**
 > "Want me to save your progress? Options:
-> **a)** Update your personal knowledge tree (`~/.claude/knowledge-graphs/[active-topic].md`)
+> **a)** Update your personal knowledge graph (`~/.claude/knowledge-graphs/[active-topic].md`)
 > **b)** Write an `ONBOARDING.md` for your team (safe to commit — no personal data)
 > **c)** Bootstrap missing Claude Code config [only show this if gaps were found]
 > **d)** Save session evidence to this repo's team tree (`.claude/knowledge-graphs/[active-topic].md`) — safe to commit, visible to teammates
@@ -470,7 +470,7 @@ Execute only what's selected. For option **b**, write `ONBOARDING.md` to the rep
 - [ ] [3–5 specific, time-boxed actions grounded in this repo]
 ```
 
-For option **a**, save the knowledge tree for the active topic. If `knowledge-graph` MCP is configured (per the auto-collected context), call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full-tree-markdown])` — this handles the write atomically and syncs to any configured backend. If MCP is not configured, write `~/.claude/knowledge-graphs/[active-topic].md` using the Write tool. Either way, include `xp: [CURRENT_XP]` in the YAML frontmatter. Use the "Saved tree file template" from the loaded schema for exact format. If the schema doesn't include a template, use this generic format:
+For option **a**, save the knowledge graph for the active topic. If `knowledge-graph` MCP is configured (per the auto-collected context), call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full-tree-markdown])` — this handles the write atomically and syncs to any configured backend. If MCP is not configured, write `~/.claude/knowledge-graphs/[active-topic].md` using the Write tool. Either way, include `xp: [CURRENT_XP]` in the YAML frontmatter. Use the "Saved tree file template" from the loaded schema for exact format. If the schema doesn't include a template, use this generic format:
 
 ```markdown
 ---
@@ -483,7 +483,7 @@ level: [Explorer / Builder / Practitioner / Expert]
 xp: [CURRENT_XP]
 ---
 
-# [Topic] Knowledge Tree
+# [Topic] Knowledge Graph
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 
@@ -537,7 +537,7 @@ repo: [repo-name]
 updated: [today's date YYYY-MM-DD]
 ---
 
-# [Topic] Knowledge Tree — [repo-name]
+# [Topic] Knowledge Graph — [repo-name]
 
 *Project evidence log — nodes demonstrated in this codebase. Merges with personal tree on /sup run.*
 
@@ -564,7 +564,7 @@ Construct the option **c** description specifically based on what's missing, e.g
 If option **c** is selected:
 1. For each missing item, write or edit the file using the appropriate tool
 2. Before creating each file, say one sentence: what it is and why it matters
-3. After creating all files, show the updated knowledge tree showing which ROOT and [E] nodes flipped from `[ ]` → `[✓|artifact]`
+3. After creating all files, show the updated knowledge graph showing which ROOT and [E] nodes flipped from `[ ]` → `[✓|artifact]`
 4. Close with: "These aren't just config files — they're the foundation that makes the rest of the tree possible. Now [frontier node] is your real next move."
 
 ---
@@ -579,7 +579,7 @@ If option **c** is selected:
 - Practitioner tier: skip basics, go straight to frontier nodes in Branch D or E
 - Mode A: never lecture about Claude Code features without demonstrating them immediately through building
 - Keep Phase 3 output scannable: tree first, then skill recommendations
-- The knowledge tree's `[★]` nodes and the "Next N Skills" must be the same items — N = 1 (Explorer), 2 (Builder), 3 (Practitioner/Expert)
+- The knowledge graph's `[★]` nodes and the "Next N Skills" must be the same items — N = 1 (Explorer), 2 (Builder), 3 (Practitioner/Expert)
 - ONBOARDING.md must be useful to a real new employee, not a session summary
 - Phase 1 gap questions: ask at most 1 (returning user) or 3 (fresh start); never open-ended "what have you used?" — always specific and targeted
 - XP is always recomputed on write; never preserve a stale xp value from the old file

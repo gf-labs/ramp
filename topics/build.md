@@ -5,7 +5,7 @@ source_url: https://code.claude.com/docs/en/sub-agents
 description: Building with Claude Code — subagents, agent teams, plugins, skills, hooks, headless mode, MCP, and output styles.
 ---
 
-# Build Knowledge Tree Schema
+# Build Knowledge Graph Schema
 
 This file defines the curriculum for the `build` topic. Covers the "Build with Claude Code" docs section: sub-agents, agent-teams, plugins, skills, output-styles, hooks-guide, headless, mcp, troubleshooting.
 
@@ -194,7 +194,7 @@ level: [Explorer / Builder / Practitioner / Expert]
 xp: [CURRENT_XP]
 ---
 
-# Build Knowledge Tree
+# Build Knowledge Graph
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 

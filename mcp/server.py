@@ -306,7 +306,7 @@ def export_delta(topic: str, since_date: str) -> str:
         f"repo: {repo}\n"
         f"updated: {TODAY}\n"
         f"---\n\n"
-        f"# {topic} Knowledge Tree — {repo}\n\n"
+        f"# {topic} Knowledge Graph — {repo}\n\n"
         f"*Project evidence log — nodes demonstrated since {since_date}. "
         f"Merges with personal graph on /ramp:up run.*\n\n"
         f"## Evidence\n"

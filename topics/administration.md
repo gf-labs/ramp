@@ -5,7 +5,7 @@ source_url: https://code.claude.com/docs/en/setup
 description: Claude Code administration — org setup, authentication, security, data policies, monitoring, costs, analytics, and plugin marketplace management.
 ---
 
-# Administration Knowledge Tree Schema
+# Administration Knowledge Graph Schema
 
 This file defines the curriculum for the `administration` topic. Covers the Administration docs section: setup, authentication, security, server-managed-settings, data-usage, zero-data-retention, monitoring-usage, costs, analytics, plugin-marketplaces.
 
@@ -149,7 +149,7 @@ level: [Explorer / Builder / Practitioner / Expert]
 xp: [CURRENT_XP]
 ---
 
-# Administration Knowledge Tree
+# Administration Knowledge Graph
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 

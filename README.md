@@ -12,7 +12,7 @@ It's not a report. It's a mode.
 
 **Detect before interrogating.** Over 80 shell commands run at invocation: CLAUDE.md content, hook configurations, MCP servers, worktree count, session history, headless invocations. By the time you see a question, `/ramp:up` has already determined your level and identified your gaps. You answer at most 3 questions. They're specific.
 
-**Demonstrated over claimed.** The knowledge tree distinguishes `[✓]` (demonstrated) from `[~]` (self-reported). A hook in settings.json is `[✓|artifact]`. Saying "yes I've used hooks" is `[~|reported]`. A `[✓]` requires at least one specific verifiable detail — a flag, an observed behavior, a tradeoff navigated. The difference between "I've heard of hooks" and "I have a PostToolUse hook that fires my linter" is the entire gap between knowledge and practice.
+**Demonstrated over claimed.** The knowledge graph distinguishes `[✓]` (demonstrated) from `[~]` (self-reported). A hook in settings.json is `[✓|artifact]`. Saying "yes I've used hooks" is `[~|reported]`. A `[✓]` requires at least one specific verifiable detail — a flag, an observed behavior, a tradeoff navigated. The difference between "I've heard of hooks" and "I have a PostToolUse hook that fires my linter" is the entire gap between knowledge and practice.
 
 **Mastery missions, not checklists.** Every node has a falsifiable mastery criterion and a repo-grounded exercise. Not "run your tests" — "run `pytest tests/` on `auth_service.py` and interpret the failures."
 
@@ -110,7 +110,7 @@ Each `[★]` node becomes a **mastery mission** — a falsifiable criterion + a 
 
 | | ONBOARDING.md | Custom topic schema |
 |--|---|---|
-| **Format** | Static markdown doc | Active knowledge tree session |
+| **Format** | Static markdown doc | Active knowledge graph session |
 | **When used** | Day 1: "how do I run this?" | First week: guided onboarding with exercises |
 | **Personalized?** | No — same doc for everyone | Yes — starts from what the dev already knows |
 | **Progress tracking** | No | Yes — evidence trails, XP, spaced repetition |
@@ -473,7 +473,7 @@ The technical mechanisms at work:
 - **`!bash-command` syntax**: Shell commands execute at invocation time and inject their output into the prompt as static text. The 80+ scanning commands run before Claude processes a single token. This is pre-computation, not agentic tool use — it's fast, deterministic, and produces structured data Claude reasons over.
 - **Topic schema loading**: A bash command detects the requested topic from `$ARGUMENTS`, then `cat`s the appropriate schema file. The schema is injected as static text alongside all other collected context. Claude uses it as the node/signal/question reference for all inference.
 - **`$ARGUMENTS`**: Replaced with whatever the user types after `/ramp:up` — topic keyword + free-form context.
-- **`allowed-tools`**: `Read, Glob, Grep, Bash, Write, Edit` — controlled access that lets Claude navigate the repo, run exercises, write ONBOARDING.md, create config files, and update the knowledge tree without unlimited tool access.
+- **`allowed-tools`**: `Read, Glob, Grep, Bash, Write, Edit` — controlled access that lets Claude navigate the repo, run exercises, write ONBOARDING.md, create config files, and update the knowledge graph without unlimited tool access.
 - **Persistent file I/O**: `~/.claude/knowledge-graphs/[topic].md` is written by `/ramp:up` and read by both commands. YAML frontmatter + Markdown body — human-readable, machine-parseable, shareable by copy-paste.
 - **Spaced repetition**: `| next: YYYY-MM-DD [LN]` fields on `[✓]` nodes encode the review schedule. `/review` reads these, steps through due nodes, and updates the file. Pure file I/O — no external state, no database.
 - **Branch logic in natural language**: The phase structure (detect → assess → infer → output → artifacts) is expressed entirely as instructions to Claude. There's no interpreter, no state machine, no parser. The prompt is the program.

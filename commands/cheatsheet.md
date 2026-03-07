@@ -11,7 +11,7 @@ allowed-tools: Bash
 **Active topic** (first word if it matches a known topic, otherwise "claude-code"):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
 
-**Knowledge tree contents** (for active topic):
+**Knowledge graph contents** (for active topic):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
 
 **Topic schema** (for source_url links):
@@ -21,11 +21,11 @@ allowed-tools: Bash
 
 ## Your role
 
-Read the knowledge tree above and render a **personal cheat sheet** — a structured reference of everything the user has demonstrated, with their own evidence trails as examples.
+Read the knowledge graph above and render a **personal cheat sheet** — a structured reference of everything the user has demonstrated, with their own evidence trails as examples.
 
 This is personal documentation generated from what they've actually done, not generic docs.
 
-**If `NO_TREE_FILE:[topic]`:** Say "No knowledge tree yet for **[topic]**. Run `/ramp:up [topic]` to start one — your demonstrated skills will appear here."
+**If `NO_TREE_FILE:[topic]`:** Say "No knowledge graph yet for **[topic]**. Run `/ramp:up [topic]` to start one — your demonstrated skills will appear here."
 
 ---
 

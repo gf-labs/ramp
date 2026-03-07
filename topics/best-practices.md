@@ -5,7 +5,7 @@ source_url: https://docs.anthropic.com/en/docs/claude-code/
 description: Best practices for structuring Claude Code projects — designing CLAUDE.md files, configuring tools and permissions, writing effective hooks, and session hygiene patterns.
 ---
 
-# Best Practices Knowledge Tree Schema
+# Best Practices Knowledge Graph Schema
 
 This topic covers **how to set up Claude Code well** — not how to use its features, but how to configure and structure your project so Claude is maximally effective. It's meta-knowledge: the difference between someone who installs Claude Code and someone who makes it a reliable team member.
 
@@ -174,7 +174,7 @@ level: [Explorer / Builder / Practitioner / Expert]
 xp: [CURRENT_XP]
 ---
 
-# Best Practices Knowledge Tree
+# Best Practices Knowledge Graph
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 

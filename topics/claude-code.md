@@ -8,7 +8,7 @@ description: Complete Claude Code curriculum — aggregates all sub-topics (gett
 
 # Claude Code — Meta Topic
 
-This is the master topic for Claude Code. It sources five focused sub-topic schemas and presents them as a single unified knowledge tree and learning path.
+This is the master topic for Claude Code. It sources five focused sub-topic schemas and presents them as a single unified knowledge graph and learning path.
 
 **Sub-topics sourced:**
 - `getting-started` — Foundations: what Claude Code is, tool loop, memory, workflows, best practices (12 nodes)
@@ -61,7 +61,7 @@ xp: [CURRENT_XP]
 sources: [getting-started, build, configuration, deployment, administration]
 ---
 
-# Claude Code Knowledge Tree
+# Claude Code Knowledge Graph
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 
