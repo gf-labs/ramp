@@ -7,6 +7,18 @@
 
 ## Backlog
 
+### `/ramp:wrap` — end-of-session knowledge harvest
+- **Size:** S
+- Scans the current conversation thread for demonstrated skills, decisions, and tool use patterns; synthesizes them into knowledge graph updates and an optional MEMORY.md snapshot
+- Complements `/ramp:snapshot` (which is general-purpose) — wrap is ramp-aware: it specifically looks for evidence of knowledge graph nodes and upgrades `[~]` → `[✓|exercise]` where the session provides Feynman-level demonstration
+- **Steps:**
+  1. Reflect on this session's tool calls, exercises, and explanations — identify any node that was actively demonstrated (not just claimed)
+  2. For each identified node: show proposed upgrade (`[ ]`/`[~]` → `[✓|exercise]`) with one-line evidence note
+  3. Ask for confirmation before writing
+  4. Write updates to `~/.claude/knowledge-graphs/[topic].md` via MCP or Write tool; reset SR schedule for newly demonstrated nodes (`next: today+1d [L1]`)
+  5. Optionally append a `## Session snapshot — [date]` to the project MEMORY.md (same as `/tools:snapshot` but filtered to ramp-relevant context only)
+- **Relationship to existing commands:** `/ramp:up` assesses at session start; `/ramp:wrap` harvests at session end; `/ramp:review` maintains nodes between sessions
+
 ### ramp: doctor extension
 - **Size:** S
 - Create `ramp/.claude/commands/doctor.md` — the ramp-specific extension of `/tools:doctor`
