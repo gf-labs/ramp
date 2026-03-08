@@ -9,15 +9,10 @@
 
 ### ramp: doctor extension
 - **Size:** S
-- Create `sup/.claude/commands/doctor.md` — the ramp-specific extension of `/tools:doctor`
+- Create `ramp/.claude/commands/doctor.md` — the ramp-specific extension of `/tools:doctor`
 - Open with: "Run `/tools:doctor` first for environment health, then check ramp-specific items below."
 - Ramp checks to add: `CLAUDE_PLUGIN_ROOT` set and valid, schema symlinks present and not broken, knowledge-graph file exists + is version 3, ramp MCP configured (`.mcp.json`), plugin cache drift for `ramp@gfl-marketplace`
 - The generic doctor is now plugin-delivered (not at a hardcoded `@` path) — reference it by command name, not file path
-
-### settings: fix marketplace path case
-- **Size:** XS
-- `extraKnownMarketplaces.gfl-marketplace.source.path` in `~/.claude/settings.json` is `/Users/berniegreen/repos/sup` (lowercase `r`)
-- Fix to `/Users/berniegreen/Repos/sup` (capital `R`) — works on macOS due to case-insensitivity but is incorrect
 
 ### Schema symlinks should prefer live repo over plugin cache
 - **Size:** S
