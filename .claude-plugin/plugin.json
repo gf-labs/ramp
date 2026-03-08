@@ -3,5 +3,5 @@
   "version": "0.13.0",
   "description": "Adaptive learning mode for Claude Code — knowledge graphs, spaced repetition, and passive skill observation",
   "author": {"name": "Bernie Green"},
-  "repository": "https://github.com/gf-labs/claude-code-slash-getting-started"
+  "repository": "https://github.com/gf-labs/ramp"
 }
