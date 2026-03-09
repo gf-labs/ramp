@@ -53,17 +53,6 @@
 - Wire into `audit.md` Check 10: replace `py_compile` with `ruff check`
 - Parallelizable with MCP logs and script cleanup
 
-### Audit after every query (lightweight hook)
-- **Size:** M
-- Add PostToolUse hook that runs JSON/Python lint checks (Checks 9–10) after every Edit/Write
-- Shell-only — no Claude invocation; fast enough for every tool use
-- Full `/audit` remains on-demand
-
-### Expand audit rules + underlying dependencies
-- **Size:** M
-- Add checks: `pyproject.toml` present, lint rules defined, `BACKLOG.md` exists, design-docs referenced
-- Define explicit dependency graph between audit checks (e.g., Check 10 depends on lint rules)
-
 ### Per-command model configuration
 - **Size:** S
 - Set `model:` frontmatter in command files to right-size token usage: e.g., Haiku for `/ramp:tree` and `/ramp:cheatsheet` (read-only, no inference), full model for `/ramp:up` and `/ramp:review`
@@ -78,22 +67,6 @@
 - **Size:** M
 - Architecture docs for: knowledge-graph file format, hook system design, MCP server architecture, plugin install flow
 - One doc per subsystem; linked from CLAUDE.md `## Structure`
-
-### Global `/doctor` command — base + project extension pattern
-- **Size:** S
-- Create `~/.claude/commands/doctor.md` — a global base command that defines the check framework: environment health, tool availability, config validity
-- Each repo extends it via a local `.claude/commands/doctor.md` that sources the global base with `@~/.claude/commands/doctor.md` and adds project-specific checks (e.g., venv present, `.mcp.json` configured, dependencies installed)
-- No native command inheritance in Claude Code — purely prompt engineering convention
-- Open question: per-command extension via `@file` injection vs. per-section override; pick one approach and document as the pattern
-- Prototype in `dotfiles` or `sup` first; generalize after
-
-### Global command toolbox — audit, abstract, and extend
-- **Size:** M
-- Evaluate all commands across all projects (`~/.claude/commands/`, `.claude/commands/` in each repo, plugin commands) for abstraction opportunities
-- Pattern to consider: a "base" command in `~/.claude/commands/` defines shared behavior; a project-local `.claude/commands/` file extends or overrides it — similar to class inheritance. Example: a global `/doctor` defines the check framework; each repo's `/doctor` adds project-specific checks.
-- Questions to resolve: does Claude Code support command inheritance natively, or is this purely a prompt-engineering convention? What's the right granularity (per-command extension vs. per-section injection via `@file`)?
-- Candidates for promotion to global scope: `doctor`, `audit`, `phase-status` (currently dotfiles-only)
-- Candidates for base+extend pattern: `audit` (global base checks + per-repo additions)
 
 ### Integrated learning system — unified capability loop
 - **Size:** L

@@ -88,16 +88,14 @@ If `NO_TREE_FILE:[topic]`: say "No knowledge graph file found. Run `/ramp:up [to
 
 ---
 
-## Step 3 — Optional snapshot
+## Step 3 — Snapshot
 
-Ask: "Add a ramp-focused note to MEMORY.md? Reply `yes` or `skip`."
-
-If `yes`: draft 3–5 bullets covering only ramp-relevant context from this session:
+Draft 3–5 bullets covering only ramp-relevant context from this session:
 - Which nodes were upgraded and why
 - Any exercises or patterns that were demonstrated
 - Topics or areas to revisit
 
-Append to the project MEMORY.md (same scope logic as `/tools:wrap` Step 1).
+Append directly to the project MEMORY.md (same scope logic as `/tools:wrap` Step 1). No confirmation needed.
 Do NOT duplicate housekeeping context (git, plans, backlog) — that belongs in `/tools:wrap`.
 
 ---
@@ -109,7 +107,7 @@ Show a one-line summary:
 ## ramp:wrap — [date]
 [topic]: [N] node(s) upgraded. XP: [old] → [new]. Next review: [earliest next: date].
 [If no upgrades: "No upgrades this session."]
-[If snapshot: "Snapshot: saved." else "Snapshot: skipped."]
+Snapshot: saved.
 ```
 
 Then: "Run `/tools:wrap` for housekeeping (git, plans, backlog, done marker)."
