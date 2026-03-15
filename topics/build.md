@@ -13,7 +13,7 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 
 ## Node definitions
 
-22 nodes across 4 branches.
+31 nodes across 6 branches.
 
 ### [ROOT] Agents and orchestration (always unlocked — 5 nodes)
 
@@ -25,7 +25,7 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | Custom subagent definitions (.claude/agents/) | Created at least one custom subagent in `.claude/agents/` or `~/.claude/agents/`; can describe its system prompt, tool restrictions, and when to invoke it | Artifact | custom agent definitions > 0 → `[✓\|artifact]` | https://code.claude.com/docs/en/sub-agents |
 | Worktrees for parallel development | Ran two Claude sessions simultaneously on separate branches; knows `git worktree add` and how this enables isolation without context pollution | Historical / Exercise | git worktrees > 1 → `[✓\|historical]` | https://code.claude.com/docs/en/agent-teams |
 
-### [A] Skills and plugins (6 nodes, unlocks when ROOT ≥ 2 `[✓]`)
+### [A] Skills and plugins (9 nodes, unlocks when ROOT ≥ 2 `[✓]`)
 
 | Node | Mastery criterion | Type | Auto-detect signal | source_url |
 |------|-------------------|------|-------------------|-----------|
@@ -35,6 +35,9 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | Output styles: controlling response format | Has used output style configuration to change how Claude responds (concise, verbose, structured); knows `output-styles` frontmatter or prompt patterns | Exercise / Qualitative | None | https://code.claude.com/docs/en/output-styles |
 | Plugin discovery and installation | Has installed a plugin via the marketplace (`/plugin marketplace add` or `--plugin-dir`); knows plugin namespacing (`/plugin-name:command`) | Historical / Exercise | `enabledPlugins` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/discover-plugins |
 | Plugin manifest (plugin.json) | Has created or read a `plugin.json` manifest; understands name, version, commands, hooks, and the plugin directory structure | Artifact | `.claude-plugin/plugin.json` exists → `[✓\|artifact]` | https://code.claude.com/docs/en/plugins |
+| context: fork for skill isolation | Knows that adding `context: fork` to a skill's frontmatter runs the skill in an isolated forked context, preventing verbose output or intermediate state from polluting the main session; can describe a case where fork is the right choice (e.g., long research skills, output-heavy scripts) | Qualitative / Artifact | skill files with `context: fork` → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/skills |
+| argument-hint frontmatter for required parameter prompting | Has used `argument-hint:` in a skill's frontmatter to prompt the user for required input before the skill runs; knows what the hint text looks like in the Claude UI | Artifact | skill files with `argument-hint:` → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/skills |
+| .claude/rules/ with YAML paths: glob patterns for conditional rule loading | Knows that files placed in `.claude/rules/` can include a `paths:` key with glob patterns so the rule is only injected into context when Claude is working in matching paths; understands the use case — database migration rules active only when editing `migrations/` | Qualitative / Artifact | `.claude/rules/` directory with YAML files → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/memory |
 
 ### [B] Hooks system (6 nodes, unlocks when Branch A ≥ 3 `[✓]`)
 
@@ -47,15 +50,31 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | Scoped hooks (in skill or agent frontmatter) | Has defined a `hooks:` block inside a `.claude/commands/*.md` or `.claude/agents/*.md` file — not just in global settings; knows how scope affects which sessions the hook fires in | Artifact | `hooks:` key in any command or agent file → `[✓\|artifact]` | https://code.claude.com/docs/en/hooks-guide |
 | Hooks guide: design patterns and gotchas | Can describe at least two hooks design patterns (e.g., auto-linting, cost guardrails, notification on stop); knows the main gotchas (async execution, stdout injection timing) | Qualitative | Any hook in settings → `[~\|historical]` | https://code.claude.com/docs/en/hooks-guide |
 
-### [C] Headless and MCP (5 nodes, unlocks when Branch B ≥ 3 `[✓]`)
+### [C] Headless and MCP (7 nodes, unlocks when Branch B ≥ 3 `[✓]`)
 
 | Node | Mastery criterion | Type | Auto-detect signal | source_url |
 |------|-------------------|------|-------------------|-----------|
 | Headless mode (-p flag, non-interactive) | Has run `claude -p "prompt"` or `claude --print` from a script or terminal; knows it outputs to stdout and exits; can describe when headless beats interactive | Historical / Exercise | headless invocations > 0 → `[✓\|artifact]` | https://code.claude.com/docs/en/headless |
 | Piped input and CI integration | Has piped content into claude (`cat file | claude -p "..."`) or used it in a CI step; understands stdin/stdout contract | Exercise / Historical | CI workflow with claude command → `[✓\|artifact]`; headless invocations > 0 → `[~\|historical]` | https://code.claude.com/docs/en/headless |
+| --output-format json and --json-schema for structured headless output | Knows the `--output-format json` flag makes headless invocations return structured JSON; knows `--json-schema <file>` constrains the output schema (guaranteed valid against the schema); can describe the CI pipeline pattern: `claude -p "..." --output-format json \| jq '.field'` | Qualitative / Exercise | CI workflows with `--output-format` flag → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/cli-reference |
+| Built-in tool selection for codebase tasks | Can explain the right tool for each codebase operation: Grep for content patterns (what's in files), Glob for path patterns (which files exist), Read for specific files (when path is known), Edit for targeted changes (smallest diff), Bash only when no dedicated tool applies; knows the incremental understanding pattern — Glob → Read → Grep sequence for unfamiliar codebases | Qualitative | None | https://docs.anthropic.com/en/docs/claude-code/built-in-tools |
 | MCP: configure and use servers | Has ≥1 MCP server configured in settings or `.mcp.json`; has made at least one query using an MCP tool; can describe what the server provides | Artifact + Exercise | MCP servers in settings → `[~\|artifact]` | https://code.claude.com/docs/en/mcp |
 | MCP project config (.mcp.json) | Has created or used a `.mcp.json` at repo root; understands it is project-scoped (committable, shared with team) vs. personal `settings.json` mcpServers | Artifact | `.mcp.json` exists at repo root → `[✓\|artifact]` | https://code.claude.com/docs/en/mcp |
 | Troubleshooting: diagnose and recover | Has used `/doctor` to check environment; can interpret its output; knows how to diagnose a stuck tool call, permission error, or context overflow | Exercise / Qualitative | None | https://code.claude.com/docs/en/troubleshooting |
+
+### [D] Skills distribution and enterprise (2 nodes, unlocks when Branch C ≥ 2 `[✓]`)
+
+| Node | Mastery criterion | Type | Auto-detect signal | source_url |
+|------|-------------------|------|-------------------|-----------|
+| Skills distribution via plugins and managed_settings.json | Can explain how to distribute skills org-wide: bundle in a plugin (plugin.json + commands/), distribute via marketplace or --plugin-dir; knows that `managed_settings.json` allows enterprise admins to push settings (including enabledPlugins) to all users without individual configuration | Qualitative / Artifact | `managed_settings.json` in repo → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/plugins |
+| Skills as custom subagent delegation targets | Can describe wiring a SKILL.md as the target of a custom subagent: the agent's system prompt invokes the skill by name, and the skill's allowed-tools and context constraints apply to that subagent invocation; knows the use case — a specialist subagent that always runs a specific research skill | Qualitative / Artifact | custom agent definitions that reference skills → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/sub-agents |
+
+### [E] Iterative refinement workflows (2 nodes, unlocks when Branch D ≥ 1 `[✓]`)
+
+| Node | Mastery criterion | Type | Auto-detect signal | source_url |
+|------|-------------------|------|-------------------|-----------|
+| Iterative refinement: sequential subagent pattern for test-driven iteration | Can describe the iterative refinement pattern: subagent 1 writes code → subagent 2 runs tests → on failure, coordinator re-delegates to subagent 1 with test output as feedback → repeat until green; knows why sequential ordering is required here (each step depends on the previous result, not parallelizable); contrasts with parallel subagents for independent concerns | Qualitative | None | https://docs.anthropic.com/en/docs/claude-code/sub-agents |
+| Interview pattern: structured questions for ambiguous analysis tasks | Can describe the interview pattern: instead of an open-ended "analyze X" task, the coordinator prompts a subagent with structured interview questions ("What are the top 3 risks? What dependencies are involved? What would you need to verify?"); knows that constraint improves output quality in ambiguous analysis tasks by preventing the model from defaulting to the most obvious surface answer | Qualitative | None | https://docs.anthropic.com/en/docs/build-with-claude/agents |
 
 ---
 
@@ -82,8 +101,13 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | Any hook configured in settings | B: "Hooks guide: design patterns" → `[~\|historical]` |
 | headless invocations > 0 | C: "Headless mode" → `[✓\|artifact]`; C: "Piped input and CI" → `[~\|historical]` |
 | CI workflow file with `claude` command | C: "Piped input and CI integration" → `[✓\|artifact]` |
+| CI workflow or script with `--output-format json` | C: "--output-format json and --json-schema" → `[✓\|artifact]` |
 | MCP servers in settings | C: "MCP: configure and use servers" → `[~\|artifact]` |
 | `.mcp.json` exists at repo root | C: "MCP project config (.mcp.json)" → `[✓\|artifact]` |
+| skill files with `context: fork` | A: "context: fork for skill isolation" → `[✓\|artifact]` |
+| skill files with `argument-hint:` | A: "argument-hint frontmatter" → `[✓\|artifact]` |
+| `.claude/rules/` directory with YAML files | A: ".claude/rules/ with paths: glob patterns" → `[~\|artifact]` |
+| `managed_settings.json` in repo | D: "Skills distribution via plugins and managed_settings.json" → `[✓\|artifact]` |
 
 ---
 
@@ -129,6 +153,8 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 - Branch A unlocks when ROOT ≥ 2 `[✓]`
 - Branch B unlocks when Branch A ≥ 3 `[✓]`
 - Branch C unlocks when Branch B ≥ 3 `[✓]`
+- Branch D unlocks when Branch C ≥ 2 `[✓]`
+- Branch E unlocks when Branch D ≥ 1 `[✓]`
 
 Both `[✓]` and `[~]` count toward unlock thresholds.
 
@@ -162,6 +188,9 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
     [?] Output styles: controlling response format
     [?] Plugin discovery and installation
     [?] Plugin manifest (plugin.json)
+    [?] context: fork for skill isolation
+    [?] argument-hint frontmatter for required parameter prompting
+    [?] .claude/rules/ with YAML paths: glob patterns for conditional rule loading
 
 [B] Hooks System   [if locked: "(unlock: complete 3 Skills & Plugins)"]
     [?] PreToolUse hooks (validation, blocking)
@@ -174,9 +203,19 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 [C] Headless and MCP   [if locked: "(unlock: complete 3 Hooks System skills)"]
     [?] Headless mode (-p flag, non-interactive)
     [?] Piped input and CI integration
+    [?] --output-format json and --json-schema for structured headless output
+    [?] Built-in tool selection for codebase tasks
     [?] MCP: configure and use servers
     [?] MCP project config (.mcp.json)
     [?] Troubleshooting: diagnose and recover
+
+[D] Skills Distribution and Enterprise   [if locked: "(unlock: complete 2 Headless & MCP skills)"]
+    [?] Skills distribution via plugins and managed_settings.json
+    [?] Skills as custom subagent delegation targets
+
+[E] Iterative Refinement Workflows   [if locked: "(unlock: complete 1 Distribution skill)"]
+    [?] Iterative refinement: sequential subagent pattern for test-driven iteration
+    [?] Interview pattern: structured questions for ambiguous analysis tasks
 ```
 
 ---
@@ -212,6 +251,9 @@ xp: [CURRENT_XP]
 - [STATUS|TYPE] Output styles: controlling response format
 - [STATUS|TYPE] Plugin discovery and installation
 - [STATUS|TYPE] Plugin manifest (plugin.json)
+- [STATUS|TYPE] context: fork for skill isolation
+- [STATUS|TYPE] argument-hint frontmatter for required parameter prompting
+- [STATUS|TYPE] .claude/rules/ with YAML paths: glob patterns for conditional rule loading
 
 ## [B] Hooks System
 - [STATUS|TYPE] PreToolUse hooks (validation, blocking)
@@ -224,9 +266,19 @@ xp: [CURRENT_XP]
 ## [C] Headless and MCP
 - [STATUS|TYPE] Headless mode (-p flag, non-interactive)
 - [STATUS|TYPE] Piped input and CI integration
+- [STATUS|TYPE] --output-format json and --json-schema for structured headless output
+- [STATUS|TYPE] Built-in tool selection for codebase tasks
 - [STATUS|TYPE] MCP: configure and use servers
 - [STATUS|TYPE] MCP project config (.mcp.json)
 - [STATUS|TYPE] Troubleshooting: diagnose and recover
+
+## [D] Skills Distribution and Enterprise
+- [STATUS|TYPE] Skills distribution via plugins and managed_settings.json
+- [STATUS|TYPE] Skills as custom subagent delegation targets
+
+## [E] Iterative Refinement Workflows
+- [STATUS|TYPE] Iterative refinement: sequential subagent pattern for test-driven iteration
+- [STATUS|TYPE] Interview pattern: structured questions for ambiguous analysis tasks
 
 ## Frontier
 - [frontier node name] — [criterion one-liner]

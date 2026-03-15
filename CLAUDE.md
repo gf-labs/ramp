@@ -39,12 +39,12 @@ hooks/hooks.json             # Plugin hook config (PostToolUse + WorktreeCreate 
 .claude/settings.json        # Project hook config (file-size-warn + skill-observer, model settings)
 topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 71 nodes total)
 topics/getting-started.md    # Getting started sub-topic (12 nodes)
-topics/build.md              # Build sub-topic (22 nodes)
+topics/build.md              # Build sub-topic (31 nodes after v0.16.0)
 topics/configuration.md      # Configuration sub-topic (13 nodes)
 topics/deployment.md         # Deployment sub-topic (11 nodes)
 topics/administration.md     # Administration sub-topic (13 nodes)
 topics/best-practices.md     # Best practices topic schema (15 nodes)
-topics/mcp-development.md    # MCP development topic schema (20 nodes)
+topics/mcp-development.md    # MCP development topic schema (29 nodes after v0.16.0)
 topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + WorktreeCreate + SessionStart)
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
@@ -86,9 +86,9 @@ Graphs are loaded from a central backend at session start and synced back on sav
 
 Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a structured map of a developer's Claude Code capabilities.
 
-**Tree structure (71 nodes across 5 sub-topics):**
+**Tree structure (71 nodes across 5 sub-topics — claude-code topic):**
 - **[Getting Started]** Core Foundations, Working Effectively, Best Practices — what Claude Code is, tool loop, memory, workflow patterns (12 nodes)
-- **[Build]** Agents and Orchestration, Skills and Plugins, Hooks System, Headless and MCP — subagents, slash commands, hooks, headless mode (22 nodes)
+- **[Build]** Agents and Orchestration, Skills and Plugins, Hooks System, Headless and MCP — subagents, slash commands, hooks, headless mode (31 nodes after v0.16.0 additions)
 - **[Configuration]** Settings Fundamentals, Permissions and Security, Interface Customization — settings hierarchy, allow/deny rules, keybindings (13 nodes)
 - **[Deployment]** Cloud Provider Integration, Network and Infrastructure, Deployment Patterns — Bedrock, Vertex, Foundry, LLM gateways, CI/CD (11 nodes)
 - **[Administration]** Setup and Authentication, Data and Compliance, Cost and Usage Management — org setup, ZDR, analytics, chargeback (13 nodes)
@@ -139,9 +139,10 @@ Topic schemas live in `topics/` — `/ramp:up` discovers them at runtime by scan
 `claude-code` (71 nodes) — full Claude Code curriculum, sources all five sub-topics:
 `getting-started` · `build` · `configuration` · `deployment` · `administration`
 
+
 **Standalone:**
 `best-practices` (15 nodes) — CLAUDE.md design, config, session hygiene
-`mcp-development` (20 nodes) — building MCP servers from fundamentals to production
+`mcp-development` (29 nodes) — building MCP servers from fundamentals to production (after v0.16.0 additions)
 `anthropic-api` (18 nodes) — Claude API from basic completions to tool use loops
 
 ## Knowledge graph file
