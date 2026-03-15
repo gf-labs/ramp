@@ -13,7 +13,7 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 
 ## Node definitions
 
-31 nodes across 6 branches.
+32 nodes across 6 branches.
 
 ### [ROOT] Agents and orchestration (always unlocked — 5 nodes)
 
@@ -25,7 +25,7 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | Custom subagent definitions (.claude/agents/) | Created at least one custom subagent in `.claude/agents/` or `~/.claude/agents/`; can describe its system prompt, tool restrictions, and when to invoke it | Artifact | custom agent definitions > 0 → `[✓\|artifact]` | https://code.claude.com/docs/en/sub-agents |
 | Worktrees for parallel development | Ran two Claude sessions simultaneously on separate branches; knows `git worktree add` and how this enables isolation without context pollution | Historical / Exercise | git worktrees > 1 → `[✓\|historical]` | https://code.claude.com/docs/en/agent-teams |
 
-### [A] Skills and plugins (9 nodes, unlocks when ROOT ≥ 2 `[✓]`)
+### [A] Skills and plugins (10 nodes, unlocks when ROOT ≥ 2 `[✓]`)
 
 | Node | Mastery criterion | Type | Auto-detect signal | source_url |
 |------|-------------------|------|-------------------|-----------|
@@ -38,6 +38,7 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | context: fork for skill isolation | Knows that adding `context: fork` to a skill's frontmatter runs the skill in an isolated forked context, preventing verbose output or intermediate state from polluting the main session; can describe a case where fork is the right choice (e.g., long research skills, output-heavy scripts) | Qualitative / Artifact | skill files with `context: fork` → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/skills |
 | argument-hint frontmatter for required parameter prompting | Has used `argument-hint:` in a skill's frontmatter to prompt the user for required input before the skill runs; knows what the hint text looks like in the Claude UI | Artifact | skill files with `argument-hint:` → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/skills |
 | .claude/rules/ with YAML paths: glob patterns for conditional rule loading | Knows that files placed in `.claude/rules/` can include a `paths:` key with glob patterns so the rule is only injected into context when Claude is working in matching paths; understands the use case — database migration rules active only when editing `migrations/` | Qualitative / Artifact | `.claude/rules/` directory with YAML files → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/memory |
+| Skill command execution contexts (!bash vs Bash tool) | Can explain the shell environment difference: `!bash-command` in a skill runs in a fresh subshell that does NOT inherit `settings.json["env"]` vars; the Bash tool runs as a subprocess of Claude Code's process and DOES inherit them — silent failure when env vars are missing is the key gotcha | Qualitative | None (empirically-verified — no artifact trace) | *(empirically verified — undocumented behavior)* |
 
 ### [B] Hooks system (6 nodes, unlocks when Branch A ≥ 3 `[✓]`)
 
@@ -121,6 +122,7 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | [A] | No plugin evidence | "Have you installed any plugins? How did you discover them and what did the plugin add to your workflow?" |
 | [B] | No hook evidence | "Have you configured any hooks — automation that fires before or after Claude uses a tool? Walk me through what the hook does and when it fires." |
 | [B] | No handler evidence | "Have you written the actual hook handler script — the Python or shell code that reads stdin JSON and responds? Walk me through how your handler works." |
+| [A] | Execution context | "You have a skill command and a PostToolUse hook, both of which need an env var you've set in `settings.json['env']`. Will both reliably receive it? What's the difference between how `!bash` and the Bash tool inherit environment?" |
 | [C] | No headless evidence | "Have you run `claude -p` or `claude --print` outside of an interactive session? What was the use case?" |
 | [C] | No MCP evidence | "Do you have any MCP servers configured? What do they expose to Claude and how do you invoke them?" |
 
@@ -145,6 +147,8 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | Description of `claude -p` use case | C: "Headless mode" → `[✓\|reported]` |
 | Description of MCP server and its tools | C: "MCP: configure and use servers" → `[✓\|reported]` |
 | Description of .mcp.json at project root | C: "MCP project config" → `[✓\|reported]` |
+| Correct explanation of !bash vs Bash tool env inheritance with the gotcha | A: "Skill command execution contexts" → `[✓\|reported]` |
+| Affirmative but without the env-var gotcha detail | A: "Skill command execution contexts" → `[~\|reported]` |
 
 ---
 
@@ -191,6 +195,7 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
     [?] context: fork for skill isolation
     [?] argument-hint frontmatter for required parameter prompting
     [?] .claude/rules/ with YAML paths: glob patterns for conditional rule loading
+    [?] Skill command execution contexts (!bash vs Bash tool)
 
 [B] Hooks System   [if locked: "(unlock: complete 3 Skills & Plugins)"]
     [?] PreToolUse hooks (validation, blocking)
@@ -254,6 +259,7 @@ xp: [CURRENT_XP]
 - [STATUS|TYPE] context: fork for skill isolation
 - [STATUS|TYPE] argument-hint frontmatter for required parameter prompting
 - [STATUS|TYPE] .claude/rules/ with YAML paths: glob patterns for conditional rule loading
+- [STATUS|TYPE] Skill command execution contexts (!bash vs Bash tool)
 
 ## [B] Hooks System
 - [STATUS|TYPE] PreToolUse hooks (validation, blocking)

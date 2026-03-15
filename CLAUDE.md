@@ -33,19 +33,22 @@ commands/up.md               # Adaptive onboarding command — manages knowledge
 commands/tree.md             # Read-only knowledge graph viewer
 commands/review.md           # Spaced repetition review command
 commands/cheatsheet.md       # Personal reference: demonstrated skills + evidence trails
+commands/pin.md              # Mid-session checkpoint — status, node save, optional snapshot
+commands/ingest.md           # Generate topic schemas from external sources (PDF, URL, file)
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
 .claude-plugin/marketplace.json # Marketplace catalog (source, keywords, install metadata)
 hooks/hooks.json             # Plugin hook config (PostToolUse + WorktreeCreate + SessionStart)
 .claude/settings.json        # Project hook config (file-size-warn + skill-observer, model settings)
 topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 71 nodes total)
 topics/getting-started.md    # Getting started sub-topic (12 nodes)
-topics/build.md              # Build sub-topic (31 nodes after v0.16.0)
+topics/build.md              # Build sub-topic (32 nodes after v0.17.0)
 topics/configuration.md      # Configuration sub-topic (13 nodes)
 topics/deployment.md         # Deployment sub-topic (11 nodes)
 topics/administration.md     # Administration sub-topic (13 nodes)
 topics/best-practices.md     # Best practices topic schema (15 nodes)
 topics/mcp-development.md    # MCP development topic schema (29 nodes after v0.16.0)
 topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
+topics/claude-code-internals.md # Empirically-verified Claude Code internals (5 nodes — undocumented behaviors)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + WorktreeCreate + SessionStart)
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
 mcp/server.py                # knowledge-graph MCP server (read/write graphs; swappable backend)
@@ -88,7 +91,7 @@ Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a struc
 
 **Tree structure (71 nodes across 5 sub-topics — claude-code topic):**
 - **[Getting Started]** Core Foundations, Working Effectively, Best Practices — what Claude Code is, tool loop, memory, workflow patterns (12 nodes)
-- **[Build]** Agents and Orchestration, Skills and Plugins, Hooks System, Headless and MCP — subagents, slash commands, hooks, headless mode (31 nodes after v0.16.0 additions)
+- **[Build]** Agents and Orchestration, Skills and Plugins, Hooks System, Headless and MCP — subagents, slash commands, hooks, headless mode (32 nodes after v0.17.0 additions)
 - **[Configuration]** Settings Fundamentals, Permissions and Security, Interface Customization — settings hierarchy, allow/deny rules, keybindings (13 nodes)
 - **[Deployment]** Cloud Provider Integration, Network and Infrastructure, Deployment Patterns — Bedrock, Vertex, Foundry, LLM gateways, CI/CD (11 nodes)
 - **[Administration]** Setup and Authentication, Data and Compliance, Cost and Usage Management — org setup, ZDR, analytics, chargeback (13 nodes)
@@ -144,6 +147,7 @@ Topic schemas live in `topics/` — `/ramp:up` discovers them at runtime by scan
 `best-practices` (15 nodes) — CLAUDE.md design, config, session hygiene
 `mcp-development` (29 nodes) — building MCP servers from fundamentals to production (after v0.16.0 additions)
 `anthropic-api` (18 nodes) — Claude API from basic completions to tool use loops
+`claude-code-internals` (5 nodes) — empirically-verified Claude Code behaviors not in official docs
 
 ## Knowledge graph file
 
