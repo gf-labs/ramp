@@ -20,12 +20,6 @@
 - **Action:** create a `topics/claude-code-internals.md` schema with nodes for each verified behavior; source each node with the session/date it was discovered since no official doc exists; reference from the main `claude-code` schema as a supplemental topic
 - **Why it matters:** undocumented gotchas are the hardest to teach — a dedicated schema makes them first-class knowledge, verifiable via Feynman review rather than rediscovered by accident
 
-### Rename all `sup` references to `ramp`
-- **Size:** S
-- The plugin was previously named `sup`; all references should have been updated to `ramp` but weren't fully completed
-- Audit: knowledge graph evidence trails (e.g. `sup, 2026-03-05: ...` entries in `~/.claude/knowledge-graphs/claude-code.md`), command files, scripts, docs, CLAUDE.md files, MEMORY.md, session-log.md, and any other stored artifacts
-- The evidence-trail repo names (e.g. `sup, 2026-03-05`) are historical and should be updated to `ramp` to reflect the correct plugin name
-
 
 ### Integrate claude-toolbox session-log as knowledge graph evidence source
 - **Size:** S
@@ -34,28 +28,6 @@
 - Integration idea: when `/ramp:wrap` runs, optionally read the current session's claude-toolbox session-log entry and treat file paths + commit messages as additional evidence signals (e.g., editing `BaseAPI.ts` → evidence for async/TypeScript nodes; a commit mentioning MCP → evidence for MCP nodes)
 - This would make demonstrated mastery more richly sourced without requiring manual annotation
 - Prerequisite: stable session-log format in claude-toolbox (already in place)
-
-### `/ramp:pin` — break checkpoint for knowledge graph progress
-- **Size:** S
-- Comprehensive mid-session checkpoint analogous to `/tools:pin`. Does everything `/ramp:wrap` does *except* the end-of-life steps: no XP recompute, no done marker, no session close prompt. Run at natural break points; session continues afterward.
-- **Steps:**
-  1. **Status** (display only): current topic, level, XP, nodes due for review, last graph save date
-  2. **Node save**: scan conversation since last save for demonstrated nodes; propose upgrades (`[ ]`/`[~]` → `[✓|exercise]`) with one-line evidence; confirm then write to `~/.claude/knowledge-graphs/[topic].md` and reset SR schedules
-  3. **Snapshot** (optional): ask "Capture stable patterns to MEMORY.md? `yes` / `skip`" — same flow as `/tools:pin` Step 3 but filtered to ramp-relevant context (graph decisions, topic discoveries, exercise patterns)
-- **Difference from `/ramp:wrap`:** wrap computes final XP, recaps the full session, and asks the done/delete prompt; pin is a checkpoint only — no session accounting, no done marker
-- **Relationship to `/tools:pin`:** run both at the same break point — `/tools:pin` for session-log + general MEMORY.md, `/ramp:pin` for knowledge graph + ramp-specific memory
-
-### `/ramp:wrap` — end-of-session knowledge harvest
-- **Size:** S
-- Scans the current conversation thread for demonstrated skills, decisions, and tool use patterns; synthesizes them into knowledge graph updates and an optional MEMORY.md snapshot
-- Complements `/ramp:snapshot` (which is general-purpose) — wrap is ramp-aware: it specifically looks for evidence of knowledge graph nodes and upgrades `[~]` → `[✓|exercise]` where the session provides Feynman-level demonstration
-- **Steps:**
-  1. Reflect on this session's tool calls, exercises, and explanations — identify any node that was actively demonstrated (not just claimed)
-  2. For each identified node: show proposed upgrade (`[ ]`/`[~]` → `[✓|exercise]`) with one-line evidence note
-  3. Ask for confirmation before writing
-  4. Write updates to `~/.claude/knowledge-graphs/[topic].md` via MCP or Write tool; reset SR schedule for newly demonstrated nodes (`next: today+1d [L1]`)
-  5. Optionally append a `## Session snapshot — [date]` to the project MEMORY.md (same as `/tools:snapshot` but filtered to ramp-relevant context only)
-- **Relationship to existing commands:** `/ramp:up` assesses at session start; `/ramp:wrap` harvests at session end; `/ramp:review` maintains nodes between sessions
 
 ### ramp: doctor extension
 - **Size:** S
@@ -70,16 +42,6 @@
 - Root cause: global hook fires with cache as `CLAUDE_PLUGIN_ROOT`; project hook fires with live repo path; last writer wins (or race condition picks one)
 - Fix options: (a) prefer live repo symlinks when both point to valid files, (b) don't update symlinks if target already valid (skip re-pointing to cache), or (c) separate env vars for cache vs. dev root
 
-### Dynamic `.mcp.json` resolution
-- **Size:** S
-- Replace static `.mcp.json.example` + manual setup with a script that detects `.venv/`, generates `.mcp.json` from a template, and registers the MCP server automatically
-- Triggered by: `scripts/setup-mcp.py` or a new `/ramp:setup` command
-
-### MCP server logs
-- **Size:** S
-- Add `logging` module to `mcp/server.py`; write to `~/.claude/logs/knowledge-graph.log` or stderr
-- Include: tool call name, topic, read/write result, timestamp
-
 ### Cleanup/simplify Python scripts
 - **Size:** S
 - `scripts/skill-observer.py` and `scripts/file-size-warn.py` — reduce duplication, improve readability
@@ -90,11 +52,6 @@
 - Add `pyproject.toml` with `[tool.ruff]` section
 - Wire into `audit.md` Check 10: replace `py_compile` with `ruff check`
 - Parallelizable with MCP logs and script cleanup
-
-### Per-command model configuration
-- **Size:** S
-- Set `model:` frontmatter in command files to right-size token usage: e.g., Haiku for `/ramp:tree` and `/ramp:cheatsheet` (read-only, no inference), full model for `/ramp:up` and `/ramp:review`
-- Measure actual token usage per command to inform assignments
 
 ### Permissions policy for `~/.claude/knowledge-graphs/`
 - **Size:** S
