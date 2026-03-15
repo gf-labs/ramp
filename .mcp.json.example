@@ -1,12 +1,11 @@
 {
+  "_note": "Reference only — setup-mcp.py (SessionStart hook) runs `claude mcp add -s user` automatically. Manual registration: copy the mcpServers block and run `claude mcp add-json -s user knowledge-graph '<json>'`.",
   "mcpServers": {
     "knowledge-graph": {
-      "command": "/absolute/path/to/sup/.venv/bin/python3",
-      "args": ["/absolute/path/to/sup/mcp/server.py"],
-      "env": {
-        "KNOWLEDGE_GRAPH_API_URL": ""
-      }
+      "type": "stdio",
+      "command": "/path/to/ramp/.venv/bin/python3",
+      "args": ["/path/to/ramp/mcp/server.py"],
+      "env": {}
     }
   }
 }
-

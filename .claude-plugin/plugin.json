@@ -1,6 +1,6 @@
 {
   "name": "ramp",
-  "version": "0.13.1",
+  "version": "0.14.0",
   "description": "Adaptive learning mode for Claude Code — knowledge graphs, spaced repetition, passive skill observation, and session wrap",
   "author": {"name": "Bernie Green"},
   "repository": "https://github.com/gf-labs/ramp"

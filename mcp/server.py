@@ -10,15 +10,11 @@ enabling cross-device sync, team skill matrices, and org analytics.
 Quick setup:
   pip install mcp
 
-Configure in ~/.claude/.mcp.json (global) or .mcp.json (project-local):
-  {
-    "mcpServers": {
-      "knowledge-graph": {
-        "command": "python3",
-        "args": ["/absolute/path/to/sup/mcp/server.py"]
-      }
-    }
-  }
+Register via Claude Code CLI (user scope, persists across all projects):
+  claude mcp add -s user knowledge-graph /path/to/ramp/.venv/bin/python3 /path/to/ramp/mcp/server.py
+
+  This is handled automatically by scripts/setup-mcp.py on SessionStart.
+  Writes to ~/.claude.json. See .mcp.json.example for reference.
 
 Environment variables:
   KNOWLEDGE_GRAPH_API_URL  If set, read/write proxies to this backend URL.

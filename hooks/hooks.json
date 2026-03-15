@@ -26,6 +26,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/setup-mcp.py"
+          },
+          {
+            "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/skill-observer.py"
           }
         ]
