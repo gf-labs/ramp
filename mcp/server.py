@@ -23,6 +23,7 @@ Environment variables:
 """
 
 import json
+import logging
 import os
 import re
 import asyncio
@@ -45,6 +46,15 @@ except ImportError:
 GRAPH_DIR = Path.home() / ".claude" / "knowledge-graphs"
 API_URL = os.environ.get("KNOWLEDGE_GRAPH_API_URL", "").rstrip("/")
 TODAY = date.today().isoformat()
+
+_LOG_FILE = Path.home() / ".claude" / "logs" / "knowledge-graph.log"
+_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+logging.basicConfig(
+    filename=_LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
+logger = logging.getLogger("knowledge-graph")
 
 # ---------------------------------------------------------------------------
 # Server
@@ -118,12 +128,16 @@ def read_graph(topic: str) -> str:
                 headers={"Accept": "text/plain"},
             )
             with urllib.request.urlopen(req, timeout=5) as resp:
-                return resp.read().decode("utf-8")
+                result = resp.read().decode("utf-8")
+            logger.info("READ topic=%s source=api", topic)
+            return result
         except Exception:
             pass  # Fall through to local file
 
     path = GRAPH_DIR / f"{topic}.md"
-    return path.read_text(encoding="utf-8") if path.exists() else "NO_TREE_FILE"
+    exists = path.exists()
+    logger.info("READ topic=%s source=%s", topic, "local" if exists else "missing")
+    return path.read_text(encoding="utf-8") if exists else "NO_TREE_FILE"
 
 
 @mcp.tool()
@@ -145,6 +159,7 @@ def save_graph(topic: str, content: str) -> str:
     fm = _parse_frontmatter(content)
     level = fm.get("level", "unknown")
     xp = _safe_xp(fm.get("xp", "0"))
+    logger.info("SAVE topic=%s level=%s xp=%d", topic, level, xp)
 
     if API_URL:
         try:
@@ -172,6 +187,7 @@ def list_topics() -> str:
     Returns a JSON array of objects: [{topic, level, xp, updated}].
     """
     if not GRAPH_DIR.exists():
+        logger.info("LIST topics=0")
         return json.dumps([])
 
     topics = []
@@ -187,6 +203,7 @@ def list_topics() -> str:
         except Exception:
             continue
 
+    logger.info("LIST topics=%d", len(topics))
     return json.dumps(topics, indent=2)
 
 
@@ -202,6 +219,7 @@ def get_benchmarks(topic: str) -> str:
     Args:
         topic: Topic name, e.g. 'claude-code'
     """
+    logger.info("BENCHMARKS topic=%s", topic)
     # Read personal stats from local tree
     user_stats: dict = {"level": None, "xp": None}
     path = GRAPH_DIR / f"{topic}.md"
@@ -292,6 +310,7 @@ def export_delta(topic: str, since_date: str) -> str:
         if evidence_date >= cutoff:
             delta_lines.append(stripped)
 
+    logger.info("EXPORT_DELTA topic=%s since=%s nodes=%d", topic, since_date, len(delta_lines))
     if not delta_lines:
         return f"No demonstrated nodes found since {since_date} in topic '{topic}'"
 
