@@ -2,6 +2,7 @@
 description: Personal cheat sheet — your demonstrated knowledge with real examples
 argument-hint: [optional: topic name]
 allowed-tools: Bash
+model: claude-haiku-4-5-20251001
 ---
 
 ## Context

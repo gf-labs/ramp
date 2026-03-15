@@ -2,6 +2,7 @@
 description: Display your knowledge graph — /ramp:tree, /ramp:tree [topic], or /ramp:tree all
 argument-hint: [optional: topic name or "all"]
 allowed-tools: Bash
+model: claude-haiku-4-5-20251001
 ---
 
 ## Context
