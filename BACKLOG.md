@@ -7,6 +7,44 @@
 
 ## Backlog
 
+### Add schema node for Claude Code execution contexts
+- **Size:** S
+- The distinction between `!cmd` context injection and the Bash tool is not currently captured in any knowledge graph node
+- `!cmd` blocks run in a fresh shell that does NOT inherit `settings.json["env"]` vars; the Bash tool runs as a subprocess of Claude Code's process and DOES — silent failure, empty context, no error
+- **Action:** search Claude Code docs for coverage of the `!` executor's shell environment; if documented, add a node to the `build` schema under `Skills and Plugins` with the doc URL as source — e.g. `"Skill command execution contexts (!bash vs Bash tool)"`; if undocumented, mark the node as empirically-verified and note the source limitation
+
+### Create `claude-code-internals` custom topic schema
+- **Size:** M
+- Claude Code has a set of empirically-verified internal behaviors that are not covered by the official docs and therefore have no home in the existing `claude-code` schema
+- Examples discovered so far: `!cmd` vs Bash tool shell environment, hook stdin contract (JSON shape, exit code semantics), `settings.json["env"]` injection scope, `--plugin-dir` hook registration limitation
+- **Action:** create a `topics/claude-code-internals.md` schema with nodes for each verified behavior; source each node with the session/date it was discovered since no official doc exists; reference from the main `claude-code` schema as a supplemental topic
+- **Why it matters:** undocumented gotchas are the hardest to teach — a dedicated schema makes them first-class knowledge, verifiable via Feynman review rather than rediscovered by accident
+
+### Rename all `sup` references to `ramp`
+- **Size:** S
+- The plugin was previously named `sup`; all references should have been updated to `ramp` but weren't fully completed
+- Audit: knowledge graph evidence trails (e.g. `sup, 2026-03-05: ...` entries in `~/.claude/knowledge-graphs/claude-code.md`), command files, scripts, docs, CLAUDE.md files, MEMORY.md, session-log.md, and any other stored artifacts
+- The evidence-trail repo names (e.g. `sup, 2026-03-05`) are historical and should be updated to `ramp` to reflect the correct plugin name
+
+
+### Integrate claude-toolbox session-log as knowledge graph evidence source
+- **Size:** S
+- claude-toolbox and ramp both run PostToolUse hooks in the same session — claude-toolbox writes a session-log with files touched and git commits; ramp's skill-observer detects tool-use signals
+- These are complementary: session-log entries describe what work happened; the knowledge graph tracks what skills were demonstrated
+- Integration idea: when `/ramp:wrap` runs, optionally read the current session's claude-toolbox session-log entry and treat file paths + commit messages as additional evidence signals (e.g., editing `BaseAPI.ts` → evidence for async/TypeScript nodes; a commit mentioning MCP → evidence for MCP nodes)
+- This would make demonstrated mastery more richly sourced without requiring manual annotation
+- Prerequisite: stable session-log format in claude-toolbox (already in place)
+
+### `/ramp:pin` — break checkpoint for knowledge graph progress
+- **Size:** S
+- Comprehensive mid-session checkpoint analogous to `/tools:pin`. Does everything `/ramp:wrap` does *except* the end-of-life steps: no XP recompute, no done marker, no session close prompt. Run at natural break points; session continues afterward.
+- **Steps:**
+  1. **Status** (display only): current topic, level, XP, nodes due for review, last graph save date
+  2. **Node save**: scan conversation since last save for demonstrated nodes; propose upgrades (`[ ]`/`[~]` → `[✓|exercise]`) with one-line evidence; confirm then write to `~/.claude/knowledge-graphs/[topic].md` and reset SR schedules
+  3. **Snapshot** (optional): ask "Capture stable patterns to MEMORY.md? `yes` / `skip`" — same flow as `/tools:pin` Step 3 but filtered to ramp-relevant context (graph decisions, topic discoveries, exercise patterns)
+- **Difference from `/ramp:wrap`:** wrap computes final XP, recaps the full session, and asks the done/delete prompt; pin is a checkpoint only — no session accounting, no done marker
+- **Relationship to `/tools:pin`:** run both at the same break point — `/tools:pin` for session-log + general MEMORY.md, `/ramp:pin` for knowledge graph + ramp-specific memory
+
 ### `/ramp:wrap` — end-of-session knowledge harvest
 - **Size:** S
 - Scans the current conversation thread for demonstrated skills, decisions, and tool use patterns; synthesizes them into knowledge graph updates and an optional MEMORY.md snapshot
