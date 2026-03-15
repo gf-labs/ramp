@@ -350,4 +350,5 @@ Run `/ramp:up [topic-name]` to start a learning session with this schema.
 - Mastery criteria must be specific and falsifiable — reject criteria like "understands X" or "is familiar with Y"
 - source_url must be a real URL to official docs — leave empty rather than invent one
 - If the source is a PDF and too long to read in one call: read in 20-page chunks; synthesize before proceeding
+- **PDF prerequisite:** PDF reading requires `poppler-utils` — if the Read tool returns a `pdftoppm is not installed` error, tell the user to run `brew install poppler` (macOS) or `apt-get install poppler-utils` (Linux) before retrying
 - If any phase fails (source unreadable, schema format error): surface the problem and ask the user how to proceed
