@@ -18,8 +18,8 @@ try:
         lines = sum(1 for _ in open(path))
         name = os.path.basename(path)
         if lines > 600:
-            print(f"[sup] {name}: {lines} lines — prompt files should stay focused")
+            print(f"[ramp] {name}: {lines} lines — prompt files should stay focused")
         else:
-            print(f"[sup] {name}: {lines} lines")
+            print(f"[ramp] {name}: {lines} lines")
 except Exception:
     pass

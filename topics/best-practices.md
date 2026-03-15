@@ -33,7 +33,7 @@ A developer who completes this tree writes CLAUDE.md files that onboard new engi
 | Architecture and structure documentation | CLAUDE.md describes the codebase at the right level: module responsibilities, key data flows, where to look first — not a restatement of file names | Artifact / Qualitative | CLAUDE.md line count > 30 → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/memory |
 | Team conventions and contacts | CLAUDE.md names who owns which systems, where to ask questions, and what the review/deploy process is — something Claude can cite when advising on a PR | Artifact | `## Onboarding` or `## Team` section in CLAUDE.md → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/memory |
 | Security-sensitive path exclusions | Has explicitly excluded at least one path from Claude's access (e.g., `.env`, `secrets/`) in CLAUDE.md or settings; understands why this matters | Artifact | CLAUDE.md or settings contains explicit deny/exclude patterns → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/settings |
-| Onboarding section for team tools | CLAUDE.md has a team-facing `## Onboarding` section with first-week guidance; `/sup` can read it and surface it to new hires | Artifact | `## Onboarding` section in CLAUDE.md → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/memory |
+| Onboarding section for team tools | CLAUDE.md has a team-facing `## Onboarding` section with first-week guidance; `/ramp:up` can read it and surface it to new hires | Artifact | `## Onboarding` section in CLAUDE.md → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/memory |
 
 ### [B] Configuration patterns (unlocks when Branch A ≥ 3 `[✓]` — 4 nodes)
 

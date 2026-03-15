@@ -105,7 +105,7 @@ These topics are independently maintained (not sourced by `claude-code` meta-top
 
 ---
 
-## Future: `/sup:sync` command
+## Future: `/ramp:sync` command
 
 A future command will:
 1. Fetch each URL above
