@@ -93,6 +93,13 @@
 - Review the full Phase 4 options (a–e) for coherence; check README company deployment section against current plugin arch
 - **Immediate action:** remove option **b** (ONBOARDING.md) from Phase 4 save prompt until the above questions are resolved — it's not well understood enough to offer by default
 
+### Review Anthropic agent SDK repos for best practices
+- **Size:** S
+- Two official Anthropic repos surfaced as best practices references:
+  - `https://github.com/anthropics/agent-sdk-workshop` — workshop materials for the Agent SDK
+  - `https://github.com/anthropics/claude-agent-sdk-demos` — demo implementations using Claude Agent SDK
+- Review both for patterns worth capturing in knowledge graph schemas (mcp-development topics especially)
+
 ## Icebox (large / future sessions)
 
 ### Backend server for knowledge-graphs
