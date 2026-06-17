@@ -141,10 +141,9 @@ Topic schemas live in `topics/` — `/ramp:up` discovers them at runtime by scan
 `claude-code` (71 nodes) — full Claude Code curriculum, sources all five sub-topics:
 `getting-started` · `build` · `configuration` · `deployment` · `administration`
 
-
 **Standalone:**
 `best-practices` (15 nodes) — CLAUDE.md design, config, session hygiene
-`mcp-development` (29 nodes) — building MCP servers from fundamentals to production (after v0.16.0 additions)
+`mcp-development` (29 nodes) — building MCP servers from fundamentals to production
 `anthropic-api` (18 nodes) — Claude API from basic completions to tool use loops
 `claude-code-internals` (5 nodes) — empirically-verified Claude Code behaviors not in official docs
 
