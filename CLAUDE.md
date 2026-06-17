@@ -2,17 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Motivation
+## Design philosophy
 
-`ramp` is a portfolio project by Bernie Green targeting two Anthropic roles:
+`ramp` measures **demonstrated mastery** (`[✓]`) over **self-reported engagement** (`[~]`) — capability growth, not activity metrics. The knowledge graph, spaced repetition, XP tiers, and Feynman-style verification all express that single thesis: a learning tool should track what you can *do*, not what you've *clicked through*.
 
-- **Design Engineer, AI Capability Development (Education Labs)** — The `[✓]` vs `[~]` distinction (demonstrated mastery vs. self-reported engagement) is a direct expression of Education Labs' thesis: capability growth over engagement metrics. The knowledge graph, spaced repetition, and Feynman verification are the interaction paradigm.
-- **Software Engineer, Claude Code** — ramp is built entirely within Claude Code's extension model (commands, hooks, MCP, plugin marketplace, settings hierarchy). It demonstrates deep product knowledge from the inside.
+It is also a working demonstration of Claude Code's extension model — built entirely from slash commands, hooks, an MCP server, a plugin manifest, and the settings hierarchy, with no application code.
 
-Best case: ramp is adopted by Anthropic and Bernie joins to build it out.
-Full reference: `~/.claude/docs/job-applications.md`
-
-When making prioritization decisions, ask: **what best demonstrates fit for these two roles?**
+When making prioritization decisions, ask: **what best advances that capability-over-engagement thesis while showcasing Claude Code's extension model?**
 
 ## Project
 
@@ -35,6 +31,7 @@ commands/review.md           # Spaced repetition review command
 commands/cheatsheet.md       # Personal reference: demonstrated skills + evidence trails
 commands/pin.md              # Mid-session checkpoint — status, node save, optional snapshot
 commands/ingest.md           # Generate topic schemas from external sources (PDF, URL, file)
+commands/wrap.md             # End-of-session knowledge harvest — node upgrades, SR schedule, snapshot
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
 .claude-plugin/marketplace.json # Marketplace catalog (source, keywords, install metadata)
 hooks/hooks.json             # Plugin hook config (PostToolUse + WorktreeCreate + SessionStart)
@@ -64,6 +61,8 @@ README.md                    # Install instructions, modes, company deployment g
 **Note:** `commands/` at root is the source of truth for command files — used by the plugin system and company deployment (copy to team repo's `.claude/commands/`). `.claude/commands/` is gitignored.
 
 No build steps, no dependencies, no runtime. Commands are pure prompt engineering in Markdown files.
+
+**MCP server gotcha:** `mcp/server.py` requires the `.venv` in the repo root — system `python3` has a conflicting `mcp` stub. `setup-mcp.py` uses `.venv/bin/python3` explicitly; if running manually, activate with `source .venv/bin/activate` first.
 
 ## Customization
 
@@ -162,12 +161,3 @@ Full annotated example: `docs/tree-format.md`
 
 **Version migration:** v1 files have all `[✓]` treated as `[✓|historical]`; v2 files get `| next:` fields added. Both upgrade to version 3 on next write with `xp:` computed.
 
-## How slash commands work
-
-Claude Code discovers `.md` files in `.claude/commands/` (project-level) or `~/.claude/commands/` (global) and exposes them as `/` commands. The filename becomes the command name. YAML frontmatter sets `description`, `argument-hint`, `allowed-tools`, and `model`.
-
-Key mechanisms used in `ramp.md`:
-- `$ARGUMENTS`: replaced with whatever the user types after `/ramp:up`
-- `!bash-command`: executes shell commands at invocation and injects their output into the prompt (used for context collection: git log, file listing, tech stack detection, hooks/MCP config, etc.)
-- `@filename`: injects file contents (alternative to `!cat filename`)
-- `allowed-tools`: grants Claude permission to use Read, Glob, Grep, Bash, Write, Edit during the session

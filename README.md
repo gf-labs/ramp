@@ -1,4 +1,4 @@
-# ramp `v0.13.0`
+# ramp `v0.18.0`
 
 Claude Code adoption stalls for a predictable reason: the documentation is complete, but it doesn't adapt to *you* — your codebase, your current level, what you've already demonstrated. Most developers plateau at basic edits and multi-file changes. Hooks, worktrees, custom agents, MCP servers, and pipeline integration remain unexplored. The capability gap compounds.
 
@@ -169,20 +169,19 @@ After the session, `/ramp:up` also offers to **bootstrap the repo's Claude Code 
 
 ## Install
 
-**From a local clone (recommended for now):**
-```bash
-git clone https://github.com/gf-labs/claude-code-slash-getting-started ~/path/to/sup
+**From the GFL marketplace (recommended):** ramp is published through the [`gf-labs/gfl-marketplace`](https://github.com/gf-labs/gfl-marketplace) catalog (alongside `tools`).
 ```
-Then in any Claude Code session:
-```
-/plugin marketplace add ~/path/to/sup
+/plugin marketplace add gf-labs/gfl-marketplace
 /plugin install ramp@gfl-marketplace
 ```
 
-**From GitHub (once public on the Anthropic marketplace):**
+**From a local clone (dev / offline):** ramp is also its own single-plugin marketplace, so you can add the clone directly — note the install name is `ramp@ramp` here, not `@gfl-marketplace`.
+```bash
+git clone https://github.com/gf-labs/ramp ~/path/to/ramp
 ```
-/plugin marketplace add gf-labs/claude-code-slash-getting-started
-/plugin install ramp@gfl-marketplace
+```
+/plugin marketplace add ~/path/to/ramp
+/plugin install ramp@ramp
 ```
 
 Commands are namespaced: `/ramp:up`, `/ramp:tree`, `/ramp:review`, `/ramp:cheatsheet`. Hooks (passive observer) and schemas are set up automatically on first session start. Update with `/plugin update ramp@gfl-marketplace`.
@@ -205,31 +204,35 @@ cp your-topic.md ~/.claude/knowledge-graphs/schemas/your-topic.md
 
 **Why use it:** Without the MCP, `/ramp:up` reads graphs via a bash `cat` at session start and writes via the Write tool. With the MCP, reads and writes go through structured tools — enabling swappable backends (local files → hosted API) without changing `ramp.md`.
 
-**Setup:**
+**Setup:** create the repo-local virtualenv — system `python3` ships a conflicting `mcp` stub, so the server must run from `.venv`:
 
 ```bash
-pip install mcp
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
 ```
 
-Add to `~/.claude/.mcp.json` (global, all repos):
+> In a normal plugin install the `setup-mcp.py` SessionStart hook registers the server for you (`claude mcp add -s user`). The blocks below are for manual registration.
+
+Add to `~/.claude/.mcp.json` (global, all repos) — point `command` at the venv python:
 ```json
 {
   "mcpServers": {
     "knowledge-graph": {
-      "command": "python3",
-      "args": ["/absolute/path/to/sup/mcp/server.py"]
+      "type": "stdio",
+      "command": "/absolute/path/to/ramp/.venv/bin/python3",
+      "args": ["/absolute/path/to/ramp/mcp/server.py"]
     }
   }
 }
 ```
 
-Or project-local (`.mcp.json` in the repo root):
+Or project-local (`.mcp.json` in the repo root) — use the `start.sh` wrapper, which resolves the venv python for you:
 ```json
 {
   "mcpServers": {
     "knowledge-graph": {
-      "command": "python3",
-      "args": ["./mcp/server.py"]
+      "type": "stdio",
+      "command": "./mcp/start.sh"
     }
   }
 }
@@ -285,11 +288,11 @@ To build a new topic schema, see `topics/claude-code.md` for the format.
 
 ---
 
-## Dev setup (for working on sup itself)
+## Dev setup (for working on ramp itself)
 
 **Plugin mode (load for any repo, namespaced commands):**
 ```bash
-claude --plugin-dir /path/to/sup
+claude --plugin-dir /path/to/ramp
 ```
 
 Loads the plugin for the current session in any repo. Commands are namespaced (`/ramp:up`, `/ramp:tree`). Use `/reload-plugins` to pick up changes without restarting.
@@ -482,4 +485,4 @@ This project is a demo of Claude Code's [custom slash commands](https://docs.ant
 
 ---
 
-*Plugin: `ramp@gfl-marketplace` · v0.13.0*
+*Plugin: `ramp@gfl-marketplace` · v0.18.0*
