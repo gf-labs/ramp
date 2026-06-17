@@ -3,5 +3,7 @@
   "version": "0.18.0",
   "description": "Adaptive learning mode for Claude Code — knowledge graphs, spaced repetition, passive skill observation, and session wrap",
   "author": {"name": "Bernie Green"},
-  "repository": "https://github.com/gf-labs/ramp"
+  "license": "MIT",
+  "repository": "https://github.com/gf-labs/ramp",
+  "keywords": ["productivity", "learning", "knowledge-graph", "spaced-repetition"]
 }

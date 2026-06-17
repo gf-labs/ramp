@@ -1,0 +1,6 @@
+# ramp's only runtime dependency is the MCP server (mcp/server.py).
+# The slash commands themselves are pure Markdown and need nothing installed.
+#
+# Install into the repo-local .venv (system python3 has a conflicting `mcp` stub):
+#   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+mcp>=1.0
