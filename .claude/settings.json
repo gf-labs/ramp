@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/file-size-warn.py"
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/scripts/file-size-warn.py"
           }
         ]
       },
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/skill-observer.py"
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/scripts/skill-observer.py"
           }
         ]
       }
@@ -25,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/skill-observer.py"
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/scripts/skill-observer.py"
           }
         ]
       }
@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/skill-observer.py"
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/scripts/skill-observer.py"
           }
         ]
       }
