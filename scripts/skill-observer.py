@@ -10,7 +10,7 @@ Install (via plugin — automatic):
   Hooks are auto-registered. No manual setup needed.
 
 For standalone use, register in ~/.claude/settings.json:
-  PostToolUse (matcher: ".*"), WorktreeCreate, SessionStart
+  PostToolUse (matcher: ".*"), SessionStart
   → command: "python3 /path/to/skill-observer.py"
 
 Writes to: ~/.claude/knowledge-graphs/claude-code.md (created automatically if absent)
@@ -23,8 +23,15 @@ captured via /ramp:up assessment, not this observer.
 
 Claude Code passes hook input as JSON on stdin. Event shapes:
   PostToolUse:   {"hook_event_name": "PostToolUse", "tool_name": "Bash", "tool_input": {...}}
-  WorktreeCreate: {"hook_event_name": "WorktreeCreate", "worktree_path": "...", "cwd": "..."}
   SessionStart:  {"hook_event_name": "SessionStart", "source": "startup|resume|clear|compact"}
+
+Worktree creation is detected via the `git worktree add` PostToolUse Bash rule
+(there is no `WorktreeCreate` hook event in Claude Code).
+
+This observer can be registered in more than one scope (plugin + project), so it may
+fire more than once for the same event. The read-modify-write of the graph file is
+guarded by an exclusive file lock and an atomic replace, making concurrent fires safe
+(at worst redundant) rather than corrupting the file.
 """
 
 import json
@@ -34,10 +41,16 @@ import sys
 from datetime import date
 from pathlib import Path
 
+try:
+    import fcntl  # POSIX only; used for the cross-process write lock
+except ImportError:  # pragma: no cover - non-POSIX fallback
+    fcntl = None
+
 # All current detection rules are Claude Code–specific, so always writes to claude-code topic.
 # Future topic-specific observers can be separate scripts with their own detection rules
 # registered under separate hook matchers (e.g., matcher: "bash_runner_.*").
 SKILL_GRAPH_PATH = Path.home() / ".claude" / "knowledge-graphs" / "claude-code.md"
+LOCK_PATH = SKILL_GRAPH_PATH.parent / ".claude-code.md.lock"
 TODAY = date.today().isoformat()
 
 
@@ -165,7 +178,12 @@ def save_tree(tree: str):
         elif line.startswith("xp:"):
             lines[i] = f"xp: {new_xp}"
     SKILL_GRAPH_PATH.parent.mkdir(parents=True, exist_ok=True)
-    SKILL_GRAPH_PATH.write_text("\n".join(lines) + ("\n" if tree.endswith("\n") else ""))
+    content = "\n".join(lines) + ("\n" if tree.endswith("\n") else "")
+    # Atomic replace: write to a temp file in the same dir, then os.replace (atomic on POSIX).
+    # A partial write can never leave the graph truncated even under concurrent fires.
+    tmp = SKILL_GRAPH_PATH.with_suffix(f".md.tmp.{os.getpid()}")
+    tmp.write_text(content)
+    os.replace(tmp, SKILL_GRAPH_PATH)
 
 
 # Detection rules: (tool_name, input_field, pattern, node_pattern, node_label)
@@ -331,28 +349,45 @@ def matches_rule(rule: dict, tool_name: str, tool_input: dict) -> bool:
     return True
 
 
+def _acquire_lock():
+    """Best-effort exclusive lock for the graph read-modify-write.
+
+    The observer may be registered in more than one scope (plugin + project), so two
+    processes can fire for the same event. Holding this lock serializes their
+    read-modify-write so neither clobbers the other. Released automatically when this
+    short-lived hook process exits. Returns the open fd (kept alive by the caller) or None.
+    """
+    if fcntl is None:
+        return None
+    try:
+        LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+        lock_fd = open(LOCK_PATH, "w")
+        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        return lock_fd
+    except Exception:
+        return None
+
+
 def main():
     data = read_stdin()
     hook_event = data.get("hook_event_name", "PostToolUse")  # default for legacy payloads
 
+    if not SKILL_GRAPH_PATH.exists():
+        # No tree yet — nothing to update (skip the lock entirely)
+        return
+
+    # Serialize concurrent fires before reading, so the tree we modify is the latest
+    # on-disk state. `_lock` must stay referenced for the lock to be held.
+    _lock = _acquire_lock()  # noqa: F841 — holds the lock for this process's lifetime
+
     tree = read_tree()
     if not tree:
-        # No tree yet — nothing to update
         return
 
     repo = get_repo_name()
     changed = False
 
-    if hook_event == "WorktreeCreate":
-        worktree_path = data.get("worktree_path", "")
-        node = "Worktrees for parallel development"
-        if not node_already_demonstrated(tree, node):
-            evidence = f"{repo}, {TODAY}: worktree created at {worktree_path or 'unknown path'}"
-            tree, did_change = update_node(tree, node, "[✓|historical]", evidence)
-            if did_change:
-                changed = True
-
-    elif hook_event == "SessionStart":
+    if hook_event == "SessionStart":
         # Plugin path: auto-symlink schemas from plugin cache to ~/.claude/knowledge-graphs/schemas/
         # This runs when installed as a plugin (CLAUDE_PLUGIN_ROOT is set by Claude Code).
         # On standalone installs, CLAUDE_PLUGIN_ROOT is not set — skipped.

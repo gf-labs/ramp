@@ -20,16 +20,6 @@
         ]
       }
     ],
-    "WorktreeCreate": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 ${CLAUDE_PROJECT_DIR}/scripts/skill-observer.py"
-          }
-        ]
-      }
-    ],
     "SessionStart": [
       {
         "hooks": [
