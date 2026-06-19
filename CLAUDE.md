@@ -36,7 +36,7 @@ commands/wrap.md             # End-of-session knowledge harvest — node upgrade
 .claude-plugin/marketplace.json # Marketplace catalog (source, keywords, install metadata)
 hooks/hooks.json             # Plugin hook config (PostToolUse + WorktreeCreate + SessionStart)
 .claude/settings.json        # Project hook config (file-size-warn + skill-observer, model settings)
-topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 71 nodes total)
+topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 81 nodes total)
 topics/getting-started.md    # Getting started sub-topic (12 nodes)
 topics/build.md              # Build sub-topic (32 nodes after v0.17.0)
 topics/configuration.md      # Configuration sub-topic (13 nodes)
@@ -88,7 +88,7 @@ Graphs are loaded from a central backend at session start and synced back on sav
 
 Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a structured map of a developer's Claude Code capabilities.
 
-**Tree structure (71 nodes across 5 sub-topics — claude-code topic):**
+**Tree structure (81 nodes across 5 sub-topics — claude-code topic):**
 - **[Getting Started]** Core Foundations, Working Effectively, Best Practices — what Claude Code is, tool loop, memory, workflow patterns (12 nodes)
 - **[Build]** Agents and Orchestration, Skills and Plugins, Hooks System, Headless and MCP — subagents, slash commands, hooks, headless mode (32 nodes after v0.17.0 additions)
 - **[Configuration]** Settings Fundamentals, Permissions and Security, Interface Customization — settings hierarchy, allow/deny rules, keybindings (13 nodes)
@@ -138,7 +138,7 @@ Merge priority: Local → Team → Personal. A local `[✓]` upgrades anything; 
 Topic schemas live in `topics/` — `/ramp:up` discovers them at runtime by scanning that directory. To add a custom topic: create `topics/[name].md` following the format in any existing file.
 
 **Core (meta-topic + sub-topics):**
-`claude-code` (71 nodes) — full Claude Code curriculum, sources all five sub-topics:
+`claude-code` (81 nodes) — full Claude Code curriculum, sources all five sub-topics:
 `getting-started` · `build` · `configuration` · `deployment` · `administration`
 
 **Standalone:**

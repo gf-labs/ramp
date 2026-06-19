@@ -12,12 +12,12 @@ This is the master topic for Claude Code. It sources five focused sub-topic sche
 
 **Sub-topics sourced:**
 - `getting-started` — Foundations: what Claude Code is, tool loop, memory, workflows, best practices (12 nodes)
-- `build` — Building: agents, skills, plugins, hooks, headless, MCP (22 nodes)
+- `build` — Building: agents, skills, plugins, hooks, headless, MCP (32 nodes)
 - `configuration` — Configuration: settings, permissions, model config, keybindings (13 nodes)
 - `deployment` — Deployment: Bedrock, Vertex, Foundry, network, LLM gateway, devcontainer (11 nodes)
 - `administration` — Administration: setup, auth, security, data, costs, analytics (13 nodes)
 
-**Total: 71 nodes across 5 sub-topics.**
+**Total: 81 nodes across 5 sub-topics.**
 
 When `/ramp:up` loads this topic, it concatenates all five sourced schemas. The engine sees one combined schema document with all node definitions, detection signals, gap questions, and mastery criteria.
 
