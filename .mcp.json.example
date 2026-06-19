@@ -3,8 +3,8 @@
   "mcpServers": {
     "knowledge-graph": {
       "type": "stdio",
-      "command": "/path/to/ramp/.venv/bin/python3",
-      "args": ["/path/to/ramp/mcp/server.py"],
+      "command": "/path/to/ramp/mcp/start.sh",
+      "args": [],
       "env": {}
     }
   }
