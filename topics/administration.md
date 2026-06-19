@@ -39,7 +39,7 @@ This file defines the curriculum for the `administration` topic. Covers the Admi
 |------|-------------------|------|-------------------|-----------|
 | Usage monitoring (per user, per team) | Has accessed the usage dashboard; can read token consumption by user or team; knows how to set up alerts for threshold breaches | Historical / Qualitative | None | https://code.claude.com/docs/en/monitoring-usage |
 | Cost management and budgeting | Has set or reviewed a budget for Claude Code usage; knows the cost model (per-token pricing by model); can project costs for a team | Qualitative | None | https://code.claude.com/docs/en/costs |
-| Token and session limits | Has configured or can describe `maxTokens`, session token budgets, or per-user limits; knows how hitting a limit affects Claude's behavior | Qualitative | `maxTokens` in settings → `[~\|artifact]` | https://code.claude.com/docs/en/costs |
+| Token and session limits | Can describe org/plan usage limits, session token budgets, or per-user limits, and how hitting a limit affects Claude's behavior; knows these are enforced by plan/API, not a settings.json `maxTokens` key | Qualitative | None | https://code.claude.com/docs/en/costs |
 | Analytics and reporting | Has used the analytics dashboard or API to generate a usage report; knows which metrics are available (sessions, tokens, tools used, models) | Historical / Qualitative | None | https://code.claude.com/docs/en/analytics |
 | Chargeback and cost allocation | Has set up or can describe cost allocation by team, project, or cost center using tags or org structure; knows how to export cost data | Qualitative | None | https://code.claude.com/docs/en/costs |
 
@@ -49,9 +49,9 @@ This file defines the curriculum for the `administration` topic. Covers the Admi
 
 | Collected evidence | Node → status |
 |--------------------|---------------|
-| `maxTokens` in settings | B: "Token and session limits" → `[~\|artifact]` |
+| *(none — see note)* | — |
 
-*Note: Most administration nodes require organizational context and cannot be auto-detected from local filesystem signals. Gap questions are the primary assessment path for this topic.*
+*Note: Administration nodes require organizational context and cannot be auto-detected from local filesystem signals (there is no settings.json token/budget key to scan for). Gap questions are the primary assessment path for this topic.*
 
 ---
 

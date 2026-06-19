@@ -23,7 +23,7 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 | Installation and first run | Has installed Claude Code, run `claude` at least once, and knows the difference between interactive and headless invocation | Historical / Exercise | git history or sessions exist → `[~\|historical]` | https://code.claude.com/docs/en/quickstart |
 | How Claude Code uses computers (tool loop) | Can explain the tool loop: Claude proposes tool calls → user approves → output fed back → Claude continues; knows which tools exist (Bash, Read, Write, Edit, Glob, Grep, Agent) | Qualitative | None | https://code.claude.com/docs/en/how-claude-code-works |
 | Core feature surface (interactive vs. headless, key tools) | Can describe the main capability surface: interactive mode, headless mode, slash commands, MCP servers, hooks, agents; knows where each fits | Qualitative | headless invocations > 0 → `[~\|historical]` | https://code.claude.com/docs/en/features-overview |
-| Memory types and scope hierarchy | Can name all four memory types (CLAUDE.md, settings.json, auto-memory, session context) and explain how they differ in persistence and scope | Exercise / Qualitative | CLAUDE.md exists → `[~\|artifact]`; settings.json exists → `[~\|artifact]` | https://code.claude.com/docs/en/memory |
+| Memory types and scope hierarchy | Can name the two memory types — CLAUDE.md (developer-authored, layered global → project → local) and auto-memory / MEMORY.md (Claude-authored) — and explain how they differ in who writes them, persistence, and scope | Exercise / Qualitative | CLAUDE.md exists → `[~\|artifact]` | https://code.claude.com/docs/en/memory |
 
 ### [A] Working effectively (4 nodes, unlocks when ROOT ≥ 3 `[✓]`)
 

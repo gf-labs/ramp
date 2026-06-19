@@ -40,8 +40,8 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 **Hooks configured**:
 !`python3 -c "import json; d=json.load(open('.claude/settings.json')); h=d.get('hooks',{}); print('project hooks:', list(h.keys()) if h else 'none')" 2>/dev/null; python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); h=d.get('hooks',{}); print('global hooks:', list(h.keys()) if h else 'none')" 2>/dev/null || echo "none found"`
 
-**Model/budget settings**:
-!`python3 -c "import json,os; keys=['model','maxTokens','budget','defaultModel']; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); found={k:d[k] for k in keys if k in d}; print(found if found else 'none configured')" 2>/dev/null || echo "not found"`
+**Model settings**:
+!`python3 -c "import json,os; keys=['model','defaultMode','fastModePerSessionOptIn']; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); found={k:d[k] for k in keys if k in d}; print(found if found else 'none configured')" 2>/dev/null || echo "not found"`
 
 **Plan mode default**:
 !`python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); print('defaultMode:', d.get('defaultMode', 'not set'))" 2>/dev/null || echo "not set"`
