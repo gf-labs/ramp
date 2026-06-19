@@ -1,7 +1,3 @@
-<p align="center">
-  <!-- LOGO: drop a hosted banner/glyph here later, e.g. <img src="docs/assets/ramp.png" width="120"> -->
-</p>
-
 <h1 align="center">ramp</h1>
 
 <p align="center"><em>Adaptive, repo-grounded learning mode for Claude Code — it measures what you can <strong>do</strong>, not what you've clicked through.</em></p>
@@ -44,8 +40,6 @@ Then, in any repo:
 ```
 
 That's it. `ramp` detects your level, renders your personalized knowledge graph, and hands you your first mastery mission grounded in the actual files in front of you.
-
-<!-- DEMO GIF: /ramp:up first run — scan → graph → first mission, ~25s asciinema -->
 
 ---
 
@@ -259,9 +253,9 @@ cp your-topic.md ~/.claude/knowledge-graphs/schemas/your-topic.md
 
 ## The passive observer
 
-A hook watches every Claude Code session and upgrades `~/.claude/knowledge-graphs/claude-code.md` whenever it detects skill evidence — no need to run `/ramp:up`. `scripts/skill-observer.py` listens on three events (`PostToolUse`, `WorktreeCreate`, `SessionStart`) and detects, for example:
+A hook watches every Claude Code session and upgrades `~/.claude/knowledge-graphs/claude-code.md` whenever it detects skill evidence — no need to run `/ramp:up`. `scripts/skill-observer.py` listens on two events (`PostToolUse`, `SessionStart`) and detects, for example:
 
-- `git worktree add` (or a `WorktreeCreate` event) → Worktrees `[✓|historical]`
+- `git worktree add` → Worktrees `[✓|historical]`
 - `claude -p` → Headless mode `[✓|historical]`
 - Writes to `.claude/agents/*.md` → Custom subagent definitions `[✓|historical]`
 - Writes to `settings.json` with a `hooks` key → PostToolUse hooks `[✓|historical]`
@@ -296,7 +290,7 @@ python3 -m venv .venv
 
 > In a normal plugin install, the `setup-mcp.py` SessionStart hook registers the server for you (`claude mcp add -s user`). The block below is for manual registration.
 
-Add to `~/.claude/.mcp.json` (global) — point `command` at the venv python, or use `./mcp/start.sh`, which resolves it for you:
+Add to `~/.claude.json` (global user-scope MCP config) — point `command` at the venv python, or use `./mcp/start.sh`, which resolves it for you:
 
 ```json
 {
@@ -336,7 +330,7 @@ ramp/
 │   └── marketplace.json   # Single-plugin marketplace catalog
 ├── commands/              # Command source — up, tree, review, cheatsheet, pin, wrap, ingest
 ├── topics/                # Schema source → symlinked to ~/.claude/knowledge-graphs/schemas/
-├── hooks/hooks.json       # Plugin hooks (PostToolUse + WorktreeCreate + SessionStart)
+├── hooks/hooks.json       # Plugin hooks (PostToolUse + SessionStart)
 ├── scripts/               # skill-observer.py, file-size-warn.py, setup-mcp.py
 ├── mcp/                   # knowledge-graph MCP server (server.py, start.sh)
 └── docs/                  # tree-format.md, docs-map.md, tools-wrap-reference.md
@@ -364,7 +358,7 @@ claude --plugin-dir /path/to/ramp
 - **`allowed-tools`** — scoped to `Read, Glob, Grep, Bash, Write, Edit` so Claude can navigate the repo, run exercises, write `ONBOARDING.md`, and update the graph — without unlimited access.
 - **Persistent file I/O** — `~/.claude/knowledge-graphs/[topic].md` is YAML frontmatter + Markdown: human-readable, machine-parseable, shareable by copy-paste.
 - **Spaced repetition as pure file I/O** — `| next: YYYY-MM-DD [LN]` fields encode the schedule. No database, no external state.
-- **Hooks** — a passive observer across `PostToolUse`, `WorktreeCreate`, and `SessionStart` updates the graph with zero user action.
+- **Hooks** — a passive observer across `PostToolUse` and `SessionStart` updates the graph with zero user action.
 - **MCP server** — an optional structured backend that makes the storage layer swappable.
 - **Branch logic in natural language** — the phase structure (detect → assess → infer → output → artifacts) is expressed as instructions. There's no interpreter, no state machine. The prompt *is* the program.
 
@@ -384,6 +378,12 @@ Topics planned but not yet built:
 | `bash` · `react` · `typescript` · `git` · `dsa` | General developer topics |
 
 To contribute a schema, follow the format in [`topics/claude-code.md`](topics/claude-code.md) — or generate a first draft with `/ramp:ingest`.
+
+---
+
+## Accuracy & versioning
+
+The curriculum is validated against the [Claude Code docs](https://code.claude.com/docs) as of **June 2026**. Claude Code ships frequently — events, settings keys, and flags evolve. If you spot drift, open an issue or regenerate the affected schema with `/ramp:ingest`.
 
 ---
 
