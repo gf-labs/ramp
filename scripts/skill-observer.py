@@ -368,12 +368,53 @@ def _acquire_lock():
         return None
 
 
+def provision_schema_symlinks():
+    """Symlink plugin topic schemas into ~/.claude/knowledge-graphs/schemas/.
+
+    Runs on SessionStart and must NOT depend on a personal tree existing — a fresh
+    install has no tree yet, but /ramp:up needs these schemas on its very first run.
+    Only active under a plugin install (CLAUDE_PLUGIN_ROOT is set by Claude Code);
+    a no-op on standalone installs. Best-effort: never raises into the hook.
+    """
+    plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT", "")
+    if not plugin_root:
+        return
+    topics_dir = Path(plugin_root) / "topics"
+    schemas_dir = Path.home() / ".claude" / "knowledge-graphs" / "schemas"
+    if not topics_dir.is_dir():
+        return
+    try:
+        schemas_dir.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return
+    for topic_file in topics_dir.glob("*.md"):
+        dst = schemas_dir / topic_file.name
+        try:
+            if dst.is_symlink():
+                try:
+                    dst.resolve(strict=True)  # raises OSError if the symlink is broken
+                    # Valid symlink — leave it alone regardless of target path
+                except OSError:
+                    dst.unlink(missing_ok=True)  # broken symlink — replace it
+                    dst.symlink_to(topic_file)
+            elif not dst.exists():
+                dst.symlink_to(topic_file)
+            # Real file (manually placed) → leave it alone
+        except OSError:
+            continue  # race with a concurrent fire, or read-only FS — skip this one
+
+
 def main():
     data = read_stdin()
     hook_event = data.get("hook_event_name", "PostToolUse")  # default for legacy payloads
 
+    # Provision schema symlinks BEFORE the tree-existence guard below: a fresh install
+    # has no personal tree yet, but /ramp:up still needs the schemas on its first run.
+    if hook_event == "SessionStart":
+        provision_schema_symlinks()
+
     if not SKILL_GRAPH_PATH.exists():
-        # No tree yet — nothing to update (skip the lock entirely)
+        # No tree yet — nothing further to update (skip the lock entirely)
         return
 
     # Serialize concurrent fires before reading, so the tree we modify is the latest
@@ -388,29 +429,6 @@ def main():
     changed = False
 
     if hook_event == "SessionStart":
-        # Plugin path: auto-symlink schemas from plugin cache to ~/.claude/knowledge-graphs/schemas/
-        # This runs when installed as a plugin (CLAUDE_PLUGIN_ROOT is set by Claude Code).
-        # On standalone installs, CLAUDE_PLUGIN_ROOT is not set — skipped.
-        plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT", "")
-        if plugin_root:
-            topics_dir = Path(plugin_root) / "topics"
-            schemas_dir = Path.home() / ".claude" / "knowledge-graphs" / "schemas"
-            if topics_dir.is_dir():
-                schemas_dir.mkdir(parents=True, exist_ok=True)
-                for topic_file in topics_dir.glob("*.md"):
-                    dst = schemas_dir / topic_file.name
-                    if dst.is_symlink():
-                        try:
-                            dst.resolve(strict=True)  # raises OSError if symlink is broken
-                            # Valid symlink — leave it alone regardless of target path
-                        except OSError:
-                            # Broken symlink — replace it
-                            dst.unlink(missing_ok=True)
-                            dst.symlink_to(topic_file)
-                    elif not dst.exists():
-                        dst.symlink_to(topic_file)
-                    # Real file (manually placed) → leave it alone
-
         source = data.get("source", "")
         if source == "compact":
             node = "Common workflow patterns"
