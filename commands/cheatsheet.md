@@ -35,7 +35,7 @@ This is personal documentation generated from what they've actually done, not ge
 For each branch in the tree (ROOT, A, B, C, D, E), in order:
 
 1. Only include branches that have at least one `[✓]` node
-2. Render the branch as a section header: `## [ROOT] Configure Claude`
+2. Render the branch as a section header: `## [ROOT] Agents and Orchestration`
 3. For each `[✓]` node in that branch:
 
 ```

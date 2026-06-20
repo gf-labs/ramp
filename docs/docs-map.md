@@ -1,6 +1,6 @@
 # Claude Code Docs Map
 
-Generated: 2026-03-05 | Source: https://code.claude.com/docs/en/
+Generated: 2026-03-05 · Last verified against schemas: 2026-06-19 | Source: https://code.claude.com/docs/en/
 
 This file maps every Claude Code documentation page to its topic schema and the nodes it informs.
 Purpose: human-readable reference now; machine-parseable foundation for a future `/ramp:sync` command.
@@ -28,14 +28,21 @@ Purpose: human-readable reference now; machine-parseable foundation for a future
 | https://code.claude.com/docs/en/sub-agents | Subagent basics: spawning and tool access; Foreground vs. background subagents; Custom subagent definitions (.claude/agents/) |
 | https://code.claude.com/docs/en/agent-teams | Agent teams: orchestration patterns; Worktrees for parallel development |
 | https://code.claude.com/docs/en/plugins | Plugin manifest (plugin.json) |
+| https://docs.anthropic.com/en/docs/claude-code/plugins | Skills distribution via plugins and managed_settings.json |
 | https://code.claude.com/docs/en/discover-plugins | Plugin discovery and installation |
-| https://code.claude.com/docs/en/skills | Skills (slash commands): creation and syntax; Skill mechanics: $ARGUMENTS, !bash, @file; Skill and command composition |
+| https://code.claude.com/docs/en/skills | Skills (slash commands): creation and syntax; Skill mechanics: $ARGUMENTS, !bash, @file; Skill and command composition; argument-hint frontmatter for documenting expected arguments |
+| https://docs.anthropic.com/en/docs/claude-code/skills | context: fork for skill isolation |
+| https://docs.anthropic.com/en/docs/claude-code/memory | .claude/rules/ with YAML paths: glob patterns for conditional rule loading |
 | https://code.claude.com/docs/en/output-styles | Output styles: controlling response format |
 | https://code.claude.com/docs/en/hooks-guide | Hooks guide: design patterns and gotchas; Scoped hooks (in skill or agent frontmatter) |
 | https://code.claude.com/docs/en/hooks | PreToolUse hooks (validation, blocking); PostToolUse hooks (linting, reactions); Stop and Notification hooks (session alerts); Hook handler scripts (stdin, exit codes, response) |
-| https://code.claude.com/docs/en/headless | Headless mode (-p flag, non-interactive); Piped input and CI integration |
+| https://code.claude.com/docs/en/headless | Headless mode (-p flag, non-interactive); Piped input and CI integration; --output-format json and --json-schema for structured headless output |
+| https://docs.anthropic.com/en/docs/claude-code/built-in-tools | Built-in tool selection for codebase tasks |
 | https://code.claude.com/docs/en/mcp | MCP: configure and use servers; MCP project config (.mcp.json) |
 | https://code.claude.com/docs/en/troubleshooting | Troubleshooting: diagnose and recover |
+| https://docs.anthropic.com/en/docs/claude-code/sub-agents | Skills as custom subagent delegation targets; Iterative refinement: sequential subagent pattern for test-driven iteration |
+| https://docs.anthropic.com/en/docs/build-with-claude/agents | Interview pattern: structured questions for ambiguous analysis tasks |
+| *(empirically verified — no canonical doc page)* | Skill command execution contexts (!bash vs Bash tool) |
 
 ---
 

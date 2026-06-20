@@ -10,6 +10,8 @@ Canonical reference for the v3 knowledge graph file format.
 
 ## Annotated example
 
+> Abbreviated to representative sections for readability — a full `claude-code` tree lists all 81 nodes across 18 sections. The `xp` and `level` in the frontmatter reflect the full tree, not just the sample shown below.
+
 ```markdown
 ---
 version: 3                          # Schema version — always 3 for new files
@@ -25,36 +27,34 @@ xp: 240                             # Computed XP total (see XP system below)
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 
-## [ROOT] Configure Claude
-- [✓|artifact] CLAUDE.md with project guidance — my-repo, 2026-03-04: 80+ lines with build commands and architecture | next: 2026-03-05 [L1]
-- [✓|exercise] Model or budget settings configured — my-repo, 2026-03-04: set claude-sonnet-4-6 as default; understands Haiku/Sonnet/Opus tradeoffs | next: 2026-03-05 [L1]
-- [~|reported] /memory audit and CLAUDE.md hierarchy
-- [ ] CLI fundamentals (/help, /doctor, /usage)
+## [Getting Started · ROOT] Core Foundations
+- [✓|exercise] How Claude Code uses computers (tool loop) — my-repo, 2026-03-04: walked read→edit→verify live | next: 2026-03-05 [L1]
+- [✓|artifact] Memory types and scope hierarchy — my-repo, 2026-03-04: project + user CLAUDE.md hierarchy in use | next: 2026-03-11 [L2]
+- [~|reported] Core feature surface (interactive vs. headless, key tools)
+- [ ] What Claude Code does and when to use it
+- [ ] Installation and first run
 
-## [A] Memory and Context Management
-- [✓|historical] Permissions system (/permissions, globs) — my-repo, 2026-03-01: 12 allow rules in ~/.claude/settings.json | next: 2026-03-08 [L2]
-- [ ] Context window and /compact usage
-- [ ] Session naming and resumption
+## [Getting Started · B] Best Practices
+- [✓|artifact] CLAUDE.md as living project memory — my-repo, 2026-03-04: 80+ lines, build commands + architecture | next: 2026-03-05 [L1]
+- [ ] Iterative refinement and course corrections
+- [ ] Recognizing and avoiding common pitfalls
 
-## [B] Codebase Navigation
-- [ ] Read + Glob + Grep exploration
-- [ ] Explain an unfamiliar module
+## [Build · ROOT] Agents and Orchestration
+- [✓|historical] Worktrees for parallel development — 2026-02-20: two sessions on separate branches | next: 2026-03-13 [L3]
+- [~|historical] Agent teams: orchestration patterns — 24 subagent sessions detected
+- [ ] Subagent basics: spawning and tool access
+- [ ] Custom subagent definitions (.claude/agents/)
 
-## [C] Code Change Workflows
-- [~|historical] Multi-file coordinated changes — my-repo, 2026-02-20: 20-file commit detected
-- [ ] Single-file edits with context
+## [Configuration · A] Permissions and Security
+- [✓|artifact] Permissions: allow/deny rules and glob patterns — my-repo, 2026-03-01: 12 allow rules in settings.json | next: 2026-03-08 [L2]
+- [ ] Permission precedence and scoping
+- [ ] Plan mode as default
 
-## [D] Agents and Orchestration
-- [ ] Parallel subagents
-- [·] Worktrees for parallel development
-
-## [E] Automation and Extension
-- [·] PostToolUse hooks
-- [·] Custom MCP server
+<!-- … 14 more sections omitted — a full claude-code tree lists all 81 nodes (Getting Started · A; Build · A–E; Configuration · ROOT/B; Deployment · ROOT–B; Administration · ROOT–B) … -->
 
 ## Frontier
-- Context window and /compact usage — use /compact deliberately; explain compact vs clear, token cost
-- Session naming and resumption — use /rename, understand session resume flow
+- Subagent basics: spawning and tool access — spawn a subagent and describe its tool access vs. the parent
+- Plan mode as default — configure the default mode and explain when plan-first beats edit-first
 
 ## Notes
 <!-- Add personal notes here -->
