@@ -7,14 +7,14 @@ Backend: local files at ~/.claude/knowledge-graphs/ by default.
 Set KNOWLEDGE_GRAPH_API_URL to proxy reads/writes to a hosted backend,
 enabling cross-device sync, team skill matrices, and org analytics.
 
-Quick setup:
-  pip install mcp
+Setup — handled automatically by scripts/setup-mcp.py on SessionStart:
+  python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+  claude mcp add -s user knowledge-graph /path/to/ramp/mcp/start.sh
 
-Register via Claude Code CLI (user scope, persists across all projects):
-  claude mcp add -s user knowledge-graph /path/to/ramp/.venv/bin/python3 /path/to/ramp/mcp/server.py
-
-  This is handled automatically by scripts/setup-mcp.py on SessionStart.
-  Writes to ~/.claude.json. See .mcp.json.example for reference.
+  Register the start.sh wrapper (NOT python3 directly): it execs the repo-local
+  .venv python, sidestepping the macOS framework-symlink trap, and never the
+  system python3 — which ships a conflicting `mcp` stub. Writes to ~/.claude.json
+  (user scope, persists across all projects). See .mcp.json.example for reference.
 
 Environment variables:
   KNOWLEDGE_GRAPH_API_URL  If set, read/write proxies to this backend URL.

@@ -48,10 +48,12 @@ topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
 topics/claude-code-internals.md # Empirically-verified Claude Code internals (5 nodes — undocumented behaviors)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + SessionStart)
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
+scripts/setup-mcp.py         # Provisions .venv + registers MCP server (SessionStart self-heal)
 mcp/server.py                # knowledge-graph MCP server (read/write graphs; swappable backend)
+mcp/start.sh                 # MCP launch wrapper — .venv python; avoids macOS symlink trap
 docs/tree-format.md          # Annotated v3 knowledge graph format example
 docs/docs-map.md             # Maps all doc pages to topics and nodes
-BACKLOG.md                   # Prioritized work items — immediate, medium, icebox
+BACKLOG.md                   # Pointer to TaskWarrior backlog (task project:business.ramp)
 .mcp.json.example            # MCP server config template (copy → .mcp.json, fill in paths)
 README.md                    # Install instructions, modes, company deployment guide
 ```
