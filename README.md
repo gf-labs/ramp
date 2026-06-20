@@ -203,7 +203,7 @@ Add `.claude/knowledge-graphs/schemas/[your-topic].md` to the team repo. This is
         └── acme-onboarding.md   ← commit this
 ```
 
-Example nodes: `[ROOT] Environment setup` (make setup, .env, local run), `[A] Architecture` (data flow, service ownership), `[B] Dev workflow` (PR process, test suite, deploy), `[C] Team practices` (escalation, monitoring). See [`topics/claude-code.md`](topics/claude-code.md) for the full schema format — once committed, engineers clone and run `/ramp:up acme-onboarding`.
+Example nodes: `[ROOT] Environment setup` (make setup, .env, local run), `[A] Architecture` (data flow, service ownership), `[B] Dev workflow` (PR process, test suite, deploy), `[C] Team practices` (escalation, monitoring). See [`topics/claude-code.md`](topics/claude-code.md) for the full schema format — once committed, engineers clone and run `/ramp acme-onboarding`.
 
 ### Step 3 — Add team context to `CLAUDE.md`
 
@@ -241,7 +241,7 @@ git clone https://github.com/gf-labs/ramp ~/path/to/ramp
 /plugin install ramp@ramp
 ```
 
-Hooks (the passive observer) and topic schemas are set up automatically on first session start. Update with `/plugin update ramp@gfl-marketplace`.
+Hooks (the passive observer) and topic schemas are set up automatically on first session start. Update with `/plugin marketplace update gfl-marketplace`.
 
 **Add a community topic:**
 ```bash
