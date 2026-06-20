@@ -193,7 +193,7 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
     [?] Plugin discovery and installation
     [?] Plugin manifest (plugin.json)
     [?] context: fork for skill isolation
-    [?] argument-hint frontmatter for required parameter prompting
+    [?] argument-hint frontmatter for documenting expected arguments
     [?] .claude/rules/ with YAML paths: glob patterns for conditional rule loading
     [?] Skill command execution contexts (!bash vs Bash tool)
 
@@ -257,7 +257,7 @@ xp: [CURRENT_XP]
 - [STATUS|TYPE] Plugin discovery and installation
 - [STATUS|TYPE] Plugin manifest (plugin.json)
 - [STATUS|TYPE] context: fork for skill isolation
-- [STATUS|TYPE] argument-hint frontmatter for required parameter prompting
+- [STATUS|TYPE] argument-hint frontmatter for documenting expected arguments
 - [STATUS|TYPE] .claude/rules/ with YAML paths: glob patterns for conditional rule loading
 - [STATUS|TYPE] Skill command execution contexts (!bash vs Bash tool)
 

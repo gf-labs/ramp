@@ -65,40 +65,44 @@ sources: [getting-started, build, configuration, deployment, administration]
 
 *[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
 
-## [Getting Started] Core Foundations
+## [Getting Started · ROOT] Core Foundations
 - [STATUS|TYPE] What Claude Code does and when to use it
 - [STATUS|TYPE] Installation and first run
 - [STATUS|TYPE] How Claude Code uses computers (tool loop)
 - [STATUS|TYPE] Core feature surface (interactive vs. headless, key tools)
 - [STATUS|TYPE] Memory types and scope hierarchy
 
-## [Getting Started] Working Effectively
+## [Getting Started · A] Working Effectively
 - [STATUS|TYPE] Common workflow patterns
 - [STATUS|TYPE] When to interrupt vs. let it run
 - [STATUS|TYPE] Reading and verifying Claude's output
 - [STATUS|TYPE] Writing effective prompts for code tasks
 
-## [Getting Started] Best Practices
+## [Getting Started · B] Best Practices
 - [STATUS|TYPE] CLAUDE.md as living project memory
 - [STATUS|TYPE] Iterative refinement and course corrections
 - [STATUS|TYPE] Recognizing and avoiding common pitfalls
 
-## [Build] Agents and Orchestration
+## [Build · ROOT] Agents and Orchestration
 - [STATUS|TYPE] Subagent basics: spawning and tool access
 - [STATUS|TYPE] Foreground vs. background subagents
 - [STATUS|TYPE] Agent teams: orchestration patterns
 - [STATUS|TYPE] Custom subagent definitions (.claude/agents/)
 - [STATUS|TYPE] Worktrees for parallel development
 
-## [Build] Skills and Plugins
+## [Build · A] Skills and Plugins
 - [STATUS|TYPE] Skills (slash commands): creation and syntax
 - [STATUS|TYPE] Skill mechanics: $ARGUMENTS, !bash, @file
 - [STATUS|TYPE] Skill and command composition
 - [STATUS|TYPE] Output styles: controlling response format
 - [STATUS|TYPE] Plugin discovery and installation
 - [STATUS|TYPE] Plugin manifest (plugin.json)
+- [STATUS|TYPE] context: fork for skill isolation
+- [STATUS|TYPE] argument-hint frontmatter for documenting expected arguments
+- [STATUS|TYPE] .claude/rules/ with YAML paths: glob patterns for conditional rule loading
+- [STATUS|TYPE] Skill command execution contexts (!bash vs Bash tool)
 
-## [Build] Hooks System
+## [Build · B] Hooks System
 - [STATUS|TYPE] PreToolUse hooks (validation, blocking)
 - [STATUS|TYPE] PostToolUse hooks (linting, reactions)
 - [STATUS|TYPE] Stop and Notification hooks (session alerts)
@@ -106,62 +110,72 @@ sources: [getting-started, build, configuration, deployment, administration]
 - [STATUS|TYPE] Scoped hooks (in skill or agent frontmatter)
 - [STATUS|TYPE] Hooks guide: design patterns and gotchas
 
-## [Build] Headless and MCP
+## [Build · C] Headless and MCP
 - [STATUS|TYPE] Headless mode (-p flag, non-interactive)
 - [STATUS|TYPE] Piped input and CI integration
+- [STATUS|TYPE] --output-format json and --json-schema for structured headless output
+- [STATUS|TYPE] Built-in tool selection for codebase tasks
 - [STATUS|TYPE] MCP: configure and use servers
 - [STATUS|TYPE] MCP project config (.mcp.json)
 - [STATUS|TYPE] Troubleshooting: diagnose and recover
 
-## [Configuration] Settings Fundamentals
+## [Build · D] Skills Distribution and Enterprise
+- [STATUS|TYPE] Skills distribution via plugins and managed_settings.json
+- [STATUS|TYPE] Skills as custom subagent delegation targets
+
+## [Build · E] Iterative Refinement Workflows
+- [STATUS|TYPE] Iterative refinement: sequential subagent pattern for test-driven iteration
+- [STATUS|TYPE] Interview pattern: structured questions for ambiguous analysis tasks
+
+## [Configuration · ROOT] Settings Fundamentals
 - [STATUS|TYPE] Settings scope hierarchy: global, project, local
 - [STATUS|TYPE] Settings file format and key options
 - [STATUS|TYPE] Model selection and budget configuration
 - [STATUS|TYPE] Server-managed settings (policy enforcement)
 
-## [Configuration] Permissions and Security
+## [Configuration · A] Permissions and Security
 - [STATUS|TYPE] Permissions: allow/deny rules and glob patterns
 - [STATUS|TYPE] Permission precedence and scoping
 - [STATUS|TYPE] Sandboxing configuration
 - [STATUS|TYPE] Fast mode
 - [STATUS|TYPE] Plan mode as default
 
-## [Configuration] Interface Customization
+## [Configuration · B] Interface Customization
 - [STATUS|TYPE] Terminal configuration
 - [STATUS|TYPE] Status line customization
 - [STATUS|TYPE] Keybindings customization
 - [STATUS|TYPE] Interactive mode features
 
-## [Deployment] Cloud Provider Integration
+## [Deployment · ROOT] Cloud Provider Integration
 - [STATUS|TYPE] Third-party integrations overview
 - [STATUS|TYPE] Amazon Bedrock setup
 - [STATUS|TYPE] Google Vertex AI setup
 - [STATUS|TYPE] Microsoft Azure AI Foundry setup
 
-## [Deployment] Network and Infrastructure
+## [Deployment · A] Network and Infrastructure
 - [STATUS|TYPE] Network configuration (proxies, certificates)
 - [STATUS|TYPE] LLM gateway patterns
 - [STATUS|TYPE] Dev container configuration
 - [STATUS|TYPE] Authentication for enterprise deployments
 
-## [Deployment] Deployment Patterns
+## [Deployment · B] Deployment Patterns
 - [STATUS|TYPE] Choosing a deployment model
 - [STATUS|TYPE] Environment variable management for Claude Code
 - [STATUS|TYPE] Headless Claude in CI/CD pipelines
 
-## [Administration] Setup and Authentication
+## [Administration · ROOT] Setup and Authentication
 - [STATUS|TYPE] Organization setup and provisioning
 - [STATUS|TYPE] Authentication methods
 - [STATUS|TYPE] Security configuration
 - [STATUS|TYPE] Plugin marketplace administration
 
-## [Administration] Data and Compliance
+## [Administration · A] Data and Compliance
 - [STATUS|TYPE] Data usage and privacy policies
 - [STATUS|TYPE] Zero data retention (ZDR) configuration
 - [STATUS|TYPE] Server-managed settings and policy enforcement
 - [STATUS|TYPE] Audit logging and security monitoring
 
-## [Administration] Cost and Usage Management
+## [Administration · B] Cost and Usage Management
 - [STATUS|TYPE] Usage monitoring (per user, per team)
 - [STATUS|TYPE] Cost management and budgeting
 - [STATUS|TYPE] Token and session limits
