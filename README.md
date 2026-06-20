@@ -333,7 +333,7 @@ ramp/
 ├── hooks/hooks.json       # Plugin hooks (PostToolUse + SessionStart)
 ├── scripts/               # skill-observer.py, file-size-warn.py, setup-mcp.py
 ├── mcp/                   # knowledge-graph MCP server (server.py, start.sh)
-└── docs/                  # tree-format.md, docs-map.md, tools-wrap-reference.md
+└── docs/                  # tree-format.md, docs-map.md
 ```
 
 ### Working on ramp itself
