@@ -1,10 +1,25 @@
-.git/
-.claude/commands/
-.claude/knowledge-graphs/local/
-.claude/settings.local.json
-.env
-.mcp.json
-.venv/
+# OS / editor cruft
+.DS_Store
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+
+# Local env & secrets
+.env
+.venv/
+venv/
+.mcp.json
+
+# Local Claude Code settings (never commit personal config/permissions)
+.claude/settings.local.json
+.claude/commands/
+
+# ramp: gitignored local knowledge-graph layer (per the 3-layer model)
+.claude/knowledge-graphs/local/
+
+# Local TaskWarrior slug-mapping config (commit .tw-slugs.json.example instead)
 .tw-slugs.json
+
+# Internal working notes — brainstorms, specs, audits — kept out of the public repo
+docs/superpowers/
