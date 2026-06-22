@@ -33,9 +33,9 @@ commands/pin.md              # Mid-session checkpoint — status, node save, opt
 commands/ingest.md           # Generate topic schemas from external sources (PDF, URL, file)
 commands/wrap.md             # End-of-session knowledge harvest — node upgrades, SR schedule, snapshot
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
-.claude-plugin/marketplace.json # Marketplace catalog (source, keywords, install metadata)
+.claude-plugin/marketplace.json # Marketplace catalog (source, category, install metadata)
 hooks/hooks.json             # Plugin hook config (PostToolUse + SessionStart)
-.claude/settings.json        # Project hook config (file-size-warn + skill-observer, model settings)
+.claude/settings.json        # Project hook config (file-size-warn + skill-observer)
 topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 81 nodes total)
 topics/getting-started.md    # Getting started sub-topic (12 nodes)
 topics/build.md              # Build sub-topic (32 nodes after v0.17.0)
@@ -51,6 +51,9 @@ scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 
 scripts/setup-mcp.py         # Provisions .venv + registers MCP server (SessionStart self-heal)
 mcp/server.py                # knowledge-graph MCP server (read/write graphs; swappable backend)
 mcp/start.sh                 # MCP launch wrapper — .venv python; avoids macOS symlink trap
+tests/                       # stdlib-only pytest suite (xp, detection, mcp) — loaded via importlib
+requirements.txt             # MCP server deps — only to run mcp/server.py, not to test
+requirements-dev.txt         # pytest (test suite)
 docs/tree-format.md          # Annotated v3 knowledge graph format example
 docs/docs-map.md             # Maps all doc pages to topics and nodes
 BACKLOG.md                   # Pointer to TaskWarrior backlog (task project:business.ramp)
@@ -62,7 +65,7 @@ README.md                    # Install instructions, modes, company deployment g
 
 **Note:** `commands/` at root is the source of truth for command files — used by the plugin system and company deployment (copy to team repo's `.claude/commands/`). `.claude/commands/` is gitignored.
 
-No build steps, no dependencies, no runtime. Commands are pure prompt engineering in Markdown files.
+The command surface has no build step and no runtime — commands are pure prompt engineering in Markdown. (The MCP server and `tests/` carry their own Python deps: `requirements.txt`, `requirements-dev.txt`.)
 
 **MCP server gotcha:** `mcp/server.py` requires the `.venv` in the repo root — system `python3` has a conflicting `mcp` stub. `setup-mcp.py` uses `.venv/bin/python3` explicitly; if running manually, activate with `source .venv/bin/activate` first.
 
@@ -137,7 +140,7 @@ Merge priority: Local → Team → Personal. A local `[✓]` upgrades anything; 
 
 ## Topics
 
-Topic schemas live in `topics/` — `/ramp:up` discovers them at runtime by scanning that directory. To add a custom topic: create `topics/[name].md` following the format in any existing file.
+Topic schemas live in `topics/` and are symlinked into `~/.claude/knowledge-graphs/schemas/` by a SessionStart hook (`skill-observer.py`'s `provision_schema_symlinks`); `/ramp:up` resolves the *single requested* topic from there — it does not scan or enumerate the directory. To add a custom topic: create `topics/[name].md` following the format in any existing file.
 
 **Core (meta-topic + sub-topics):**
 `claude-code` (81 nodes) — full Claude Code curriculum, sources all five sub-topics:
