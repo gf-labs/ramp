@@ -129,7 +129,7 @@ The compounding effect is the point. Stay engaged after delivering the learning 
 
 **Step 0b — Check for review-due nodes.** Read the "Review-due nodes" value injected above. If it shows `REVIEW_DUE: N` where N > 0, set a flag `HAS_REVIEW_DUE = true` and store the count. This will be surfaced in Phase 3 output. It does NOT change the flow — just annotates the output.
 
-**Step 0e — Compute XP.** After Phase 2 inference, compute current XP from the merged tree. XP per branch: ROOT=10/node, A=15/node, B=20/node, C=25/node, D=35/node, E=50/node. `[✓]` = full XP; `[~]` = half XP (floor); `[ ]` = 0. Store as `CURRENT_XP`. Example: 3 ROOT [✓] (30) + 2 ROOT [~] (10) + 4 A [✓] (60) + 2 A [~] (15) = 115 XP. (This step runs after Phase 2, before Phase 3 output.)
+**Step 0e — XP is computed in code, not here.** Do not compute or hand-write XP. For the Phase 3 "Level · XP" line, read `CURRENT_XP` from the tree's `xp:` frontmatter field (the value the code last wrote); for a brand-new tree with no prior `xp:`, show the tier without a number and report the authoritative XP from `save_graph`'s confirmation after Phase 4. `save_graph` recomputes and overwrites `xp:` on every write — never propose a number.
 
 **Step 0c — Check for Mode D (consultant mode).** Check the remaining `$ARGUMENTS` (after stripping topic keyword, if any).
 
@@ -470,7 +470,7 @@ Execute only what's selected. For option **b**, write `ONBOARDING.md` to the rep
 - [ ] [3–5 specific, time-boxed actions grounded in this repo]
 ```
 
-For option **a**, save the knowledge graph for the active topic. If `knowledge-graph` MCP is configured (per the auto-collected context), call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full-tree-markdown])` — this handles the write atomically and syncs to any configured backend. If MCP is not configured, write `~/.claude/knowledge-graphs/[active-topic].md` using the Write tool. Either way, include `xp: [CURRENT_XP]` in the YAML frontmatter. Use the "Saved tree file template" from the loaded schema for exact format. If the schema doesn't include a template, use this generic format:
+For option **a**, save the knowledge graph for the active topic. If `knowledge-graph` MCP is configured (per the auto-collected context), call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full-tree-markdown])` — this handles the write atomically and syncs to any configured backend. If MCP is not configured, write `~/.claude/knowledge-graphs/[active-topic].md` using the Write tool. Do not hand-write `xp:`; whatever you put is overwritten — `save_graph` recomputes it and reports the authoritative XP in its confirmation (show that number). On the non-MCP Write path, leave `xp:` as the template value; the skill-observer normalization pass recomputes it for the `claude-code` topic on the next session start (other topics: best-effort). Use the "Saved tree file template" from the loaded schema for exact format. If the schema doesn't include a template, use this generic format:
 
 ```markdown
 ---
@@ -480,7 +480,7 @@ user: [git config user.name or "unknown"]
 email: [git config user.email or "unknown"]
 updated: [today's date YYYY-MM-DD]
 level: [Explorer / Builder / Practitioner / Expert]
-xp: [CURRENT_XP]
+xp: 0
 ---
 
 # [Topic] Knowledge Graph
@@ -502,11 +502,7 @@ xp: [CURRENT_XP]
 
 **TYPE values:** `artifact`, `exercise`, `reported`, `historical` — use the type from inference. If unknown (version: 1 migration), use `historical`.
 
-**Demonstration evidence trail + spaced repetition field:** For `[✓]` nodes only, append `— [repo-name], [YYYY-MM-DD]: [brief note] | next: [YYYY-MM-DD] [L1]`. The `| next: YYYY-MM-DD [LN]` is the spaced repetition review schedule:
-- Newly demonstrated nodes: `| next: [today + 1 day] [L1]`
-- Existing `[✓]` nodes without a `| next:` field: add `| next: [today + 1 day] [L1]` on first version 3 write
-- Existing `[✓]` nodes that already have `| next:`: preserve their existing schedule (do not reset)
-- Interval ladder: L1=1d, L2=3d, L3=7d, L4=21d, L5=60d, L6=permanent (no further review scheduled)
+**Demonstration evidence trail:** For `[✓]` nodes only, append `— [repo-name], [YYYY-MM-DD]: [brief note]`. Do **not** compute or append a `| next:` review date — `save_graph` fills the L1 date on newly-`[✓]` nodes, and `advance_review` (via `/ramp:review`) advances it thereafter. Leave existing `| next:` fields on already-`[✓]` nodes exactly as they are (they are schedule state; never recompute them).
 
 `[~]` and `[ ]` nodes have no evidence trail and no review field.
 
@@ -518,14 +514,14 @@ Format exactly:
 ```
 
 **Merge rules** (when `~/.claude/knowledge-graphs/[topic].md` already exists):
-- `version: 1` or `version: 2` files: read node names and statuses; treat all `[✓]` as `[✓|historical]`; upgrade to version: 3 format on write; add `| next: [today+1d] [L1]` to any `[✓]` node that lacks a review field
+- `version: 1` or `version: 2` files: read node names and statuses; treat all `[✓]` as `[✓|historical]`; upgrade to version: 3 format on write; leave review fields to `save_graph` (it fills a missing `| next:` on each `[✓]` node on write)
 - Preserve any `[✓|*]` nodes from the old file that were not re-assessed in this session
 - When merging, preserve existing evidence trails and review schedules — never overwrite a `[✓]` that has a trail/schedule with one that has none
 - Update changed nodes; update the `updated` date
 - Never overwrite `[✓]` with `[ ]` or `[~]` — only upgrade, never downgrade
 - New nodes (not in old file) get their newly-inferred status
 
-After writing: "Saved · [CURRENT_XP] XP. To sync to another machine: copy `~/.claude/knowledge-graphs/`. To share with your team: use option **d**."
+After writing, report the save: "Saved · [XP from save_graph's confirmation] XP. To sync to another machine: copy `~/.claude/knowledge-graphs/`. To share with your team: use option **d**."
 
 **For option d**, write `.claude/knowledge-graphs/[active-topic].md` in the current repo. This is the project-local tree — safe to commit, visible to teammates. It records only the `[✓]` nodes demonstrated in this session (a delta, not a full copy of your personal tree):
 
@@ -582,4 +578,4 @@ If option **c** is selected:
 - The knowledge graph's `[★]` nodes and the "Next N Skills" must be the same items — N = 1 (Explorer), 2 (Builder), 3 (Practitioner/Expert)
 - ONBOARDING.md must be useful to a real new employee, not a session summary
 - Phase 1 gap questions: ask at most 1 (returning user) or 3 (fresh start); never open-ended "what have you used?" — always specific and targeted
-- XP is always recomputed on write; never preserve a stale xp value from the old file
+- XP is always recomputed in code on write (by `save_graph`); never preserve a stale xp value from the old file
