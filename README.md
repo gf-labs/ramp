@@ -3,7 +3,7 @@
 <p align="center"><em>Adaptive, repo-grounded learning mode for Claude Code — it measures what you can <strong>do</strong>, not what you've clicked through.</em></p>
 
 <p align="center">
-  <a href="https://github.com/gf-labs/ramp"><img src="https://img.shields.io/badge/version-1.0.0-3b82f6?style=flat-square" alt="version"></a>
+  <a href="https://github.com/gf-labs/ramp"><img src="https://img.shields.io/badge/version-1.1.0-3b82f6?style=flat-square" alt="version"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="license"></a>
   <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Code plugin">
   <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+">
@@ -360,6 +360,7 @@ claude --plugin-dir /path/to/ramp
 - **Spaced repetition as pure file I/O** — `| next: YYYY-MM-DD [LN]` fields encode the schedule. No database, no external state.
 - **Hooks** — a passive observer across `PostToolUse` and `SessionStart` updates the graph with zero user action.
 - **MCP server** — an optional structured backend that makes the storage layer swappable.
+- **One deterministic kernel** — `ramp_core.py` (stdlib-only) is the single source of truth for XP, the spaced-repetition ladder, and graph validation. Both the passive-observer hook and the MCP server import it, so the Markdown commands *render* computed results instead of re-deriving them — mastery scoring is identical whether or not a session has the MCP server.
 - **Branch logic in natural language** — the phase structure (detect → assess → infer → output → artifacts) is expressed as instructions. There's no interpreter, no state machine. The prompt *is* the program.
 
 This is the [custom slash commands](https://docs.anthropic.com/en/docs/claude-code/slash-commands) feature pushed to its edge.
