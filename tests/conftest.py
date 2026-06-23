@@ -37,3 +37,15 @@ def observer():
 def setup_mcp():
     """The setup-mcp SessionStart hook module (idempotent MCP registration)."""
     return _load("setup_mcp", "setup-mcp.py")
+
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+@pytest.fixture(scope="session")
+def core():
+    """The ramp_core deterministic kernel (XP, SR dates, validation, locking)."""
+    spec = importlib.util.spec_from_file_location("ramp_core", ROOT / "ramp_core.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
