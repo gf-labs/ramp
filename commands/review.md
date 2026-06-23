@@ -1,7 +1,7 @@
 ---
 description: Spaced repetition review — practice knowledge graph nodes due today
 argument-hint: [optional: topic name]
-allowed-tools: Bash, Write, Edit
+allowed-tools: Bash, Write, Edit, mcp__knowledge-graph__read_graph, mcp__knowledge-graph__advance_review, mcp__knowledge-graph__save_graph
 ---
 
 ## Context
@@ -63,15 +63,12 @@ Ask exactly one question targeting the criterion. Use this format based on the n
 - Qualitative nodes: "Explain [specific aspect from criterion]. I'm looking for [the specific thing that distinguishes knowing from doing]."
 - Historical nodes: "When did you last do this, and what specifically did you do?"
 
-Wait for the user's answer. Apply the qualitative rubric:
-- **Pass** — specific, verifiable detail: advance one level (L1→L2→...→L5), compute new `next` date
-- **Fail** — vague or no: reset to L1, `next = today + 1 day`
+Wait for the user's answer. Apply the qualitative rubric, then record the outcome **in code** — do not compute the level or the date yourself:
 
-Tell the user the result with XP delta:
-- **Pass**: "✓ Solid — moved to [LN+1], next review [date]. +[XP] XP" (XP per branch: ROOT=10, A=15, B=20, C=25, D=35, E=50 — award the full node XP as a review bonus)
-- **Fail**: "× Let's revisit soon — reset to L1, next review [tomorrow]. +0 XP"
+- **Pass** — specific, verifiable detail. Call `mcp__knowledge-graph__advance_review(topic=[active-topic], node_name=[node name], outcome="pass")`. It advances the level, computes the next date, and recomputes XP. Report what it returns: "✓ Solid — [its result line]". A [✓]-node SR pass does **not** change XP (status is unchanged), so do not announce an XP gain — report the schedule advance only.
+- **Fail** — vague or none. Call `advance_review(..., outcome="fail")` (resets to L1, next = tomorrow). Report: "× Let's revisit soon — [its result line]".
 
-New `next` dates by level after pass: L1→L2=today+3d, L2→L3=today+7d, L3→L4=today+21d, L4→L5=today+60d, L5→L6=permanent.
+*Non-MCP fallback (best effort):* if the `knowledge-graph` MCP is not configured, advance the level one rung (L1→L2→L3→L4→L5; L1=1d, L2=3d, L3=7d, L4=21d, L5=60d) and edit the node's `| next:` field with the Edit tool. This path is the documented degradation; the MCP path is authoritative.
 
 Move to the next due node.
 
@@ -93,24 +90,16 @@ If user agrees (or if there were no `[✓]` nodes due and `[~]` nodes exist):
   ```
 - Ask one Feynman question: "Explain [X] as you'd teach it — include the *why*, a concrete scenario, and one edge case or tradeoff."
 - Apply the Feynman rubric:
-  - **Pass** — answer includes why, a scenario with context, and an edge/tradeoff: upgrade `[~]` → `[✓|exercise]`, add evidence trail `— [repo], [today]: verified via Feynman in /ramp:review | next: [today+1d] [L1]`, award full node XP.
+  - **Pass** — answer includes why, a scenario with context, and an edge/tradeoff: change the node line to `[✓|exercise] Node name — [repo], [today]: verified via Feynman in /ramp:review` (omit the `| next:` field — `save_graph` fills it). Then call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full updated tree])`; it recomputes XP and fills the L1 review date. This `[~]→[✓]` upgrade **does** raise XP — report the new total from save_graph's confirmation. *(Non-MCP fallback: Edit the line and add `| next: [today+1d] [L1]`.)*
   - **Fail** — vague or affirmation-only ("I've used it", "it does X"): stays `[~]`. Say "Let's revisit — it'll come up again."
 
 Do **one** `[~]` verification per session. End after one regardless of outcome.
 
 ---
 
-## Step 3: Update the saved file
+## Step 3: Persistence (handled by the tools)
 
-After all reviews and any Feynman verification, update `~/.claude/knowledge-graphs/[topic].md`:
-
-- For each SR-reviewed `[✓]` node: update the `| next: YYYY-MM-DD [LN]` field on its line
-- If a `[~]` node passed Feynman verification: replace its full line from `[~|reported] Node name — [old evidence]` to `[✓|exercise] Node name — [repo], [today]: verified via Feynman in /ramp:review | next: [today+1d] [L1]`
-- Recompute total XP (XP per branch: ROOT=10, A=15, B=20, C=25, D=35, E=50; [✓]=full, [~]=half, [ ]=0) and update the `xp:` field in YAML frontmatter
-- Update the `updated: YYYY-MM-DD` field in the YAML frontmatter to today's date
-- Do not change any other fields, statuses, or content
-
-Use Edit tool to make targeted replacements.
+When the `knowledge-graph` MCP is configured, `advance_review` (SR passes) and `save_graph` (Feynman upgrades) have already written the file — XP and review dates are computed in code; do **not** hand-edit `xp:` or `| next:`. Only on the non-MCP fallback do you Edit the file directly, per the best-effort notes above.
 
 ---
 
@@ -118,8 +107,8 @@ Use Edit tool to make targeted replacements.
 
 Show a brief summary:
 ```
-Reviewed [N] nodes. [N passed] passed, [N failed] reset. +[total XP] XP this session.
-[If Feynman ran] Verified: [node name] → [✓] +[XP] XP   OR   Unverified: [node name] — try again after practicing it.
+Reviewed [N] nodes. [N passed] passed, [N failed] reset. (SR passes advance the schedule; they do not change XP.)
+[If Feynman ran] Verified: [node name] → [✓] (XP raised — new total from save_graph)   OR   Unverified: [node name] — try again after practicing it.
 Next session: [earliest next: date across all nodes in this topic]
 ```
 
