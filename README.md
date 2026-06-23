@@ -269,7 +269,7 @@ The observer ships in the plugin and registers automatically on install. Verify 
 
 ## MCP server — `knowledge-graph`
 
-`mcp/server.py` is an optional MCP server that gives `/ramp:up` structured read/write access to your graphs — atomic saves, cross-device sync, and a clean upgrade path to team and org layers.
+`mcp/server.py` is an optional MCP server that gives `/ramp:up` structured read/write access to your graphs — atomic local saves, plus a client for cross-device sync and team/org layers when paired with a compatible backend (not included in this repo).
 
 **Why use it.** Without the MCP, `/ramp:up` reads graphs via a bash `cat` and writes via the `Write` tool. With it, reads and writes go through structured tools — enabling swappable backends (local files → hosted API) without changing `up.md`.
 
@@ -304,7 +304,7 @@ Add to `~/.claude.json` (global user-scope MCP config) — point `command` at th
 }
 ```
 
-**Hosted backend (team / org).** Set `KNOWLEDGE_GRAPH_API_URL` and the server proxies `read_graph`/`save_graph` to `GET/PUT /graphs/{topic}` and `get_benchmarks` to `GET /benchmarks/{topic}`. That unlocks cross-device sync, team skill matrices, and org dashboards — and it falls back to local files if the backend is unreachable.
+**Hosted backend (team / org).** Set `KNOWLEDGE_GRAPH_API_URL` and the server proxies `read_graph`/`save_graph` to `GET/PUT /graphs/{topic}` and `get_benchmarks` to `GET /benchmarks/{topic}`. A compatible backend service would then unlock cross-device sync, team skill matrices, and org dashboards; without one, the server falls back to local files. **This repo ships the client side only — the backend service is not included.**
 
 ---
 
