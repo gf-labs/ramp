@@ -46,6 +46,12 @@ try:
 except ImportError:  # pragma: no cover - non-POSIX fallback
     fcntl = None
 
+# ramp_core is the single source of truth for XP/SR/validation/locking; both this
+# hook (system python3) and mcp/server.py (.venv) import it so they never disagree.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import ramp_core
+from ramp_core import compute_xp  # re-exported so observer.compute_xp still resolves
+
 # All current detection rules are Claude Code–specific, so always writes to claude-code topic.
 # Future topic-specific observers can be separate scripts with their own detection rules
 # registered under separate hook matchers (e.g., matcher: "bash_runner_.*").
@@ -145,45 +151,24 @@ def update_node_reported(tree: str, node_pattern: str, evidence: str) -> tuple[s
     return "\n".join(lines) + ("\n" if tree.endswith("\n") else ""), changed
 
 
-BRANCH_XP = {"ROOT": 10, "A": 15, "B": 20, "C": 25, "D": 35, "E": 50}
-
-
-def compute_xp(tree: str) -> int:
-    """Compute total XP from the tree file content.
-
-    Branch tier is determined by the nearest ## [ header above each node.
-    Header format: ## [SubTopic · BRANCH] Section name
-    XP: [✓ = full, [~ = half (floor), [ ] = 0
-    """
-    xp = 0
-    current_branch_xp = 0
-    for line in tree.splitlines():
-        if line.startswith("## ["):
-            m = re.search(r"\·\s*(ROOT|A|B|C|D|E)\]", line)
-            current_branch_xp = BRANCH_XP.get(m.group(1), 0) if m else 0
-        elif line.strip().startswith("- [✓"):
-            xp += current_branch_xp
-        elif line.strip().startswith("- [~"):
-            xp += current_branch_xp // 2
-    return xp
-
-
 def save_tree(tree: str):
-    # Update the `updated:` date and recompute `xp:` in frontmatter
-    new_xp = compute_xp(tree)
-    lines = tree.splitlines()
-    for i, line in enumerate(lines):
-        if line.startswith("updated:"):
-            lines[i] = f"updated: {TODAY}"
-        elif line.startswith("xp:"):
-            lines[i] = f"xp: {new_xp}"
+    # XP recompute + updated: stamp are done in code by ramp_core (single source).
+    content = ramp_core.apply_frontmatter(tree, date.today())
     SKILL_GRAPH_PATH.parent.mkdir(parents=True, exist_ok=True)
-    content = "\n".join(lines) + ("\n" if tree.endswith("\n") else "")
     # Atomic replace: write to a temp file in the same dir, then os.replace (atomic on POSIX).
     # A partial write can never leave the graph truncated even under concurrent fires.
     tmp = SKILL_GRAPH_PATH.with_suffix(f".md.tmp.{os.getpid()}")
     tmp.write_text(content)
     os.replace(tmp, SKILL_GRAPH_PATH)
+
+
+def normalize_personal_tree(tree: str, today):
+    """Code-backed hygiene for the personal tree: fill MISSING review dates,
+    recompute xp:/updated:, and RETURN (not raise) any validate_tree problems.
+    A malformed date is flagged, never rewritten (spec §9). Pure / testable."""
+    tree, _filled = ramp_core.fill_missing_review_dates(tree, today)
+    tree = ramp_core.apply_frontmatter(tree, today)
+    return tree, ramp_core.validate_tree(tree)
 
 
 # Detection rules: (tool_name, input_field, pattern, node_pattern, node_label)
@@ -349,25 +334,6 @@ def matches_rule(rule: dict, tool_name: str, tool_input: dict) -> bool:
     return True
 
 
-def _acquire_lock():
-    """Best-effort exclusive lock for the graph read-modify-write.
-
-    The observer may be registered in more than one scope (plugin + project), so two
-    processes can fire for the same event. Holding this lock serializes their
-    read-modify-write so neither clobbers the other. Released automatically when this
-    short-lived hook process exits. Returns the open fd (kept alive by the caller) or None.
-    """
-    if fcntl is None:
-        return None
-    try:
-        LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
-        lock_fd = open(LOCK_PATH, "w")
-        fcntl.flock(lock_fd, fcntl.LOCK_EX)
-        return lock_fd
-    except Exception:
-        return None
-
-
 def provision_schema_symlinks():
     """Symlink plugin topic schemas into ~/.claude/knowledge-graphs/schemas/.
 
@@ -417,60 +383,64 @@ def main():
         # No tree yet — nothing further to update (skip the lock entirely)
         return
 
-    # Serialize concurrent fires before reading, so the tree we modify is the latest
-    # on-disk state. `_lock` must stay referenced for the lock to be held.
-    _lock = _acquire_lock()  # noqa: F841 — holds the lock for this process's lifetime
-
-    tree = read_tree()
-    if not tree:
-        return
-
-    repo = get_repo_name()
-    changed = False
-
-    if hook_event == "SessionStart":
-        source = data.get("source", "")
-        if source == "compact":
-            node = "Common workflow patterns"
-            if not node_already_demonstrated(tree, node):
-                evidence = f"{repo}, {TODAY}: session started via /compact"
-                tree, did_change = update_node_reported(tree, node, evidence)
-                if did_change:
-                    changed = True
-        elif source == "resume":
-            node = "Interactive mode features"
-            if not node_already_demonstrated(tree, node):
-                evidence = f"{repo}, {TODAY}: session resumed"
-                tree, did_change = update_node_reported(tree, node, evidence)
-                if did_change:
-                    changed = True
-
-    else:
-        # PostToolUse (default)
-        tool_name = data.get("tool_name", "")
-        tool_input = data.get("tool_input", {})
-
-        if not tool_name or not tool_input:
+    # Serialize concurrent fires: hold the shared lock across read-modify-write.
+    with ramp_core.file_lock(LOCK_PATH):
+        tree = read_tree()
+        if not tree:
             return
 
-        for rule in DETECTION_RULES:
-            if not matches_rule(rule, tool_name, tool_input):
-                continue
-            node = rule["node"]
-            evidence = f"{repo}, {TODAY}: detected via {tool_name} tool call"
-            if rule.get("reported", False):
-                # General-activity rule → [~|historical] (update_node_reported skips [~ and [✓)
-                tree, did_change = update_node_reported(tree, node, evidence)
-            else:
-                # Specific-evidence rule → [✓|historical]
-                if node_already_demonstrated(tree, node):
-                    continue
-                tree, did_change = update_node(tree, node, "[✓|historical]", evidence)
-            if did_change:
-                changed = True
+        repo = get_repo_name()
+        changed = False
 
-    if changed:
-        save_tree(tree)
+        if hook_event == "SessionStart":
+            # Code-backed hygiene first: fill missing review dates, recompute
+            # xp:/updated:, and flag (never rewrite) malformed dates to stderr —
+            # which lands in the hook debug log and never blocks the session.
+            normalized, problems = normalize_personal_tree(tree, date.today())
+            if normalized != tree:
+                tree = normalized
+                changed = True
+            if problems:
+                print("ramp normalization: " + "; ".join(problems), file=sys.stderr)
+            source = data.get("source", "")
+            if source == "compact":
+                node = "Common workflow patterns"
+                if not node_already_demonstrated(tree, node):
+                    evidence = f"{repo}, {TODAY}: session started via /compact"
+                    tree, did_change = update_node_reported(tree, node, evidence)
+                    if did_change:
+                        changed = True
+            elif source == "resume":
+                node = "Interactive mode features"
+                if not node_already_demonstrated(tree, node):
+                    evidence = f"{repo}, {TODAY}: session resumed"
+                    tree, did_change = update_node_reported(tree, node, evidence)
+                    if did_change:
+                        changed = True
+        else:
+            # PostToolUse (default)
+            tool_name = data.get("tool_name", "")
+            tool_input = data.get("tool_input", {})
+            if not tool_name or not tool_input:
+                return
+            for rule in DETECTION_RULES:
+                if not matches_rule(rule, tool_name, tool_input):
+                    continue
+                node = rule["node"]
+                evidence = f"{repo}, {TODAY}: detected via {tool_name} tool call"
+                if rule.get("reported", False):
+                    # General-activity rule → [~|historical] (skips [~ and [✓)
+                    tree, did_change = update_node_reported(tree, node, evidence)
+                else:
+                    # Specific-evidence rule → [✓|historical]
+                    if node_already_demonstrated(tree, node):
+                        continue
+                    tree, did_change = update_node(tree, node, "[✓|historical]", evidence)
+                if did_change:
+                    changed = True
+
+        if changed:
+            save_tree(tree)
 
 
 if __name__ == "__main__":
