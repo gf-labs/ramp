@@ -1,7 +1,7 @@
 ---
 description: End-of-session knowledge harvest — upgrade nodes, update SR schedule, optional snapshot
 argument-hint: [optional: topic name]
-allowed-tools: Bash, Read, Write, Edit
+allowed-tools: Bash, Read, Write, Edit, mcp__knowledge-graph__read_graph, mcp__knowledge-graph__save_graph
 ---
 
 ## Context
@@ -74,15 +74,15 @@ On confirmation, update `~/.claude/knowledge-graphs/[topic].md`:
 For each confirmed upgrade:
 - Replace the node line status and append evidence trail:
   ```
-  [✓|exercise] Node name — [repo/context], [today]: [evidence] in /ramp:wrap | next: [today+1d] [L1]
+  [✓|exercise] Node name — [repo/context], [today]: [evidence] in /ramp:wrap
   ```
-- If node already had evidence, append with ` · ` separator before the `| next:` field
+- If node already had evidence, append with ` · ` separator (`save_graph` fills the `| next:` review field — don't hand-write a date)
 
 Also update:
-- `xp:` in YAML frontmatter — recompute from all nodes (ROOT=10, A=15, B=20, C=25, D=35, E=50; `[✓]`=full, `[~]`=half)
+- `xp:` — do not recompute; `save_graph` recomputes it in code on write
 - `updated: YYYY-MM-DD` frontmatter field to today
 
-Use Edit tool for targeted replacements (do not rewrite whole file).
+When the `knowledge-graph` MCP is configured, persist the upgraded tree by calling `save_graph(topic=[topic], content=[full updated tree])` — it recomputes XP, fills review dates on newly-`[✓]` nodes, and never downgrades an on-disk `[✓]`. Otherwise, fall back to targeted Edits (best-effort).
 
 If `NO_TREE_FILE:[topic]`: say "No knowledge graph file found. Run `/ramp:up [topic]` to create one." Skip to Step 3.
 

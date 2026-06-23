@@ -70,13 +70,13 @@ Ask: "Save these upgrades? Reply `yes`, edit inline, or `skip`."
 On `yes`: update `~/.claude/knowledge-graphs/[topic].md`:
 - Replace each node line status and append evidence trail:
   ```
-  [✓|exercise] Node name — [repo/context], [today]: [evidence] in /ramp:pin | next: [today+1d] [L1]
+  [✓|exercise] Node name — [repo/context], [today]: [evidence] in /ramp:pin
   ```
-- If node already had evidence, append with ` · ` separator before the `| next:` field
-- Recompute `xp:` in YAML frontmatter (ROOT=10, A=15, B=20, C=25, D=35, E=50; `[✓]`=full, `[~]`=half)
+- If node already had evidence, append with ` · ` separator (`save_graph` fills the `| next:` review field — don't hand-write a date)
+- `xp:` — do not recompute; `save_graph` recomputes it in code on write
 - Update `updated: YYYY-MM-DD` to today
 
-Prefer `mcp__knowledge-graph__save_graph` for writes; fall back to Edit tool if MCP unavailable. Use Edit for targeted replacements — do not rewrite the whole file.
+When the `knowledge-graph` MCP is configured, persist by reading the current tree (`read_graph`), applying your targeted node upgrade to the full content, then calling `save_graph(topic, content)` with the complete updated tree — it preserves every existing `[✓]` node (never-downgrade) and recomputes XP, so a full-file write is safe. If MCP is unavailable, use targeted Edits instead. (Do not mix: either save_graph with the full tree, or Edit in place.)
 
 ---
 
