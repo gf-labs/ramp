@@ -51,7 +51,8 @@ scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 
 scripts/setup-mcp.py         # Provisions .venv + registers MCP server (SessionStart self-heal)
 mcp/server.py                # knowledge-graph MCP server (read/write graphs; swappable backend)
 mcp/start.sh                 # MCP launch wrapper — .venv python; avoids macOS symlink trap
-tests/                       # stdlib-only pytest suite (xp, detection, mcp) — loaded via importlib
+ramp_core.py                 # stdlib-only deterministic kernel (XP · SR dates · validate · lock) — imported by skill-observer + mcp/server
+tests/                       # stdlib pytest suite (ramp_core, xp, detection, normalization, symlinks) + server tests under .venv — importlib-loaded
 requirements.txt             # MCP server deps — only to run mcp/server.py, not to test
 requirements-dev.txt         # pytest (test suite)
 docs/tree-format.md          # Annotated v3 knowledge graph format example
@@ -65,7 +66,7 @@ README.md                    # Install instructions, modes, company deployment g
 
 **Note:** `commands/` at root is the source of truth for command files — used by the plugin system and company deployment (copy to team repo's `.claude/commands/`). `.claude/commands/` is gitignored.
 
-The command surface has no build step and no runtime — commands are pure prompt engineering in Markdown. (The MCP server and `tests/` carry their own Python deps: `requirements.txt`, `requirements-dev.txt`.)
+No *application* is built — the engine is prompts. The deterministic kernel (the `scripts/` hooks, `mcp/server.py`, and `ramp_core.py`) is code: it single-sources XP, spaced-repetition scheduling, validation, and locking so the pedagogy can't silently drift. Commands remain pure prompt engineering and propose status/evidence only. (The MCP server and `tests/` carry their own Python deps: `requirements.txt`, `requirements-dev.txt`.)
 
 **MCP server gotcha:** `mcp/server.py` requires the `.venv` in the repo root — system `python3` has a conflicting `mcp` stub. `setup-mcp.py` uses `.venv/bin/python3` explicitly; if running manually, activate with `source .venv/bin/activate` first.
 
