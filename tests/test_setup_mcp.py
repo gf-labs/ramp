@@ -1,7 +1,7 @@
 """setup-mcp.py idempotency.
 
-The SessionStart hook re-fires every session; ``already_registered`` is the
-fast-path guard that keeps it a no-op once the server is in ``~/.claude.json``.
+The script is opt-in (run manually to enable the MCP server); ``already_registered``
+is the fast-path guard that keeps a re-run a no-op once the server is in ``~/.claude.json``.
 It must also degrade gracefully on a missing or malformed config rather than
 raising into the hook runner.
 """

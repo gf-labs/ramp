@@ -48,7 +48,7 @@ topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
 topics/claude-code-internals.md # Empirically-verified Claude Code internals (5 nodes — undocumented behaviors)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + SessionStart)
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
-scripts/setup-mcp.py         # Provisions .venv + registers MCP server (SessionStart self-heal)
+scripts/setup-mcp.py         # Provisions .venv + registers MCP server (opt-in — run manually, not on SessionStart)
 mcp/server.py                # knowledge-graph MCP server (read/write graphs; swappable backend)
 mcp/start.sh                 # MCP launch wrapper — .venv python; avoids macOS symlink trap
 ramp_core.py                 # stdlib-only deterministic kernel (XP · SR dates · validate · lock) — imported by skill-observer + mcp/server

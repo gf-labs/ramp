@@ -7,7 +7,7 @@ Backend: local files at ~/.claude/knowledge-graphs/ by default.
 Set KNOWLEDGE_GRAPH_API_URL to proxy reads/writes to a hosted backend,
 enabling cross-device sync, team skill matrices, and org analytics.
 
-Setup — handled automatically by scripts/setup-mcp.py on SessionStart:
+Setup (opt-in — run scripts/setup-mcp.py manually, or do these steps yourself):
   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
   claude mcp add -s user knowledge-graph /path/to/ramp/mcp/start.sh
 

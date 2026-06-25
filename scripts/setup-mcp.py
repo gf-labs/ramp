@@ -2,7 +2,10 @@
 """
 Auto-register the knowledge-graph MCP server via `claude mcp add -s user`.
 
-Runs on SessionStart — idempotent, skips silently if already registered.
+Opt-in: run this manually to enable the OPTIONAL knowledge-graph MCP server. It is no
+longer wired to the SessionStart hook — on a fresh install that meant building a venv +
+pip-installing `mcp` (up to 300s, blocking) during a new user's first session, for a
+component ramp works fine without. Idempotent: skips silently if already registered.
 Writes to ~/.claude.json (user scope), available across all projects.
 
 Delivery notes (why this is more than a one-liner):

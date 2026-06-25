@@ -35,7 +35,7 @@ def observer():
 
 @pytest.fixture(scope="session")
 def setup_mcp():
-    """The setup-mcp SessionStart hook module (idempotent MCP registration)."""
+    """The setup-mcp module (idempotent MCP registration; opt-in, run manually)."""
     return _load("setup_mcp", "setup-mcp.py")
 
 

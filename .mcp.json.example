@@ -1,5 +1,5 @@
 {
-  "_note": "Reference only — setup-mcp.py (SessionStart hook) runs `claude mcp add -s user` automatically. Manual registration: copy the mcpServers block and run `claude mcp add-json -s user knowledge-graph '<json>'`.",
+  "_note": "Reference only — the MCP server is opt-in (not auto-registered). Enable it by running scripts/setup-mcp.py, or register manually: copy the mcpServers block and run `claude mcp add-json -s user knowledge-graph '<json>'`.",
   "mcpServers": {
     "knowledge-graph": {
       "type": "stdio",

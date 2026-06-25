@@ -288,7 +288,7 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-> In a normal plugin install, the `setup-mcp.py` SessionStart hook registers the server for you (`claude mcp add -s user`). The block below is for manual registration.
+> The MCP server is **opt-in** — it is **not** configured automatically, and ramp works fully without it. To enable it, run the venv setup above, then the registration block below. *(Or, from the plugin's install directory, run `python3 scripts/setup-mcp.py` to provision the venv and register the server in one step.)*
 
 Add to `~/.claude.json` (global user-scope MCP config) — point `command` at the venv python, or use `./mcp/start.sh`, which resolves it for you:
 
