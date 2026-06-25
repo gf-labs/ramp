@@ -6,7 +6,7 @@
   <a href="https://github.com/gf-labs/ramp"><img src="https://img.shields.io/badge/version-1.1.0-3b82f6?style=flat-square" alt="version"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="license"></a>
   <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Code plugin">
-  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/topics-5-6366f1?style=flat-square" alt="topics">
 </p>
 
@@ -68,7 +68,7 @@ Seven commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, rei
 
 ## Design principles
 
-**Detect before interrogating.** Over 80 shell commands run at invocation — CLAUDE.md content, hook configs, MCP servers, worktree count, session history, headless invocations. By the time you see a question, `/ramp:up` has already determined your level and identified your gaps. You answer at most three questions, and they're specific.
+**Detect before interrogating.** Over 40 shell commands run at invocation — CLAUDE.md content, hook configs, MCP servers, worktree count, session history, headless invocations. By the time you see a question, `/ramp:up` has already determined your level and identified your gaps. You answer at most three questions, and they're specific.
 
 **Demonstrated over claimed.** The graph distinguishes `[✓]` (demonstrated) from `[~]` (self-reported). A hook in `settings.json` is `[✓|artifact]`. Saying "yes, I've used hooks" is `[~|reported]`. A `[✓]` requires at least one verifiable detail — a flag, an observed behavior, a tradeoff navigated. The difference between "I've heard of hooks" and "I have a PostToolUse hook that fires my linter" is the entire gap between knowledge and practice.
 
@@ -352,7 +352,7 @@ claude --plugin-dir /path/to/ramp
 
 `ramp` is a working demonstration of Claude Code's extension model — a stateful, adaptive, curriculum-aware learning system built **entirely from Markdown and a little Python**, with no application runtime. The mechanisms at work:
 
-- **`!bash` injection** — the 80+ scanning commands run *before* Claude reads a single token, injecting structured context. Pre-computation, not agentic tool use: fast, deterministic, cheap.
+- **`!bash` injection** — the 40+ scanning commands run *before* Claude reads a single token, injecting structured context. Pre-computation, not agentic tool use: fast, deterministic, cheap.
 - **Topic-schema loading** — a bash command reads the requested topic from `$ARGUMENTS` and `cat`s the matching schema as static text. The engine (`up.md`) holds zero topic-specific content.
 - **`$ARGUMENTS`** — the topic keyword plus free-form context the user types after `/ramp:up`.
 - **`allowed-tools`** — scoped to `Read, Glob, Grep, Bash, Write, Edit` so Claude can navigate the repo, run exercises, write `ONBOARDING.md`, and update the graph — without unlimited access.
