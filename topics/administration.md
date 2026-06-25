@@ -1,5 +1,6 @@
 ---
 topic: administration
+node_count: 13
 version: 1
 source_url: https://code.claude.com/docs/en/setup
 description: Claude Code administration — org setup, authentication, security, data policies, monitoring, costs, analytics, and plugin marketplace management.

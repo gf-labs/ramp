@@ -1,5 +1,6 @@
 ---
 topic: best-practices
+node_count: 15
 version: 1
 source_url: https://docs.anthropic.com/en/docs/claude-code/
 description: Best practices for structuring Claude Code projects — designing CLAUDE.md files, configuring tools and permissions, writing effective hooks, and session hygiene patterns.

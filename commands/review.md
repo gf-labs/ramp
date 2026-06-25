@@ -13,6 +13,9 @@ allowed-tools: Bash, Write, Edit, mcp__knowledge-graph__read_graph, mcp__knowled
 
 **Today's date**: !`date +%Y-%m-%d`
 
+**First-run signal** (zero started topics ⇒ redirect a newcomer):
+!`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" catalog 2>/dev/null | python3 -c "import sys,json; c=json.load(sys.stdin); print('FIRST_RUN' if not any(t['started'] for t in c) else 'HAS_GRAPHS')" 2>/dev/null || echo "HAS_GRAPHS"`
+
 **Knowledge graph contents** (for active topic):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
 
@@ -22,6 +25,11 @@ allowed-tools: Bash, Write, Edit, mcp__knowledge-graph__read_graph, mcp__knowled
 ---
 
 ## Your role
+
+**Empty-state redirect (check first):** If the **First-run signal** (auto-collected context) is `FIRST_RUN` — no graphs exist yet — do not render an empty review. This takes precedence over the `NO_TREE_FILE` / "nothing due" handling below; short-circuit and say:
+> Nothing to review yet — you haven't started a topic. Run `/ramp:help` to get oriented, or `/ramp:up <topic>` to begin. See all topics with `/ramp:list`.
+
+Then stop.
 
 You are running a focused spaced repetition review session. No full assessment, no tree rendering, no questions about new skills. Only review nodes that are due.
 

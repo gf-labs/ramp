@@ -3,6 +3,29 @@
 All notable changes to `ramp` are documented here. This project follows
 [Semantic Versioning](https://semver.org).
 
+## [1.2.0] — 2026-06-25
+
+**Discoverability.** Two read-only commands make ramp self-explaining for a
+newcomer, backed by a shared read layer in the kernel so the topic catalog and
+per-graph summaries are computed once, not re-derived per command.
+
+### Added
+- `/ramp:list` — grouped catalog of every topic (core · sub · standalone) with
+  node counts and your per-topic progress.
+- `/ramp:help` — a 60-second orientation: what ramp is and the full command map.
+- `ramp_core.py` read layer — `parse_frontmatter`, `summarize_graph`,
+  `schema_node_count`, and `list_catalog`, plus a `catalog` / `summary` CLI: the
+  no-MCP read path the new commands call.
+- `node_count:` frontmatter on all ten topic schemas, single-sourcing the count
+  shown by `/ramp:list`.
+
+### Changed
+- `up`, `review`, and `cheatsheet` show a first-run banner / empty-state redirect
+  pointing newcomers at `/ramp:help` and `/ramp:list`.
+
+### Tests
+- Suite grown to 51 — read-layer and CLI coverage in `test_ramp_core.py`.
+
 ## [1.1.0] — 2026-06-22
 
 **Reliability core.** The deterministic transforms now live in one stdlib-only

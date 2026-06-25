@@ -92,6 +92,9 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 
 **Today's date**: !`date +%Y-%m-%d`
 
+**First-run signal** (zero started topics ⇒ show the newcomer banner):
+!`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" catalog 2>/dev/null | python3 -c "import sys,json; c=json.load(sys.stdin); print('FIRST_RUN' if not any(t['started'] for t in c) else 'HAS_GRAPHS')" 2>/dev/null || echo "HAS_GRAPHS"`
+
 **Organizational workflow signals**:
 !`{ [ -f .github/PULL_REQUEST_TEMPLATE.md ] && echo "PR template: yes" || [ -f .github/pull_request_template.md ] && echo "PR template: yes" || echo "PR template: none"; [ -d .github/workflows ] && echo "CI/CD workflows: $(ls .github/workflows/ 2>/dev/null | head -5 | tr '\n' ' ')" || echo "CI/CD: none"; [ -f CONTRIBUTING.md ] && echo "Contributing guide: CONTRIBUTING.md" || [ -f .github/CONTRIBUTING.md ] && echo "Contributing guide: .github/CONTRIBUTING.md" || echo "Contributing guide: none"; grep -q '"husky"' package.json 2>/dev/null && echo "Git hooks: husky" || echo "Git hooks: none"; } 2>/dev/null`
 
@@ -114,6 +117,9 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 ---
 
 ## Your role
+
+**First-run banner:** If the **First-run signal** (auto-collected context) is `FIRST_RUN`, emit this line once at the very top of your first response — before any Phase or Mode branching — then proceed normally:
+> 👋 New to ramp? `/ramp:help` for a 60-second orientation · `/ramp:list` to see topics.
 
 Running `/ramp:up` activates a **learning mode** — you become this developer's active co-pilot for the session, not a diagnostic that delivers a report and ends.
 

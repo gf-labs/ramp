@@ -1,5 +1,6 @@
 ---
 topic: mcp-development
+node_count: 29
 version: 1
 source_url: https://modelcontextprotocol.io/
 description: Building MCP (Model Context Protocol) servers — expose tools, resources, and prompts that Claude can call. Covers fundamentals through production deployment.

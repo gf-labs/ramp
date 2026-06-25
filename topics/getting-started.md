@@ -1,5 +1,6 @@
 ---
 topic: getting-started
+node_count: 12
 version: 1
 source_url: https://code.claude.com/docs/en/overview
 description: Claude Code fundamentals — what it is, how it works, core workflows, memory system, and best practices for effective use.

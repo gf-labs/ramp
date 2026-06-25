@@ -241,3 +241,224 @@ def preserve_demonstrated(existing: str, incoming: str):
                 continue
         out.append(line)
     return _preserve_trailing_newline(incoming, out), preserved
+
+
+# ---------------------------------------------------------------------------
+# Read/summary layer — the read analog of the write kernel above. Pure parses;
+# nothing here mutates or writes. summarize_graph / schema_node_count /
+# list_catalog are the single source of read truth, consumed by the list/help
+# viewers (and, in the deferred tail, tree). STDLIB-ONLY like the rest.
+# ---------------------------------------------------------------------------
+
+def parse_frontmatter(content: str) -> dict:
+    """Minimal YAML-ish frontmatter -> {field: str}. Empty dict if no block."""
+    lines = content.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}
+    out = {}
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        m = re.match(r"^([A-Za-z_][\w-]*):\s*(.*)$", line)
+        if m:
+            out[m.group(1)] = m.group(2).strip()
+    return out
+
+
+# A node bullet's status marker: "- [<status>]" or "- [<status>|<type>]".
+_STATUS_RE = re.compile(r"-\s*\[([^\]|]*)(?:\|([^\]]*))?\]")
+# Raw marker char -> normalized token. "" and " " are an unchecked box: todo.
+_STATUS_TOKENS = {
+    "✓": "done", "~": "reported", "": "todo", " ": "todo",
+    "·": "locked", "★": "todo",  # ★ frontier target still un-demonstrated -> todo
+}
+
+
+def _node_status_type(line: str):
+    """(token, type) for a node bullet, or (None, None) if the line isn't one."""
+    m = _STATUS_RE.match(line.strip())
+    if not m:
+        return None, None
+    token = _STATUS_TOKENS.get(m.group(1).strip(), "todo")
+    typ = m.group(2).strip() if m.group(2) else None
+    return token, typ
+
+
+def summarize_graph(content: str, today: date = None) -> dict:
+    """One tree -> {level, xp, due, counts:{done,reported,todo,locked}}.
+
+    xp via compute_xp (deterministic recompute, matches the write path). due =
+    [✓] nodes whose next: date is valid AND <= today; a malformed or absent date
+    is never counted due (the unit-1 "flag, don't fabricate" rule, read side).
+    """
+    if today is None:
+        today = date.today()
+    fm = parse_frontmatter(content)
+    counts = {"done": 0, "reported": 0, "todo": 0, "locked": 0}
+    due = 0
+    for line in content.splitlines():
+        if not line.strip().startswith("- ["):
+            continue
+        token, _ = _node_status_type(line)
+        if token in counts:
+            counts[token] += 1
+        if token == "done":
+            parsed = parse_review_field(line)  # None if malformed/absent
+            if parsed and parsed[0] <= today:
+                due += 1
+    return {
+        "level": fm.get("level", "unknown"),
+        "xp": compute_xp(content),
+        "due": due,
+        "counts": counts,
+    }
+
+
+def _derived_node_count(content: str) -> int:
+    """Count node-definition rows inside the schema's `## Node definitions`
+    section. Schemas enumerate nodes as a markdown table (one row per node,
+    grouped under `### [TIER]` subheadings), so count table *data* rows: lines
+    that start with `|` whose first cell is non-empty, isn't the `Node` header,
+    and isn't a `|---|` alignment separator. Excludes the saved-tree template
+    (a different `##` section) and the `### [TIER] … (N nodes)` prose subheaders
+    (which start with `###`, not `## `, so they don't reset the section flag)."""
+    count = 0
+    in_defs = False
+    for line in content.splitlines():
+        if line.startswith("## "):
+            in_defs = line.strip().lower().startswith("## node definitions")
+            continue
+        if not in_defs:
+            continue
+        s = line.strip()
+        if not s.startswith("|"):
+            continue
+        first = s.strip("|").split("|")[0].strip()
+        if not first or first.lower() == "node" or set(first) <= {"-", ":"}:
+            continue
+        count += 1
+    return count
+
+
+def schema_node_count(content: str) -> int:
+    """Authoritative node count for a topic schema: the `node_count:` frontmatter
+    field when a valid int, else the derived count (`_derived_node_count`, which
+    scopes to `## Node definitions` and excludes the saved-tree template)."""
+    fm = parse_frontmatter(content)
+    if "node_count" in fm:
+        try:
+            return int(fm["node_count"])
+        except ValueError:
+            pass
+    return _derived_node_count(content)
+
+
+def _parse_sources(value: str) -> list:
+    """'[a, b, c]' or 'a, b' -> ['a','b','c']; '' -> []."""
+    inner = value.strip().strip("[]")
+    return [s.strip() for s in inner.split(",") if s.strip()]
+
+
+def list_catalog(schema_dir, graph_dir, today: date) -> list:
+    """catalog (schema_dir/*.md) LEFT-JOIN progress (graph_dir/{name}.md),
+    keyed by topic name. Personal layer only. Returns dicts sorted by name."""
+    schema_dir = Path(schema_dir)
+    graph_dir = Path(graph_dir)
+    schemas = {}  # name -> (frontmatter dict, raw content)
+    for path in sorted(schema_dir.glob("*.md")):
+        try:
+            content = path.read_text(encoding="utf-8")
+        except OSError:
+            continue  # skip unreadable entries (broken symlink, dir, perms) —
+            #          a read-only viewer never crashes the catalog over one file
+        schemas[path.stem] = (parse_frontmatter(content), content)
+
+    # which names are claimed as a sub-topic by some composite's sources:
+    sub_names = set()
+    for fm, _ in schemas.values():
+        if "sources" in fm:
+            sub_names.update(_parse_sources(fm["sources"]))
+
+    catalog = []
+    for name in sorted(schemas):
+        fm, content = schemas[name]
+        sources = _parse_sources(fm["sources"]) if "sources" in fm else None
+        if sources is not None:
+            group = "core"
+        elif name in sub_names:
+            group = "sub"
+        else:
+            group = "standalone"
+        graph_path = graph_dir / f"{name}.md"
+        started = graph_path.exists()
+        summary = (
+            summarize_graph(graph_path.read_text(encoding="utf-8"), today)
+            if started else None
+        )
+        catalog.append({
+            "name": name,
+            "description": fm.get("description", ""),
+            "node_count": schema_node_count(content),
+            "group": group,
+            "sources": sources,
+            "started": started,
+            "summary": summary,
+        })
+    return catalog
+
+
+# ---------------------------------------------------------------------------
+# CLI shim — the no-MCP read path. Emits JSON data; the prompts render layout.
+# Guarded so importing the module (observer, MCP server) never runs this.
+# MVP verbs: catalog, summary. (The `nodes` verb + graph_nodes are the deferred
+# tail — added with the tree migration.)
+# ---------------------------------------------------------------------------
+
+def _graph_dir() -> Path:
+    return Path.home() / ".claude" / "knowledge-graphs"
+
+
+def _schema_dir() -> Path:
+    """First existing schema dir by precedence: project-local, global, plugin."""
+    candidates = [
+        Path(".claude/knowledge-graphs/schemas"),
+        Path.home() / ".claude" / "knowledge-graphs" / "schemas",
+    ]
+    root = os.environ.get("CLAUDE_PLUGIN_ROOT")
+    if root:
+        candidates.append(Path(root) / "topics")
+    for c in candidates:
+        if c.is_dir() and any(c.glob("*.md")):
+            return c
+    return candidates[-1] if candidates else Path("topics")
+
+
+def _main(argv) -> int:
+    import argparse
+    import json
+
+    parser = argparse.ArgumentParser(prog="ramp_core")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("catalog")
+    p_sum = sub.add_parser("summary")
+    p_sum.add_argument("topic")
+    args = parser.parse_args(argv)
+
+    if args.cmd == "catalog":
+        data = list_catalog(_schema_dir(), _graph_dir(), date.today())
+        print(json.dumps(data))
+        return 0
+
+    # args.cmd == "summary"
+    graph_path = _graph_dir() / f"{args.topic}.md"
+    if not graph_path.exists():
+        print(json.dumps({}))
+        return 0
+    content = graph_path.read_text(encoding="utf-8")
+    print(json.dumps(summarize_graph(content, date.today())))
+    return 0
+
+
+if __name__ == "__main__":
+    import sys as _sys
+    raise SystemExit(_main(_sys.argv[1:]))

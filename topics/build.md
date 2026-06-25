@@ -1,5 +1,6 @@
 ---
 topic: build
+node_count: 32
 version: 1
 source_url: https://code.claude.com/docs/en/sub-agents
 description: Building with Claude Code — subagents, agent teams, plugins, skills, hooks, headless mode, MCP, and output styles.

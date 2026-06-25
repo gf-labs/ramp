@@ -3,7 +3,7 @@
 <p align="center"><em>Adaptive, repo-grounded learning mode for Claude Code — it measures what you can <strong>do</strong>, not what you've clicked through.</em></p>
 
 <p align="center">
-  <a href="https://github.com/gf-labs/ramp"><img src="https://img.shields.io/badge/version-1.1.0-3b82f6?style=flat-square" alt="version"></a>
+  <a href="https://github.com/gf-labs/ramp"><img src="https://img.shields.io/badge/version-1.2.0-3b82f6?style=flat-square" alt="version"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="license"></a>
   <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Code plugin">
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+">
@@ -45,11 +45,13 @@ That's it. `ramp` detects your level, renders your personalized knowledge graph,
 
 ## The commands
 
-Seven commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, reinforce, and maintain your graph.
+Nine commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, reinforce, and maintain your graph.
 
 | Command | What it does |
 |---------|--------------|
 | `/ramp:up [topic]`        | **Learning mode.** Scans your environment, assesses your level, delivers a repo-grounded path, and co-pilots the session |
+| `/ramp:list`              | Browse every topic and where you've started — read-only catalog |
+| `/ramp:help`              | A 60-second orientation — what ramp is and the full command map |
 | `/ramp:tree [topic\|all]`  | Read-only view of your knowledge graph — no inference, no writes |
 | `/ramp:review [topic]`    | Spaced-repetition review of `[✓]` nodes due today — pass to advance, fail to reset |
 | `/ramp:cheatsheet [topic]`| A scannable personal reference built from your own evidence trails |
@@ -328,7 +330,7 @@ ramp/
 ├── .claude-plugin/
 │   ├── plugin.json        # Plugin manifest (name, version, description)
 │   └── marketplace.json   # Single-plugin marketplace catalog
-├── commands/              # Command source — up, tree, review, cheatsheet, pin, wrap, ingest
+├── commands/              # Command source — up, list, help, tree, review, cheatsheet, pin, wrap, ingest
 ├── topics/                # Schema source → symlinked to ~/.claude/knowledge-graphs/schemas/
 ├── hooks/hooks.json       # Plugin hooks (PostToolUse + SessionStart)
 ├── scripts/               # skill-observer.py, file-size-warn.py, setup-mcp.py

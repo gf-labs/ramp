@@ -9,6 +9,9 @@ model: claude-haiku-4-5-20251001
 
 **Requested topic**: $ARGUMENTS
 
+**First-run signal** (zero started topics ⇒ redirect a newcomer):
+!`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" catalog 2>/dev/null | python3 -c "import sys,json; c=json.load(sys.stdin); print('FIRST_RUN' if not any(t['started'] for t in c) else 'HAS_GRAPHS')" 2>/dev/null || echo "HAS_GRAPHS"`
+
 **Active topic** (first word if it matches a known topic, otherwise "claude-code"):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
 
@@ -21,6 +24,11 @@ model: claude-haiku-4-5-20251001
 ---
 
 ## Your role
+
+**Empty-state redirect (check first):** If the **First-run signal** (auto-collected context) is `FIRST_RUN` — no graphs exist yet — do not render an empty cheatsheet. This takes precedence over the `NO_TREE_FILE` handling below; short-circuit and say:
+> No demonstrated skills yet. Run `/ramp:help` for orientation, then `/ramp:up <topic>` to start building your graph. Browse topics with `/ramp:list`.
+
+Then stop.
 
 Read the knowledge graph above and render a **personal cheat sheet** — a structured reference of everything the user has demonstrated, with their own evidence trails as examples.
 

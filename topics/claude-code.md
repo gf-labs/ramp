@@ -1,5 +1,6 @@
 ---
 topic: claude-code
+node_count: 81
 version: 2
 sources: [getting-started, build, configuration, deployment, administration]
 source_url: https://code.claude.com/docs/en/overview

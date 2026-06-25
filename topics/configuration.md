@@ -1,5 +1,6 @@
 ---
 topic: configuration
+node_count: 13
 version: 1
 source_url: https://code.claude.com/docs/en/settings
 description: Claude Code configuration — settings hierarchy, permissions, sandboxing, model selection, terminal, keybindings, and interface customization.

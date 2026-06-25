@@ -1,5 +1,6 @@
 ---
 topic: deployment
+node_count: 11
 version: 1
 source_url: https://code.claude.com/docs/en/third-party-integrations
 description: Deploying Claude Code in enterprise environments — cloud providers (Bedrock, Vertex, Foundry), network configuration, LLM gateways, and dev containers.

@@ -1,5 +1,6 @@
 ---
 topic: claude-code-internals
+node_count: 5
 version: 1
 source_url: *(empirically verified — no official doc)*
 description: Empirically-verified Claude Code internal behaviors not covered by official documentation. Each node was discovered through observation and is sourced by session/date rather than doc URL. Supplemental to the main claude-code topic.

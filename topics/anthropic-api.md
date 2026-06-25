@@ -1,5 +1,6 @@
 ---
 topic: anthropic-api
+node_count: 18
 version: 1
 source_url: https://docs.anthropic.com/en/api/
 description: Using the Claude API and Anthropic SDK to build custom applications, pipelines, and agentic systems — from basic completions through production tool-use loops.
