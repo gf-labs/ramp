@@ -5,9 +5,20 @@ All notable changes to `ramp` are documented here. This project follows
 
 ## [Unreleased]
 
-**Honest contracts.** Accumulating fixes for the next release (version intentionally
-not yet bumped): the Python-version promise is now true end-to-end, and a
-spaced-repetition claim the kernel had already walked back is corrected in the docs.
+**Honest contracts + discoverability tail.** Accumulating changes for the next
+release (version intentionally not yet bumped): fixes that make existing promises
+true (the Python-version floor; the review/XP claim), plus the knowledge-graph read
+path is now single-sourced for the tree view.
+
+### Added
+- `ramp_core.graph_nodes` — the deep per-node read parser (status, type, XP, branch,
+  section, schedule, evidence, and mastery-target), plus a `nodes` CLI verb exposing
+  it: the no-MCP read path the tree view renders from.
+
+### Changed
+- `/ramp:tree` renders from the shared `ramp_core` read layer instead of parsing the
+  graph in its own prompt — one parser, single-sourced; the raw file is kept only as
+  a fallback.
 
 ### Fixed
 - **Python floor is now truthful.** `ramp_core` enforces `MIN_PYTHON = (3, 8)` at the
