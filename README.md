@@ -6,7 +6,7 @@
   <a href="https://github.com/gf-labs/ramp"><img src="https://img.shields.io/badge/version-1.2.0-3b82f6?style=flat-square" alt="version"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="license"></a>
   <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Code plugin">
-  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.8+">
   <img src="https://img.shields.io/badge/topics-5-6366f1?style=flat-square" alt="topics">
 </p>
 
@@ -80,7 +80,7 @@ Nine commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, rein
 
 **Session-persistent, topic-namespaced.** Graphs live at `~/.claude/knowledge-graphs/[topic].md` and follow you across every repo. Returning users with a fresh graph (≤ 7 days) skip questions entirely. Progress is never lost.
 
-**Spaced repetition.** `[✓]` nodes carry a `| next: YYYY-MM-DD [LN]` review schedule (1d → 3d → 7d → 21d → 60d → permanent). `/ramp:review` steps through due nodes one at a time. Pass = advance + XP. Fail = reset to L1.
+**Spaced repetition.** `[✓]` nodes carry a `| next: YYYY-MM-DD [LN]` review schedule (1d → 3d → 7d → 21d → 60d → permanent). `/ramp:review` steps through due nodes one at a time. Pass = advance the schedule. Fail = reset to L1.
 
 **Engine / curriculum separation.** `/ramp:up` is topic-agnostic. The curriculum — nodes, detection signals, gap questions, mastery criteria, doc links — lives in schema files under `topics/`. Adding a topic means writing one file. The engine never changes.
 
@@ -226,6 +226,8 @@ After a session, `/ramp:up` also offers to **bootstrap the repo's Claude Code se
 
 ## Install
 
+**Requirements.** Claude Code, and `python3` **3.8+** on your `PATH`. The deterministic kernel and the passive-observer hook are stdlib-only Python — nothing to `pip install` for the core experience. (The optional MCP server has its own dependencies and needs Python **3.10+**; see below.)
+
 **From the GFL marketplace (recommended).** `ramp` is published through the [`gf-labs/gfl-marketplace`](https://github.com/gf-labs/gfl-marketplace) catalog, alongside `tools`:
 
 ```
@@ -340,7 +342,7 @@ ramp/
 
 ### Working on ramp itself
 
-Load the plugin live from the source repo — no install, no cache rebuild:
+The marketplace install is what users get and what you'll normally run; to develop against a source checkout, point Claude Code at it **per-session** — no install, no cache rebuild, and your installed copy stays put:
 
 ```bash
 claude --plugin-dir /path/to/ramp

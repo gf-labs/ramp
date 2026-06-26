@@ -394,3 +394,22 @@ def test_all_schemas_declare_consistent_node_count():
         else:  # leaf: frontmatter must match the derived Node-definitions count
             derived = ramp_core._derived_node_count(content)
             assert declared == derived, f"{name}: node_count {declared} != derived {derived}"
+
+
+# --- python version contract ---
+
+def test_python_version_error_below_floor():
+    assert ramp_core.python_version_error((3, 7)) == "ramp needs Python 3.8+ (found 3.7)."
+    assert ramp_core.python_version_error((3, 6, 9)) == "ramp needs Python 3.8+ (found 3.6)."
+    assert ramp_core.python_version_error((2, 7, 18)) == "ramp needs Python 3.8+ (found 2.7)."
+
+
+def test_python_version_error_at_or_above_floor():
+    assert ramp_core.python_version_error((3, 8)) is None
+    assert ramp_core.python_version_error((3, 12, 1)) is None
+    assert ramp_core.python_version_error((4, 0)) is None
+
+
+def test_python_version_floor_is_declared():
+    # the floor the code enforces must match the README badge / Requirements
+    assert ramp_core.MIN_PYTHON == (3, 8)

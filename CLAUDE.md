@@ -112,7 +112,7 @@ Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a struc
 
 **Per-node doc links:** Each node in topic schemas has a `source_url` column. `/ramp:up` surfaces these as `**Reference:** [official docs](url)` in mastery mission exercises.
 
-**XP system:** Each demonstrated `[✓]` node earns XP by branch tier (ROOT=10, A=15, B=20, C=25, D=35, E=50). `[~]` = half XP. Total stored as `xp:` in frontmatter. Displayed as "Level: Builder · 240 XP". `/review` pass awards a per-node XP bonus.
+**XP system:** Each demonstrated `[✓]` node earns XP by branch tier (ROOT=10, A=15, B=20, C=25, D=35, E=50). `[~]` = half XP. Total stored as `xp:` in frontmatter. Displayed as "Level: Builder · 240 XP". A `/review` pass advances the schedule without changing XP; XP rises only when a node first reaches `[✓]` (including a `[~]→[✓]` upgrade earned during review).
 
 **Adaptive pacing:** Phase 3 output scales with tier. Explorer (~20-30 lines, 1 skill), Builder (~50-60 lines, 2 skills), Practitioner/Expert (~80-100+ lines, 3 skills). Returning users with a fresh tree (≤7 days) skip gap questions entirely — straight to Phase 3.
 
@@ -129,7 +129,7 @@ Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a struc
 
 **`/ramp:tree`** is a dumb read-only viewer. It reads `~/.claude/knowledge-graphs/[topic].md` and displays it. No inference, no writes.
 
-**`/ramp:review`** is a focused spaced repetition command. It reads due `[✓]` nodes, steps through them one at a time, applies the qualitative rubric, updates `| next:` fields, and awards XP for passes.
+**`/ramp:review`** is a focused spaced repetition command. It reads due `[✓]` nodes, steps through them one at a time, applies the qualitative rubric, updates `| next:` fields. Passing advances the schedule; XP is unchanged unless a node is upgraded `[~]→[✓]`.
 
 **Three-layer tree architecture** (maps to Claude Code's native scope model):
 

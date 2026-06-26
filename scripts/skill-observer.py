@@ -34,6 +34,8 @@ guarded by an exclusive file lock and an atomic replace, making concurrent fires
 (at worst redundant) rather than corrupting the file.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import re

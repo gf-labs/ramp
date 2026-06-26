@@ -3,6 +3,25 @@
 All notable changes to `ramp` are documented here. This project follows
 [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+**Honest contracts.** Accumulating fixes for the next release (version intentionally
+not yet bumped): the Python-version promise is now true end-to-end, and a
+spaced-repetition claim the kernel had already walked back is corrected in the docs.
+
+### Fixed
+- **Python floor is now truthful.** `ramp_core` enforces `MIN_PYTHON = (3, 8)` at the
+  CLI boundary (`python_version_error`), and `skill-observer.py` gained
+  `from __future__ import annotations` so its PEP-585 type hints no longer break import
+  on Python 3.8 — the always-on passive observer runs on the version the badge
+  advertises. The optional MCP server still requires Python 3.10+ (its `mcp`
+  dependency), now documented as a caveat rather than the headline floor.
+- `/ramp:list` and `/ramp:help` report a clear "python3 3.8+ missing" state instead of
+  silently rendering a fake fresh-user view.
+- Docs no longer claim a `/ramp:review` pass awards XP. A pass advances the
+  spaced-repetition schedule; XP rises only when a node first reaches `[✓]` (including a
+  `[~]→[✓]` upgrade during review). (README, CLAUDE.md)
+
 ## [1.2.0] — 2026-06-25
 
 **Discoverability.** Two read-only commands make ramp self-explaining for a

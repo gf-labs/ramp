@@ -9,6 +9,7 @@ python3 with no .venv, so no third-party imports, ever.
 """
 import os
 import re
+import sys
 from contextlib import contextmanager
 from datetime import date, timedelta
 from pathlib import Path
@@ -21,6 +22,25 @@ except ImportError:  # pragma: no cover - non-POSIX fallback
 # --- constants: the single definition of these values in the codebase ---
 BRANCH_XP = {"ROOT": 10, "A": 15, "B": 20, "C": 25, "D": 35, "E": 50}
 SR_LADDER = {1: 1, 2: 3, 3: 7, 4: 21, 5: 60, 6: None}  # interval days; None = permanent
+
+# Supported Python floor. The kernel is stdlib-only and uses nothing past 3.7
+# (date.fromisoformat); 3.8 is declared as the floor, enforced by the CLI guard
+# in _main, and mirrored by the README badge (locked by a test). The import path
+# (observer hook, MCP server) is deliberately NOT guarded — those run best-effort
+# under the host's python3 and must never hard-crash a session.
+MIN_PYTHON = (3, 8)
+
+
+def python_version_error(info=None):
+    """A one-line error if the running Python is older than MIN_PYTHON, else None.
+
+    Pure (accepts a version_info tuple) so the contract is unit-testable without
+    spawning an interpreter.
+    """
+    info = sys.version_info if info is None else info
+    if tuple(info[:2]) < MIN_PYTHON:
+        return f"ramp needs Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]}+ (found {info[0]}.{info[1]})."
+    return None
 
 # A branch header in EITHER form: "## [SubTopic · TIER]" or "## [TIER]".
 # The optional "[^\]]*·\s*" group consumes a subtopic label + middot if present
@@ -434,6 +454,10 @@ def _schema_dir() -> Path:
 
 
 def _main(argv) -> int:
+    err = python_version_error()
+    if err:
+        print(err, file=sys.stderr)
+        return 2
     import argparse
     import json
 
@@ -460,5 +484,4 @@ def _main(argv) -> int:
 
 
 if __name__ == "__main__":
-    import sys as _sys
-    raise SystemExit(_main(_sys.argv[1:]))
+    raise SystemExit(_main(sys.argv[1:]))
