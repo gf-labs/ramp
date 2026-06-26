@@ -334,6 +334,63 @@ def summarize_graph(content: str, today: date = None) -> dict:
     }
 
 
+def _node_evidence(line: str):
+    """The evidence trail after the node name ('— repo, date: note'), with the
+    '| next:' schedule suffix removed. None when the node carries no trail."""
+    m = _STATUS_RE.match(line.strip())
+    if not m:
+        return None
+    after = line.strip()[m.end():].split("| next:")[0]
+    if "—" not in after:
+        return None
+    return after.split("—", 1)[1].strip() or None
+
+
+def graph_nodes(content: str) -> list:
+    """One tree -> per-node dicts for the deep (tree) render. Pure parse; the
+    stored status is read verbatim, never recomputed.
+
+    `branch` is the tier letter (the XP weight); `section` is the full `## [...]`
+    header text the node sits under. The real graph has several sections sharing
+    a tier (5 ROOT sections, etc.), so the tier alone cannot reconstruct the
+    tree — the tree view groups by `section`.
+    """
+    nodes = []
+    branch = None
+    section = None
+    for line in content.splitlines():
+        if line.startswith("## ["):
+            m = _HEADER_RE.match(line)
+            branch = m.group(1) if m else None
+            section = line.strip()[3:].strip()  # the header text after "## "
+            continue
+        if not line.strip().startswith("- ["):
+            continue
+        token, typ = _node_status_type(line)
+        weight = BRANCH_XP.get(branch, 0)
+        if token == "done":
+            xp = weight
+        elif token == "reported":
+            xp = weight // 2
+        else:
+            xp = 0
+        parsed = parse_review_field(line)
+        marker = _STATUS_RE.match(line.strip())
+        nodes.append({
+            "name": node_name(line),
+            "status": token,
+            "type": typ,
+            "xp": xp,
+            "branch": branch,
+            "section": section,
+            "next_date": parsed[0].isoformat() if parsed else None,
+            "level": parsed[1] if parsed else None,
+            "evidence": _node_evidence(line),
+            "target": bool(marker) and marker.group(1).strip() == "★",
+        })
+    return nodes
+
+
 def _derived_node_count(content: str) -> int:
     """Count node-definition rows inside the schema's `## Node definitions`
     section. Schemas enumerate nodes as a markdown table (one row per node,
@@ -430,8 +487,8 @@ def list_catalog(schema_dir, graph_dir, today: date) -> list:
 # ---------------------------------------------------------------------------
 # CLI shim — the no-MCP read path. Emits JSON data; the prompts render layout.
 # Guarded so importing the module (observer, MCP server) never runs this.
-# MVP verbs: catalog, summary. (The `nodes` verb + graph_nodes are the deferred
-# tail — added with the tree migration.)
+# Verbs: catalog, summary, nodes. (summary -> summarize_graph; nodes ->
+# graph_nodes, the deep per-node read the tree view renders from.)
 # ---------------------------------------------------------------------------
 
 def _graph_dir() -> Path:
@@ -466,6 +523,8 @@ def _main(argv) -> int:
     sub.add_parser("catalog")
     p_sum = sub.add_parser("summary")
     p_sum.add_argument("topic")
+    p_nodes = sub.add_parser("nodes")
+    p_nodes.add_argument("topic")
     args = parser.parse_args(argv)
 
     if args.cmd == "catalog":
@@ -473,13 +532,17 @@ def _main(argv) -> int:
         print(json.dumps(data))
         return 0
 
-    # args.cmd == "summary"
+    # args.cmd in ("summary", "nodes") — both read a single topic graph; a
+    # missing graph yields the empty shape ({} for summary, [] for nodes).
     graph_path = _graph_dir() / f"{args.topic}.md"
     if not graph_path.exists():
-        print(json.dumps({}))
+        print(json.dumps({} if args.cmd == "summary" else []))
         return 0
     content = graph_path.read_text(encoding="utf-8")
-    print(json.dumps(summarize_graph(content, date.today())))
+    if args.cmd == "summary":
+        print(json.dumps(summarize_graph(content, date.today())))
+    else:  # nodes
+        print(json.dumps(graph_nodes(content)))
     return 0
 
 

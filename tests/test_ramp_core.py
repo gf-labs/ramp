@@ -376,6 +376,41 @@ def test_cli_summary_existing_graph_emits_summary(tmp_path):
     assert data["counts"]["todo"] == 1
 
 
+def test_cli_nodes_missing_graph_is_empty_array(tmp_path):
+    home = tmp_path / "home"
+    (home / ".claude" / "knowledge-graphs").mkdir(parents=True)
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    env.pop("CLAUDE_PLUGIN_ROOT", None)
+    core = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    out = subprocess.check_output(["python3", core, "nodes", "nope"], env=env, text=True, cwd=str(tmp_path))
+    assert json.loads(out) == []
+
+
+def test_cli_nodes_existing_graph_emits_nodes(tmp_path):
+    home = tmp_path / "home"
+    graphs = home / ".claude" / "knowledge-graphs"
+    graphs.mkdir(parents=True)
+    (graphs / "demo.md").write_text(
+        "---\nversion: 3\ntopic: demo\nlevel: Builder\nxp: 10\n---\n\n"
+        "## [Getting Started · ROOT] Core\n\n"
+        "- [✓|exercise] Node one — repo, 2020-01-01: did it | next: 2020-01-01 [L1]\n"
+        "- [ ] Node two\n"
+    )
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    env.pop("CLAUDE_PLUGIN_ROOT", None)
+    core = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    out = subprocess.check_output(["python3", core, "nodes", "demo"], env=env, text=True, cwd=str(tmp_path))
+    data = json.loads(out)
+    assert [n["name"] for n in data] == ["Node one", "Node two"]
+    assert data[0]["status"] == "done"
+    assert data[0]["branch"] == "ROOT"
+    assert data[0]["next_date"] == "2020-01-01"
+    assert data[0]["evidence"] == "repo, 2020-01-01: did it"
+    assert data[1]["status"] == "todo"
+
+
 def test_all_schemas_declare_consistent_node_count():
     topics_dir = Path(__file__).resolve().parent.parent / "topics"
     schemas = {}
@@ -394,6 +429,87 @@ def test_all_schemas_declare_consistent_node_count():
         else:  # leaf: frontmatter must match the derived Node-definitions count
             derived = ramp_core._derived_node_count(content)
             assert declared == derived, f"{name}: node_count {declared} != derived {derived}"
+
+
+# --- graph_nodes (deep per-node read for the tree view) ---
+
+def test_graph_nodes_parses_status_branch_xp_and_schedule():
+    content = (
+        "---\nlevel: Builder\nxp: 0\n---\n"
+        "## [Build · ROOT] Agents\n"
+        "- [✓|exercise] First — r, 2026-06-01: did it | next: 2026-06-23 [L2]\n"
+        "## [Build · A] Skills\n"
+        "- [~|reported] Second\n"
+        "- [ ] Third\n"
+    )
+    nodes = ramp_core.graph_nodes(content)
+    assert len(nodes) == 3
+
+    first = nodes[0]
+    assert first["name"] == "First"
+    assert first["status"] == "done"
+    assert first["type"] == "exercise"
+    assert first["branch"] == "ROOT"
+    assert first["xp"] == 10               # ROOT full
+    assert first["next_date"] == "2026-06-23"
+    assert first["level"] == 2
+
+    second = nodes[1]
+    assert second["status"] == "reported"
+    assert second["branch"] == "A"
+    assert second["xp"] == 7               # A weight 15 // 2
+    assert second["next_date"] is None
+    assert second["level"] is None
+
+    assert nodes[2]["status"] == "todo"
+    assert nodes[2]["xp"] == 0
+
+
+def test_graph_nodes_ignores_non_node_lines():
+    content = "## [Build · ROOT] x\n\nsome prose\n- [✓|artifact] Only one\n"
+    nodes = ramp_core.graph_nodes(content)
+    assert [n["name"] for n in nodes] == ["Only one"]
+
+
+def test_graph_nodes_carries_evidence_and_target():
+    content = (
+        "---\nlevel: Builder\nxp: 0\n---\n"
+        "## [Build · ROOT] Agents\n"
+        "- [✓|exercise] Done one — repo, 2026-06-01: shipped X · refined Y | next: 2026-06-23 [L2]\n"
+        "- [★] Frontier node\n"
+        "- [ ] Plain todo\n"
+    )
+    nodes = ramp_core.graph_nodes(content)
+
+    done = nodes[0]
+    assert done["evidence"] == "repo, 2026-06-01: shipped X · refined Y"
+    assert done["target"] is False
+
+    frontier = nodes[1]
+    assert frontier["status"] == "todo"      # ★ still classifies as todo for XP
+    assert frontier["xp"] == 0
+    assert frontier["target"] is True
+    assert frontier["evidence"] is None
+
+    plain = nodes[2]
+    assert plain["target"] is False
+    assert plain["evidence"] is None
+
+
+def test_graph_nodes_section_distinguishes_same_tier_headers():
+    # the real graph has 5 ROOT sections; the tier letter alone collapses them,
+    # so graph_nodes must carry the full section header for faithful grouping
+    content = (
+        "## [Getting Started · ROOT] Core Foundations\n"
+        "- [ ] A\n"
+        "## [Build · ROOT] Agents and Orchestration\n"
+        "- [ ] B\n"
+    )
+    nodes = ramp_core.graph_nodes(content)
+    assert nodes[0]["branch"] == "ROOT" and nodes[1]["branch"] == "ROOT"
+    assert nodes[0]["section"] == "[Getting Started · ROOT] Core Foundations"
+    assert nodes[1]["section"] == "[Build · ROOT] Agents and Orchestration"
+    assert nodes[0]["section"] != nodes[1]["section"]
 
 
 # --- python version contract ---
