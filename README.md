@@ -284,6 +284,7 @@ The observer ships in the plugin and registers automatically on install. Verify 
 | `list_topics()`                   | All topics with level and XP — returns JSON |
 | `get_benchmarks(topic)`           | Personal stats; team/org when a backend is configured |
 | `export_delta(topic, since_date)` | Demonstrated nodes since a date — for team sharing |
+| `advance_review(topic, node_name, outcome)` | Advance a node's spaced-repetition schedule after a `/ramp:review` pass |
 
 **Setup.** Create the repo-local virtualenv (the system `python3` ships a conflicting `mcp` stub, so the server must run from `.venv`):
 

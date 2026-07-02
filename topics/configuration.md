@@ -22,7 +22,7 @@ This file defines the curriculum for the `configuration` topic. Covers the Confi
 |------|-------------------|------|-------------------|-----------|
 | Settings scope hierarchy: global, project, local | Can describe all three settings scopes (`~/.claude/settings.json`, `.claude/settings.json`, `.claude/settings.local.json`), which takes precedence, and what each is for | Qualitative | settings file exists → `[~\|artifact]` | https://code.claude.com/docs/en/settings |
 | Settings file format and key options | Has edited a settings.json; knows the key fields: `permissions` (and its nested `defaultMode`), `hooks`, `mcpServers`, `model`, `env`; can add a field without breaking the file | Artifact / Exercise | settings file with non-empty content → `[✓\|artifact]` | https://code.claude.com/docs/en/settings |
-| Model selection | Has explicitly set `model` in settings.json; can explain the tradeoff between model capability and cost/speed; knows available model IDs and that there is no settings.json token/budget cap (cost limits come from the `--max-budget-usd` headless flag or API-side limits, not `maxTokens`) | Artifact / Qualitative | `model` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/model-config |
+| Model selection and budget configuration | Has explicitly set `model` in settings.json; can explain the tradeoff between model capability and cost/speed; knows available model IDs and that there is no settings.json token/budget cap (cost limits come from the `--max-budget-usd` headless flag or API-side limits, not `maxTokens`) | Artifact / Qualitative | `model` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/model-config |
 | Server-managed settings (policy enforcement) | Understands that admins can push settings that users cannot override; knows the difference between user-settable and org-enforced config | Qualitative | None | https://code.claude.com/docs/en/settings |
 
 ### [A] Permissions and security (5 nodes, unlocks when ROOT ≥ 2 `[✓]`)
@@ -52,7 +52,7 @@ This file defines the curriculum for the `configuration` topic. Covers the Confi
 |--------------------|---------------|
 | settings file exists with non-empty content | ROOT: "Settings file format and key options" → `[✓\|artifact]` |
 | settings file exists (any) | ROOT: "Settings scope hierarchy" → `[~\|artifact]` |
-| `model` in settings | ROOT: "Model selection" → `[✓\|artifact]` |
+| `model` in settings | ROOT: "Model selection and budget configuration" → `[✓\|artifact]` |
 | global permission rules > 0 | A: "Permissions: allow/deny rules" → `[✓\|artifact]` |
 | global + project permissions both present | A: "Permission precedence and scoping" → `[~\|historical]` |
 | `fastModePerSessionOptIn` in settings | A: "Fast mode" → `[~\|artifact]` |
@@ -86,7 +86,7 @@ This file defines the curriculum for the `configuration` topic. Covers the Confi
 | Answer contains | Node → status |
 |-----------------|---------------|
 | Names global, project, and local scopes with correct file paths | ROOT: "Settings scope hierarchy" → `[✓\|reported]` |
-| Specific model ID set via `model` with rationale | ROOT: "Model selection" → `[✓\|reported]` |
+| Specific model ID set via `model` with rationale | ROOT: "Model selection and budget configuration" → `[✓\|reported]` |
 | Description of server-managed settings enforcement | ROOT: "Server-managed settings" → `[✓\|reported]` |
 | Specific glob rule (e.g., `Bash(npm run *)`) | A: "Permissions: allow/deny rules" → `[✓\|reported]` |
 | Description of `permissions.defaultMode: plan` | A: "Plan mode as default" → `[✓\|reported]` |

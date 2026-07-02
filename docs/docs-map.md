@@ -1,6 +1,6 @@
 # Claude Code Docs Map
 
-Generated: 2026-03-05 · Last verified against schemas: 2026-06-19 | Source: https://code.claude.com/docs/en/
+Generated: 2026-03-05 · Last verified against schemas: 2026-06-26 | Source: https://code.claude.com/docs/en/
 
 This file maps every Claude Code documentation page to its topic schema and the nodes it informs.
 Purpose: human-readable reference now; machine-parseable foundation for a future `/ramp:sync` command.
@@ -109,6 +109,7 @@ These topics are independently maintained (not sourced by `claude-code` meta-top
 | `topics/best-practices.md` | CLAUDE.md design, config hygiene | https://docs.anthropic.com/en/docs/claude-code/ |
 | `topics/mcp-development.md` | Building MCP servers | https://modelcontextprotocol.io/ |
 | `topics/anthropic-api.md` | Claude API usage | https://docs.anthropic.com/en/api/ |
+| `topics/claude-code-internals.md` | Empirically-verified Claude Code behaviors not in official docs | *(none — verified by experiment)* |
 
 ---
 

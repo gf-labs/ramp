@@ -61,7 +61,7 @@ This topic covers **building with the Claude API** — making completion request
 | Collected evidence | Node → status |
 |--------------------|---------------|
 | `from anthropic` or `@anthropic-ai/sdk` import in repo | ROOT: "Authentication" + "Basic completion" → `[~\|artifact]` |
-| model specified in API calls | ROOT: "Model selection" → `[~\|artifact]` |
+| model specified in API calls | ROOT: "Model selection (which model for which use case)" → `[~\|artifact]` |
 | system prompt patterns in code | A: "System prompts" → `[~\|artifact]` |
 | message history accumulation patterns | A: "Multi-turn conversations" → `[~\|artifact]` |
 | streaming/stream patterns in code | A: "Streaming responses" → `[~\|artifact]` |
@@ -97,7 +97,7 @@ This topic covers **building with the Claude API** — making completion request
 |-----------------|---------------|
 | Specific API call description + what was returned | ROOT: "Basic completion" → `[✓\|reported]` |
 | Vague "yes I've used the API" | ROOT: "Authentication" + "Basic completion" → `[~\|reported]` |
-| Model choice + rationale | ROOT: "Model selection" → `[✓\|reported]` |
+| Model choice + rationale | ROOT: "Model selection (which model for which use case)" → `[✓\|reported]` |
 | Token/cost specifics (numbers, limits) | ROOT: "Tokens and context" → `[✓\|reported]` |
 | System prompt with specific behavior described | A: "System prompts" → `[✓\|reported]` |
 | Tool definition or tool_use block described | B: "Defining tools" + "Parsing tool_use" → `[~\|reported]` |
