@@ -635,3 +635,55 @@ def test_cli_save_reads_stdin_and_writes(tmp_path):
     assert out.returncode == 0
     assert out.stdout.startswith("saved · demo")
     assert "xp: 10" in (home / ".claude" / "ramp" / "graphs" / "demo.md").read_text()
+
+
+def test_due_nodes_matches_summary_due(core):
+    from datetime import date as _date
+    today = _date(2026, 7, 2)
+    tree = (
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+        "## [Build · A] One\n"
+        "- [✓|exercise] Due node — r, 2026-06-01: n | next: 2026-07-01 [L1]\n"
+        "- [✓|exercise] Today node — r, 2026-06-01: n | next: 2026-07-02 [L2]\n"
+        "- [✓|exercise] Future node — r, 2026-06-01: n | next: 2026-08-01 [L2]\n"
+        "- [✓|exercise] Malformed marker — r, 2026-06-01: n | next: 2026-06-01 [B]\n"
+        "- [✓|exercise] Permanent node — r, 2026-06-01: n | next: permanent [L6]\n"
+        "- [~|reported] Claimed node — r, 2026-06-01: claim\n"
+    )
+    due = core.due_nodes(tree, today)
+    assert [n["name"] for n in due] == ["Due node", "Today node"]
+    # The single-sourcing contract: list length == summary's due count, always.
+    assert len(due) == core.summarize_graph(tree, today)["due"]
+
+
+def test_cli_due_missing_graph_is_empty_array(tmp_path):
+    home = tmp_path / "home"
+    home.mkdir()
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    core_path = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    out = subprocess.run(["python3", core_path, "due", "demo"],
+                         env=env, text=True, capture_output=True, cwd=str(tmp_path))
+    assert out.returncode == 0
+    assert json.loads(out.stdout) == []
+
+
+def test_cli_due_emits_due_nodes(tmp_path):
+    home = tmp_path / "home"
+    graphs = home / ".claude" / "ramp" / "graphs"
+    graphs.mkdir(parents=True)
+    (graphs / "demo.md").write_text(
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+        "## [Build · A] One\n"
+        "- [✓|exercise] Old node — r, 2026-06-01: n | next: 2020-01-01 [L1]\n"
+        "- [✓|exercise] Future node — r, 2026-06-01: n | next: 2999-01-01 [L2]\n",
+        encoding="utf-8",
+    )
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    core_path = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    out = subprocess.run(["python3", core_path, "due", "demo"],
+                         env=env, text=True, capture_output=True, cwd=str(tmp_path))
+    assert out.returncode == 0
+    names = [n["name"] for n in json.loads(out.stdout)]
+    assert names == ["Old node"]

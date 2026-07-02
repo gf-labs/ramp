@@ -399,6 +399,20 @@ def graph_nodes(content: str) -> list:
     return nodes
 
 
+def due_nodes(content: str, today: date = None) -> list:
+    """graph_nodes filtered to the SR queue: [✓] nodes whose next: date is valid
+    and <= today. Malformed, absent, or 'permanent' fields are never due — the
+    same "flag, don't fabricate" rule as summarize_graph, so the two can't
+    disagree. This is the single source review.md renders its queue from."""
+    if today is None:
+        today = date.today()
+    cutoff = today.isoformat()
+    return [
+        n for n in graph_nodes(content)
+        if n["status"] == "done" and n["next_date"] and n["next_date"] <= cutoff
+    ]
+
+
 def _derived_node_count(content: str) -> int:
     """Count node-definition rows inside the schema's `## Node definitions`
     section. Schemas enumerate nodes as a markdown table (one row per node,
@@ -633,6 +647,8 @@ def _main(argv) -> int:
     p_sum.add_argument("topic")
     p_nodes = sub.add_parser("nodes")
     p_nodes.add_argument("topic")
+    p_due = sub.add_parser("due")
+    p_due.add_argument("topic")
     p_save = sub.add_parser("save")
     p_save.add_argument("topic")
     args = parser.parse_args(argv)
@@ -648,8 +664,8 @@ def _main(argv) -> int:
         print(result)
         return 2 if result.startswith("REJECTED") else 0
 
-    # args.cmd in ("summary", "nodes") — both read a single topic graph; a
-    # missing graph yields the empty shape ({} for summary, [] for nodes).
+    # args.cmd in ("summary", "nodes", "due") — all read a single topic graph; a
+    # missing graph yields the empty shape ({} for summary, [] for nodes/due).
     graph_path = _graph_dir() / f"{args.topic}.md"
     if not graph_path.exists():
         print(json.dumps({} if args.cmd == "summary" else []))
@@ -657,6 +673,8 @@ def _main(argv) -> int:
     content = graph_path.read_text(encoding="utf-8")
     if args.cmd == "summary":
         print(json.dumps(summarize_graph(content, date.today())))
+    elif args.cmd == "due":
+        print(json.dumps(due_nodes(content, date.today())))
     else:  # nodes
         print(json.dumps(graph_nodes(content)))
     return 0

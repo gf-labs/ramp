@@ -13,14 +13,17 @@ allowed-tools: Bash, Write, Edit, mcp__knowledge-graph__read_graph, mcp__knowled
 
 **Today's date**: !`date +%Y-%m-%d`
 
+**Due nodes** (kernel-computed SR queue for the active topic — the same rule as every due count ramp shows):
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" due "$TOPIC" 2>/dev/null || echo "DUE_UNAVAILABLE"`
+
 **First-run signal** (zero started topics ⇒ redirect a newcomer):
 !`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" catalog 2>/dev/null | python3 -c "import sys,json; c=json.load(sys.stdin); print('FIRST_RUN' if not any(t['started'] for t in c) else 'HAS_GRAPHS')" 2>/dev/null || echo "HAS_GRAPHS"`
 
 **Knowledge graph contents** (for active topic):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/ramp/graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
 
-**All topics — earliest due dates** (to check if other topics have due nodes):
-!`for f in ~/.claude/ramp/graphs/*.md; do [ -f "$f" ] || continue; TOPIC=$(basename "$f" .md); EARLIEST=$(sed -nE 's/.*next: ([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\1/p' "$f" 2>/dev/null | sort | head -1); [ -n "$EARLIEST" ] && echo "$TOPIC: next review $EARLIEST"; done 2>/dev/null || echo "none"`
+**All topics — due counts** (which other topics have due nodes):
+!`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" catalog 2>/dev/null | python3 -c "import sys,json; rows=[f\"{t['name']}: {t['summary']['due']} due\" for t in json.load(sys.stdin) if t.get('started') and t.get('summary') and t['summary']['due']>0]; print('\n'.join(rows) if rows else 'none')" 2>/dev/null || echo "none"`
 
 ---
 
@@ -40,10 +43,15 @@ You are running a focused spaced repetition review session. No full assessment, 
 
 ## Step 1: Find due nodes
 
-Read the knowledge graph above.
+The **Due nodes** context above is the primary SR queue — kernel-computed (valid `next:` date
+≤ today; a malformed or absent date is never queued). Do not re-derive it by scanning the raw
+graph.
 
-1. Find all `[✓]` nodes where the `next: YYYY-MM-DD` date is **≤ today's date** — the primary SR queue.
-2. Count all `[~]` nodes in the tree — the secondary verification queue.
+1. Primary queue = the Due nodes JSON array, in its order. The due count = its length.
+2. Count all `[~]` nodes in the **Knowledge graph contents** — the secondary verification queue.
+
+If Due nodes is `DUE_UNAVAILABLE` (kernel CLI missing): fall back to scanning the graph for
+`[✓]` nodes with `next:` ≤ today and say the count is best-effort.
 
 If `NO_TREE_FILE:[topic]`: say "No knowledge graph found for **[topic]**. Run `/ramp:up [topic]` to create one." Stop.
 
@@ -122,7 +130,7 @@ Next session: [earliest next: date across all nodes in this topic]
 
 If `[~]` nodes remain unverified: "Run `/ramp:review` again to verify more claimed skills, or `/ramp:up` to demonstrate them in-session."
 
-If other topics have due nodes today (from the "All topics" context above), mention: "Also due today: [topic] ([N] nodes). Run `/ramp:review [topic]` when ready."
+If other topics show due nodes (from the **All topics — due counts** context above), mention: "Also due today: [topic] ([N] due). Run `/ramp:review [topic]` when ready."
 
 ---
 
