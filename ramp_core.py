@@ -54,19 +54,27 @@ def compute_xp(tree: str) -> int:
 
     Format-tolerant: accepts both header forms. A branch-like header that yields
     no valid TIER contributes 0 here and is surfaced separately by validate_tree.
+    A node NAME that appears more than once counts once, at its first
+    occurrence's tier — a misfiled duplicate can't inflate XP (validate_tree
+    still flags it for repair). Unnamed bullets are never deduped.
     """
     xp = 0
     current = 0
+    seen = set()
     for line in tree.splitlines():
         if line.startswith("## ["):
             m = _HEADER_RE.match(line)
             current = BRANCH_XP.get(m.group(1), 0) if m else 0
-        else:
-            s = line.strip()
-            if s.startswith("- [✓"):
-                xp += current
-            elif s.startswith("- [~"):
-                xp += current // 2
+            continue
+        s = line.strip()
+        if not (s.startswith("- [✓") or s.startswith("- [~")):
+            continue
+        name = node_name(s)
+        if name is not None:
+            if name in seen:
+                continue
+            seen.add(name)
+        xp += current if s.startswith("- [✓") else current // 2
     return xp
 
 
