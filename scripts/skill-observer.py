@@ -2,7 +2,7 @@
 """
 skill-observer.py — Passive Claude Code knowledge graph observer
 
-Hook that watches sessions and updates ~/.claude/knowledge-graphs/claude-code.md
+Hook that watches sessions and updates ~/.claude/ramp/graphs/claude-code.md
 when knowledge graph evidence is detected from tool calls and lifecycle events.
 
 Install (via plugin — automatic):
@@ -13,7 +13,7 @@ For standalone use, register in ~/.claude/settings.json:
   PostToolUse (matcher: ".*"), SessionStart
   → command: "python3 /path/to/skill-observer.py"
 
-Writes to: ~/.claude/knowledge-graphs/claude-code.md (created automatically if absent)
+Writes to: ~/.claude/ramp/graphs/claude-code.md (created automatically if absent)
 Note: this observer is Claude Code–specific. For other topics, create a separate
 observer script with topic-specific detection rules.
 
@@ -57,7 +57,7 @@ from ramp_core import compute_xp  # re-exported so observer.compute_xp still res
 # All current detection rules are Claude Code–specific, so always writes to claude-code topic.
 # Future topic-specific observers can be separate scripts with their own detection rules
 # registered under separate hook matchers (e.g., matcher: "bash_runner_.*").
-SKILL_GRAPH_PATH = Path.home() / ".claude" / "knowledge-graphs" / "claude-code.md"
+SKILL_GRAPH_PATH = Path.home() / ".claude" / "ramp" / "graphs" / "claude-code.md"
 LOCK_PATH = SKILL_GRAPH_PATH.parent / ".claude-code.md.lock"
 TODAY = date.today().isoformat()
 
@@ -337,7 +337,7 @@ def matches_rule(rule: dict, tool_name: str, tool_input: dict) -> bool:
 
 
 def provision_schema_symlinks():
-    """Symlink plugin topic schemas into ~/.claude/knowledge-graphs/schemas/.
+    """Symlink plugin topic schemas into ~/.claude/ramp/schemas/.
 
     Runs on SessionStart and must NOT depend on a personal tree existing — a fresh
     install has no tree yet, but /ramp:up needs these schemas on its very first run.
@@ -348,7 +348,7 @@ def provision_schema_symlinks():
     if not plugin_root:
         return
     topics_dir = Path(plugin_root) / "topics"
-    schemas_dir = Path.home() / ".claude" / "knowledge-graphs" / "schemas"
+    schemas_dir = Path.home() / ".claude" / "ramp" / "schemas"
     if not topics_dir.is_dir():
         return
     try:
@@ -379,6 +379,10 @@ def main():
     # Provision schema symlinks BEFORE the tree-existence guard below: a fresh install
     # has no personal tree yet, but /ramp:up still needs the schemas on its first run.
     if hook_event == "SessionStart":
+        try:
+            ramp_core.migrate_graph_home()  # legacy ~/.claude/knowledge-graphs → ~/.claude/ramp/graphs
+        except Exception:
+            pass  # best-effort: a migration hiccup must never block a session
         provision_schema_symlinks()
 
     if not SKILL_GRAPH_PATH.exists():

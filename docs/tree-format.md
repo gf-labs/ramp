@@ -2,7 +2,7 @@
 
 Canonical reference for the v3 knowledge graph file format.
 
-**Location:** `~/.claude/knowledge-graphs/[topic].md`
+**Location:** `~/.claude/ramp/graphs/[topic].md`
 **Written by:** `/ramp:up` (Phase 4), `/ramp:pin`, `/ramp:review`, `/ramp:wrap`, and `skill-observer.py`
 **Read by:** `/ramp:up` (Phase 2 inference), `/ramp:tree`, `/ramp:review`, `/ramp:cheatsheet`, `/ramp:pin`, `/ramp:list`. The graph parse is single-sourced in `ramp_core` (`summarize_graph`, `graph_nodes`) — `/ramp:tree` and `/ramp:list` render from it rather than re-parsing in their own prompts.
 

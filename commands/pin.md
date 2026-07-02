@@ -9,12 +9,12 @@ allowed-tools: Bash, Read, Write, Edit, mcp__knowledge-graph__read_graph, mcp__k
 **Requested topic**: $ARGUMENTS
 
 **Active topic**:
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
 
 **Today's date**: !`date +%Y-%m-%d`
 
 **Knowledge graph** (active topic):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/ramp/graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
 
 ---
 
@@ -67,7 +67,7 @@ Rules:
 
 Ask: "Save these upgrades? Reply `yes`, edit inline, or `skip`."
 
-On `yes`: update `~/.claude/knowledge-graphs/[topic].md`:
+On `yes`: update `~/.claude/ramp/graphs/[topic].md`:
 - Replace each node line status and append evidence trail:
   ```
   [✓|exercise] Node name — [repo/context], [today]: [evidence] in /ramp:pin

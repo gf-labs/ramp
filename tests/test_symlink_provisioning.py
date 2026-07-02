@@ -3,7 +3,7 @@ when the user has no personal knowledge-graph tree yet.
 
 The bug: ``main`` returned early on ``not SKILL_GRAPH_PATH.exists()`` *before*
 reaching the symlink step, so a fresh install never linked the topic schemas
-into ``~/.claude/knowledge-graphs/schemas/`` and ``/ramp:up`` failed its first
+into ``~/.claude/ramp/schemas/`` and ``/ramp:up`` failed its first
 run with ``SCHEMA_NOT_FOUND``. The fix hoists provisioning above that guard.
 """
 
@@ -27,7 +27,7 @@ def test_main_provisions_symlinks_on_sessionstart_without_tree(observer, tmp_pat
     monkeypatch.setenv("HOME", str(home))
     # Simulate a fresh install: no personal tree on disk, and repoint the module's
     # import-time path at that absent location so main() takes the early-return branch.
-    absent_tree = home / ".claude" / "knowledge-graphs" / "claude-code.md"
+    absent_tree = home / ".claude" / "ramp" / "graphs" / "claude-code.md"
     monkeypatch.setattr(observer, "SKILL_GRAPH_PATH", absent_tree)
     monkeypatch.setattr(
         observer, "read_stdin",
@@ -36,10 +36,39 @@ def test_main_provisions_symlinks_on_sessionstart_without_tree(observer, tmp_pat
 
     observer.main()
 
-    schemas = home / ".claude" / "knowledge-graphs" / "schemas"
+    schemas = home / ".claude" / "ramp" / "schemas"
     assert (schemas / "claude-code.md").is_symlink()
     assert (schemas / "build.md").is_symlink()
     assert (schemas / "claude-code.md").resolve() == (topics_dir / "claude-code.md").resolve()
+
+
+def test_main_migrates_legacy_graphs_on_sessionstart(observer, tmp_path, monkeypatch):
+    """SessionStart must run the graph-home migration (main() → ramp_core.
+    migrate_graph_home): a legacy ~/.claude/knowledge-graphs graph is copied into
+    ~/.claude/ramp/graphs even when no new-home tree exists yet. Deleting the
+    migration call from main() must fail this test."""
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.delenv("CLAUDE_PLUGIN_ROOT", raising=False)
+    legacy = home / ".claude" / "knowledge-graphs"
+    legacy.mkdir(parents=True)
+    (legacy / "claude-code.md").write_text("---\nlevel: Builder\nxp: 0\n---\n")
+    # Repoint the module's import-time paths at the scratch HOME. After migration
+    # the tree EXISTS, so main() proceeds past its guard into the lock — the lock
+    # path must not touch the real home.
+    new_tree = home / ".claude" / "ramp" / "graphs" / "claude-code.md"
+    monkeypatch.setattr(observer, "SKILL_GRAPH_PATH", new_tree)
+    monkeypatch.setattr(observer, "LOCK_PATH", new_tree.parent / ".claude-code.md.lock")
+    monkeypatch.setattr(
+        observer, "read_stdin",
+        lambda: {"hook_event_name": "SessionStart", "source": "startup"},
+    )
+
+    observer.main()
+
+    assert new_tree.exists()
+    assert (legacy / "claude-code.md").exists()      # legacy kept as backup
 
 
 def test_provision_is_noop_without_plugin_root(observer, tmp_path, monkeypatch):
@@ -51,7 +80,7 @@ def test_provision_is_noop_without_plugin_root(observer, tmp_path, monkeypatch):
 
     observer.provision_schema_symlinks()  # must be a clean no-op
 
-    assert not (home / ".claude" / "knowledge-graphs" / "schemas").exists()
+    assert not (home / ".claude" / "ramp" / "schemas").exists()
 
 
 def test_provision_is_idempotent_and_preserves_valid_links(observer, tmp_path, monkeypatch):
@@ -65,6 +94,6 @@ def test_provision_is_idempotent_and_preserves_valid_links(observer, tmp_path, m
     observer.provision_schema_symlinks()
     observer.provision_schema_symlinks()  # second run must be harmless
 
-    link = home / ".claude" / "knowledge-graphs" / "schemas" / "claude-code.md"
+    link = home / ".claude" / "ramp" / "schemas" / "claude-code.md"
     assert link.is_symlink()
     assert link.resolve() == (topics_dir / "claude-code.md").resolve()

@@ -78,7 +78,7 @@ Nine commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, rein
 
 **Dependency-gated progression.** You don't reach Agents until you've demonstrated Code Changes. The gates *are* the pedagogy.
 
-**Session-persistent, topic-namespaced.** Graphs live at `~/.claude/knowledge-graphs/[topic].md` and follow you across every repo. Returning users with a fresh graph (≤ 7 days) skip questions entirely. Progress is never lost.
+**Session-persistent, topic-namespaced.** Graphs live at `~/.claude/ramp/graphs/[topic].md` and follow you across every repo. Returning users with a fresh graph (≤ 7 days) skip questions entirely. Progress is never lost.
 
 **Spaced repetition.** `[✓]` nodes carry a `| next: YYYY-MM-DD [LN]` review schedule (1d → 3d → 7d → 21d → 60d → permanent). `/ramp:review` steps through due nodes one at a time. Pass = advance the schedule. Fail = reset to L1.
 
@@ -192,7 +192,7 @@ cp commands/tree.md   /your-team-repo/.claude/commands/tree.md
 cp commands/review.md /your-team-repo/.claude/commands/review.md
 ```
 
-Knowledge graphs (`~/.claude/knowledge-graphs/`) stay personal — they live on each developer's machine, not in the repo.
+Knowledge graphs (`~/.claude/ramp/graphs/`) stay personal — they live on each developer's machine, not in the repo.
 
 ### Step 2 — Create a custom topic schema *(recommended)*
 
@@ -249,7 +249,7 @@ Hooks (the passive observer) and topic schemas are set up automatically on first
 
 **Add a community topic:**
 ```bash
-cp your-topic.md ~/.claude/knowledge-graphs/schemas/your-topic.md
+cp your-topic.md ~/.claude/ramp/schemas/your-topic.md
 /ramp:up your-topic
 ```
 
@@ -257,7 +257,7 @@ cp your-topic.md ~/.claude/knowledge-graphs/schemas/your-topic.md
 
 ## The passive observer
 
-A hook watches every Claude Code session and upgrades `~/.claude/knowledge-graphs/claude-code.md` whenever it detects skill evidence — no need to run `/ramp:up`. `scripts/skill-observer.py` listens on two events (`PostToolUse`, `SessionStart`) and detects, for example:
+A hook watches every Claude Code session and upgrades `~/.claude/ramp/graphs/claude-code.md` whenever it detects skill evidence — no need to run `/ramp:up`. `scripts/skill-observer.py` listens on two events (`PostToolUse`, `SessionStart`) and detects, for example:
 
 - `git worktree add` → Worktrees `[✓|historical]`
 - `claude -p` → Headless mode `[✓|historical]`
@@ -267,7 +267,7 @@ A hook watches every Claude Code session and upgrades `~/.claude/knowledge-graph
 
 > **What it can't see:** built-in CLI commands (`/help`, `/compact`, `/usage`, `/doctor`) never enter the tool loop, so no hook fires. Those are captured through `/ramp:up`'s assessment, which can promote a `[~|reported]` node to `[✓]`.
 
-The observer ships in the plugin and registers automatically on install. Verify it with `cat ~/.claude/knowledge-graphs/claude-code.md` after a session.
+The observer ships in the plugin and registers automatically on install. Verify it with `cat ~/.claude/ramp/graphs/claude-code.md` after a session.
 
 ---
 
@@ -315,14 +315,14 @@ Add to `~/.claude.json` (global user-scope MCP config) — point `command` at th
 
 ## Schemas vs. knowledge graphs
 
-Two different things live in `~/.claude/knowledge-graphs/`:
+Two different things live under `~/.claude/ramp/` (schemas in `schemas/`, your progress in `graphs/`):
 
 | | Location | Contains | Created by |
 |--|----------|----------|------------|
-| **Schema** | `…/schemas/[topic].md` | Curriculum blueprint: nodes, detection signals, gap questions, mastery criteria, doc links | Plugin install (auto-symlinked from `topics/` on first session start) |
-| **Knowledge graph** | `…/[topic].md` | *Your* progress: node statuses, evidence trails, review schedule, XP | `/ramp:up` |
+| **Schema** | `~/.claude/ramp/schemas/[topic].md` | Curriculum blueprint: nodes, detection signals, gap questions, mastery criteria, doc links | Plugin install (auto-symlinked from `topics/` on first session start) |
+| **Knowledge graph** | `~/.claude/ramp/graphs/[topic].md` | *Your* progress: node statuses, evidence trails, review schedule, XP | `/ramp:up` |
 
-One schema per topic. `topics/claude-code.md` → `schemas/claude-code.md` → used by `/ramp:up`; your progress lands at `~/.claude/knowledge-graphs/claude-code.md`.
+One schema per topic. `topics/claude-code.md` → `schemas/claude-code.md` → used by `/ramp:up`; your progress lands at `~/.claude/ramp/graphs/claude-code.md`.
 
 ---
 
@@ -334,7 +334,7 @@ ramp/
 │   ├── plugin.json        # Plugin manifest (name, version, description)
 │   └── marketplace.json   # Single-plugin marketplace catalog
 ├── commands/              # Command source — up, list, help, tree, review, cheatsheet, pin, wrap, ingest
-├── topics/                # Schema source → symlinked to ~/.claude/knowledge-graphs/schemas/
+├── topics/                # Schema source → symlinked to ~/.claude/ramp/schemas/
 ├── hooks/hooks.json       # Plugin hooks (PostToolUse + SessionStart)
 ├── scripts/               # skill-observer.py, file-size-warn.py, setup-mcp.py
 ├── mcp/                   # knowledge-graph MCP server (server.py, start.sh)
@@ -349,7 +349,7 @@ The marketplace install is what users get and what you'll normally run; to devel
 claude --plugin-dir /path/to/ramp
 ```
 
-`SessionStart` fires and symlinks `topics/` → `~/.claude/knowledge-graphs/schemas/` automatically. Use `/reload-plugins` to pick up minor changes. To refresh the *installed* (cached) version after editing commands, remove and re-add the marketplace, then reinstall — `/plugin install` skips silently if the plugin is already present, and `/reload-plugins` reads the cache, not the source. The `--plugin-dir` workflow always reads live and sidesteps this entirely.
+`SessionStart` fires and symlinks `topics/` → `~/.claude/ramp/schemas/` automatically. Use `/reload-plugins` to pick up minor changes. To refresh the *installed* (cached) version after editing commands, remove and re-add the marketplace, then reinstall — `/plugin install` skips silently if the plugin is already present, and `/reload-plugins` reads the cache, not the source. The `--plugin-dir` workflow always reads live and sidesteps this entirely.
 
 ---
 
@@ -361,7 +361,7 @@ claude --plugin-dir /path/to/ramp
 - **Topic-schema loading** — a bash command reads the requested topic from `$ARGUMENTS` and `cat`s the matching schema as static text. The engine (`up.md`) holds zero topic-specific content.
 - **`$ARGUMENTS`** — the topic keyword plus free-form context the user types after `/ramp:up`.
 - **`allowed-tools`** — scoped to `Read, Glob, Grep, Bash, Write, Edit` so Claude can navigate the repo, run exercises, write `ONBOARDING.md`, and update the graph — without unlimited access.
-- **Persistent file I/O** — `~/.claude/knowledge-graphs/[topic].md` is YAML frontmatter + Markdown: human-readable, machine-parseable, shareable by copy-paste.
+- **Persistent file I/O** — `~/.claude/ramp/graphs/[topic].md` is YAML frontmatter + Markdown: human-readable, machine-parseable, shareable by copy-paste.
 - **Spaced repetition as pure file I/O** — `| next: YYYY-MM-DD [LN]` fields encode the schedule. No database, no external state.
 - **Hooks** — a passive observer across `PostToolUse` and `SessionStart` updates the graph with zero user action.
 - **MCP server** — an optional structured backend that makes the storage layer swappable.

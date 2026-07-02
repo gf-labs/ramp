@@ -328,7 +328,7 @@ def test_cli_catalog_emits_json(tmp_path):
         "## Node definitions\n- [ ] a\n"
     )
     home = tmp_path / "home"
-    (home / ".claude" / "knowledge-graphs").mkdir(parents=True)
+    (home / ".claude" / "ramp" / "graphs").mkdir(parents=True)
 
     env = dict(os.environ)
     env["HOME"] = str(home)
@@ -345,7 +345,7 @@ def test_cli_catalog_emits_json(tmp_path):
 
 def test_cli_summary_missing_graph_is_empty_object(tmp_path):
     home = tmp_path / "home"
-    (home / ".claude" / "knowledge-graphs").mkdir(parents=True)
+    (home / ".claude" / "ramp" / "graphs").mkdir(parents=True)
     env = dict(os.environ)
     env["HOME"] = str(home)
     env.pop("CLAUDE_PLUGIN_ROOT", None)
@@ -356,7 +356,7 @@ def test_cli_summary_missing_graph_is_empty_object(tmp_path):
 
 def test_cli_summary_existing_graph_emits_summary(tmp_path):
     home = tmp_path / "home"
-    graphs = home / ".claude" / "knowledge-graphs"
+    graphs = home / ".claude" / "ramp" / "graphs"
     graphs.mkdir(parents=True)
     (graphs / "demo.md").write_text(
         "---\nversion: 3\ntopic: demo\nlevel: Builder\nxp: 10\n---\n\n"
@@ -378,7 +378,7 @@ def test_cli_summary_existing_graph_emits_summary(tmp_path):
 
 def test_cli_nodes_missing_graph_is_empty_array(tmp_path):
     home = tmp_path / "home"
-    (home / ".claude" / "knowledge-graphs").mkdir(parents=True)
+    (home / ".claude" / "ramp" / "graphs").mkdir(parents=True)
     env = dict(os.environ)
     env["HOME"] = str(home)
     env.pop("CLAUDE_PLUGIN_ROOT", None)
@@ -389,7 +389,7 @@ def test_cli_nodes_missing_graph_is_empty_array(tmp_path):
 
 def test_cli_nodes_existing_graph_emits_nodes(tmp_path):
     home = tmp_path / "home"
-    graphs = home / ".claude" / "knowledge-graphs"
+    graphs = home / ".claude" / "ramp" / "graphs"
     graphs.mkdir(parents=True)
     (graphs / "demo.md").write_text(
         "---\nversion: 3\ntopic: demo\nlevel: Builder\nxp: 10\n---\n\n"
@@ -529,3 +529,52 @@ def test_python_version_error_at_or_above_floor():
 def test_python_version_floor_is_declared():
     # the floor the code enforces must match the README badge / Requirements
     assert ramp_core.MIN_PYTHON == (3, 8)
+
+
+# --- legible home: path move + migration (workspace+legibility slice) ---
+
+def test_graph_dir_is_ramp_home(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    assert ramp_core._graph_dir() == tmp_path / ".claude" / "ramp" / "graphs"
+
+
+def test_migrate_copies_legacy_graphs(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    legacy = tmp_path / ".claude" / "knowledge-graphs"
+    legacy.mkdir(parents=True)
+    (legacy / "claude-code.md").write_text("---\nlevel: Builder\nxp: 0\n---\n")
+    assert ramp_core.migrate_graph_home() is True
+    moved = tmp_path / ".claude" / "ramp" / "graphs" / "claude-code.md"
+    assert moved.exists()
+    assert (legacy / "claude-code.md").exists()      # legacy kept as a one-release backup
+
+
+def test_migrate_never_clobbers_new_home(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    legacy = tmp_path / ".claude" / "knowledge-graphs"
+    new = tmp_path / ".claude" / "ramp" / "graphs"
+    legacy.mkdir(parents=True)
+    new.mkdir(parents=True)
+    (legacy / "t.md").write_text("LEGACY")
+    (new / "t.md").write_text("CURRENT")
+    assert ramp_core.migrate_graph_home() is False   # nothing to copy; new home wins
+    assert (new / "t.md").read_text() == "CURRENT"
+
+
+def test_migrate_noop_without_legacy(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    assert ramp_core.migrate_graph_home() is False
+
+
+def test_migrate_survives_non_utf8_legacy_file(monkeypatch, tmp_path):
+    # byte-for-byte copy: one undecodable legacy file must neither abort the
+    # sweep (files sorting after it still copy) nor be skipped itself
+    monkeypatch.setenv("HOME", str(tmp_path))
+    legacy = tmp_path / ".claude" / "knowledge-graphs"
+    legacy.mkdir(parents=True)
+    (legacy / "a-binary.md").write_bytes(b"\xff\xfenot utf-8\x80")
+    (legacy / "z-good.md").write_text("---\nlevel: Builder\nxp: 0\n---\n")
+    assert ramp_core.migrate_graph_home() is True
+    new = tmp_path / ".claude" / "ramp" / "graphs"
+    assert (new / "a-binary.md").read_bytes() == b"\xff\xfenot utf-8\x80"
+    assert (new / "z-good.md").exists()

@@ -492,14 +492,18 @@ def list_catalog(schema_dir, graph_dir, today: date) -> list:
 # ---------------------------------------------------------------------------
 
 def _graph_dir() -> Path:
-    return Path.home() / ".claude" / "knowledge-graphs"
+    return Path.home() / ".claude" / "ramp" / "graphs"
 
 
 def _schema_dir() -> Path:
-    """First existing schema dir by precedence: project-local, global, plugin."""
+    """First existing schema dir by precedence: project-local, global, plugin.
+
+    Only the global home moved to ~/.claude/ramp/ (the workspace+legibility
+    slice); the project-local team path stays .claude/knowledge-graphs/schemas
+    until the team layer lands (its own migration)."""
     candidates = [
         Path(".claude/knowledge-graphs/schemas"),
-        Path.home() / ".claude" / "knowledge-graphs" / "schemas",
+        Path.home() / ".claude" / "ramp" / "schemas",
     ]
     root = os.environ.get("CLAUDE_PLUGIN_ROOT")
     if root:
@@ -508,6 +512,32 @@ def _schema_dir() -> Path:
         if c.is_dir() and any(c.glob("*.md")):
             return c
     return candidates[-1] if candidates else Path("topics")
+
+
+def migrate_graph_home() -> bool:
+    """One-time, idempotent copy of legacy ~/.claude/knowledge-graphs/*.md into
+    the ~/.claude/ramp/graphs/ home. Never clobbers an existing new-home file;
+    leaves the legacy dir in place as a one-release backup. Schemas are
+    observer-provisioned symlinks, not copied. Returns True iff it copied at
+    least one file. Called best-effort from the observer's SessionStart, never
+    from the read path."""
+    legacy = Path.home() / ".claude" / "knowledge-graphs"
+    if not legacy.is_dir():
+        return False
+    new_graphs = _graph_dir()
+    new_graphs.mkdir(parents=True, exist_ok=True)
+    copied = False
+    for src in sorted(legacy.glob("*.md")):
+        dst = new_graphs / src.name
+        if dst.exists():
+            continue
+        try:
+            # bytes, not text: a non-UTF-8 legacy file must copy, not abort the sweep
+            dst.write_bytes(src.read_bytes())
+        except OSError:
+            continue
+        copied = True
+    return copied
 
 
 def _main(argv) -> int:

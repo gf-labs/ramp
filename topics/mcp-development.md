@@ -202,7 +202,7 @@ If a branch is fully locked (`[·]`), collapse it to just the branch header line
 
 ## Saved tree file template
 
-When writing to `~/.claude/knowledge-graphs/mcp-development.md`, use this format:
+When writing to `~/.claude/ramp/graphs/mcp-development.md`, use this format:
 
 ```markdown
 ---

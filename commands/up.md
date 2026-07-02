@@ -62,29 +62,29 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 !`find . -maxdepth 3 \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.py" -o -name "*.go" -o -name "*.rs" \) 2>/dev/null | grep -v node_modules | grep -v ".git" | head -20`
 
 **Active topic** (derived from first word of $ARGUMENTS if it matches a known topic keyword):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
 
 **Topic schema** (project/global schemas, then the plugin's bundled `topics/` — composite if sources: declared):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; SCHEMA=$(cat .claude/knowledge-graphs/schemas/$TOPIC.md 2>/dev/null || cat ~/.claude/knowledge-graphs/schemas/$TOPIC.md 2>/dev/null || cat "$CLAUDE_PLUGIN_ROOT/topics/$TOPIC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: Create a schema at .claude/knowledge-graphs/schemas/$TOPIC.md (project-local) or ~/.claude/knowledge-graphs/schemas/$TOPIC.md (global)"); echo "$SCHEMA"; if echo "$SCHEMA" | grep -q "^sources:"; then for SRC in $(echo "$SCHEMA" | grep "^sources:" | head -1 | sed 's/sources: *//' | tr -d '[]' | tr ',' '\n' | tr -d ' '); do [ -n "$SRC" ] && { echo ""; echo "---"; echo "# Sourced schema: $SRC"; cat ".claude/knowledge-graphs/schemas/$SRC.md" 2>/dev/null || cat "$HOME/.claude/knowledge-graphs/schemas/$SRC.md" 2>/dev/null || cat "$CLAUDE_PLUGIN_ROOT/topics/$SRC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: $SRC"; }; done; fi`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; SCHEMA=$(cat .claude/knowledge-graphs/schemas/$TOPIC.md 2>/dev/null || cat ~/.claude/ramp/schemas/$TOPIC.md 2>/dev/null || cat "$CLAUDE_PLUGIN_ROOT/topics/$TOPIC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: Create a schema at .claude/knowledge-graphs/schemas/$TOPIC.md (project-local) or ~/.claude/ramp/schemas/$TOPIC.md (global)"); echo "$SCHEMA"; if echo "$SCHEMA" | grep -q "^sources:"; then for SRC in $(echo "$SCHEMA" | grep "^sources:" | head -1 | sed 's/sources: *//' | tr -d '[]' | tr ',' '\n' | tr -d ' '); do [ -n "$SRC" ] && { echo ""; echo "---"; echo "# Sourced schema: $SRC"; cat ".claude/knowledge-graphs/schemas/$SRC.md" 2>/dev/null || cat "$HOME/.claude/ramp/schemas/$SRC.md" 2>/dev/null || cat "$CLAUDE_PLUGIN_ROOT/topics/$SRC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: $SRC"; }; done; fi`
 
 
 **Existing knowledge graph** (for active topic):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE"`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/ramp/graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE"`
 
 **Project-local knowledge graph** (team layer — at .claude/knowledge-graphs/ in this repo, committed):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat .claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_PROJECT_TREE"`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat .claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_PROJECT_TREE"`
 
 **Local knowledge graph** (personal layer — at .claude/knowledge-graphs/local/, gitignored):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat .claude/knowledge-graphs/local/$TOPIC.md 2>/dev/null || echo "NO_LOCAL_TREE"`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat .claude/knowledge-graphs/local/$TOPIC.md 2>/dev/null || echo "NO_LOCAL_TREE"`
 
 **Knowledge graph freshness** (days since last update — for returning-user path):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; TREE="$HOME/.claude/knowledge-graphs/$TOPIC.md"; if [ -f "$TREE" ]; then UPDATED=$(python3 -c "import re; lines=open('$TREE').read(); m=re.search(r'^updated: (.+)$', lines, re.M); print(m.group(1).strip() if m else '')" 2>/dev/null); [ -n "$UPDATED" ] && python3 -c "from datetime import date; d=date.fromisoformat('$UPDATED'); print((date.today()-d).days, 'days since update')" 2>/dev/null || echo "unknown"; else echo "NO_TREE_FILE"; fi`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; TREE="$HOME/.claude/ramp/graphs/$TOPIC.md"; if [ -f "$TREE" ]; then UPDATED=$(python3 -c "import re; lines=open('$TREE').read(); m=re.search(r'^updated: (.+)$', lines, re.M); print(m.group(1).strip() if m else '')" 2>/dev/null); [ -n "$UPDATED" ] && python3 -c "from datetime import date; d=date.fromisoformat('$UPDATED'); print((date.today()-d).days, 'days since update')" 2>/dev/null || echo "unknown"; else echo "NO_TREE_FILE"; fi`
 
 **Review-due nodes** (nodes with next: date ≤ today):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; TODAY=$(date +%Y-%m-%d); TREE="$HOME/.claude/knowledge-graphs/$TOPIC.md"; if [ -f "$TREE" ]; then DUE=$(grep -E "^\- \[✓" "$TREE" | grep -oE "next: [0-9]{4}-[0-9]{2}-[0-9]{2}" | sed 's/next: //' | awk -v today="$TODAY" '$1 <= today' | wc -l | tr -d ' '); [ "$DUE" -gt 0 ] && echo "REVIEW_DUE: $DUE node(s) due for review" || echo "REVIEW_DUE: 0"; else echo "REVIEW_DUE: 0"; fi`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; TODAY=$(date +%Y-%m-%d); TREE="$HOME/.claude/ramp/graphs/$TOPIC.md"; if [ -f "$TREE" ]; then DUE=$(grep -E "^\- \[✓" "$TREE" | grep -oE "next: [0-9]{4}-[0-9]{2}-[0-9]{2}" | sed 's/next: //' | awk -v today="$TODAY" '$1 <= today' | wc -l | tr -d ' '); [ "$DUE" -gt 0 ] && echo "REVIEW_DUE: $DUE node(s) due for review" || echo "REVIEW_DUE: 0"; else echo "REVIEW_DUE: 0"; fi`
 
 **All topics** (available knowledge graphs):
-!`ls ~/.claude/knowledge-graphs/*.md 2>/dev/null | xargs -I{} sh -c 'echo -n "{}: "; python3 -c "import re; lines=open(\"{}\").read(); m=re.search(r\"^level: (.+)$\", lines, re.M); print(m.group(1) if m else \"unknown\")" 2>/dev/null || echo "?"' || echo "none yet"`
+!`ls ~/.claude/ramp/graphs/*.md 2>/dev/null | xargs -I{} sh -c 'echo -n "{}: "; python3 -c "import re; lines=open(\"{}\").read(); m=re.search(r\"^level: (.+)$\", lines, re.M); print(m.group(1) if m else \"unknown\")" 2>/dev/null || echo "?"' || echo "none yet"`
 
 **Git user identity**:
 !`echo "name: $(git config user.name 2>/dev/null || echo unknown)"`
@@ -230,7 +230,7 @@ Do not prompt for more specifics. Accept the answer as given.
 
 ### Knowledge graph schema reference
 
-The node definitions, detection signals, gap questions, and answer mappings for the active topic are loaded from the "Topic schema" injected above. Use that content as the authoritative reference for all inference. If the schema shows `SCHEMA_NOT_FOUND`, tell the user: "No schema found for **[topic]**. Place a schema file at `.claude/knowledge-graphs/schemas/[topic].md` (project-local) or `~/.claude/knowledge-graphs/schemas/[topic].md` (global). See `topics/claude-code.md` in the ramp repo for the format." Then stop — do not proceed with inference.
+The node definitions, detection signals, gap questions, and answer mappings for the active topic are loaded from the "Topic schema" injected above. Use that content as the authoritative reference for all inference. If the schema shows `SCHEMA_NOT_FOUND`, tell the user: "No schema found for **[topic]**. Place a schema file at `.claude/knowledge-graphs/schemas/[topic].md` (project-local) or `~/.claude/ramp/schemas/[topic].md` (global). See `topics/claude-code.md` in the ramp repo for the format." Then stop — do not proceed with inference.
 
 The schema file contains:
 - **Node definitions** — all nodes with mastery criterion, type, auto-detect signal
@@ -432,13 +432,13 @@ After Phase 3, present a consolidated save prompt. Tailor options to the tier:
 
 **Explorer (compact Phase 4):**
 > "Want me to save your progress?
-> **a)** Save your knowledge graph (`~/.claude/knowledge-graphs/[topic].md`)
+> **a)** Save your knowledge graph (`~/.claude/ramp/graphs/[topic].md`)
 >
 > Reply `a` or `none`"
 
 **Builder/Practitioner/Expert (full Phase 4):**
 > "Want me to save your progress? Options:
-> **a)** Update your personal knowledge graph (`~/.claude/knowledge-graphs/[active-topic].md`)
+> **a)** Update your personal knowledge graph (`~/.claude/ramp/graphs/[active-topic].md`)
 > **b)** Write an `ONBOARDING.md` for your team (safe to commit — no personal data)
 > **c)** Bootstrap missing Claude Code config [only show this if gaps were found]
 > **d)** Save session evidence to this repo's team tree (`.claude/knowledge-graphs/[active-topic].md`) — safe to commit, visible to teammates
@@ -476,7 +476,7 @@ Execute only what's selected. For option **b**, write `ONBOARDING.md` to the rep
 - [ ] [3–5 specific, time-boxed actions grounded in this repo]
 ```
 
-For option **a**, save the knowledge graph for the active topic. If `knowledge-graph` MCP is configured (per the auto-collected context), call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full-tree-markdown])` — this handles the write atomically and syncs to any configured backend. If MCP is not configured, write `~/.claude/knowledge-graphs/[active-topic].md` using the Write tool. Do not hand-write `xp:`; whatever you put is overwritten — `save_graph` recomputes it and reports the authoritative XP in its confirmation (show that number). On the non-MCP Write path, leave `xp:` as the template value; the skill-observer normalization pass recomputes it for the `claude-code` topic on the next session start (other topics: best-effort). Use the "Saved tree file template" from the loaded schema for exact format. If the schema doesn't include a template, use this generic format:
+For option **a**, save the knowledge graph for the active topic. If `knowledge-graph` MCP is configured (per the auto-collected context), call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full-tree-markdown])` — this handles the write atomically and syncs to any configured backend. If MCP is not configured, write `~/.claude/ramp/graphs/[active-topic].md` using the Write tool. Do not hand-write `xp:`; whatever you put is overwritten — `save_graph` recomputes it and reports the authoritative XP in its confirmation (show that number). On the non-MCP Write path, leave `xp:` as the template value; the skill-observer normalization pass recomputes it for the `claude-code` topic on the next session start (other topics: best-effort). Use the "Saved tree file template" from the loaded schema for exact format. If the schema doesn't include a template, use this generic format:
 
 ```markdown
 ---
@@ -519,7 +519,7 @@ Format exactly:
 - [~|reported] Context window and /compact usage
 ```
 
-**Merge rules** (when `~/.claude/knowledge-graphs/[topic].md` already exists):
+**Merge rules** (when `~/.claude/ramp/graphs/[topic].md` already exists):
 - `version: 1` or `version: 2` files: read node names and statuses; treat all `[✓]` as `[✓|historical]`; upgrade to version: 3 format on write; leave review fields to `save_graph` (it fills a missing `| next:` on each `[✓]` node on write)
 - Preserve any `[✓|*]` nodes from the old file that were not re-assessed in this session
 - When merging, preserve existing evidence trails and review schedules — never overwrite a `[✓]` that has a trail/schedule with one that has none
@@ -527,7 +527,7 @@ Format exactly:
 - Never overwrite `[✓]` with `[ ]` or `[~]` — only upgrade, never downgrade
 - New nodes (not in old file) get their newly-inferred status
 
-After writing, report the save: "Saved · [XP from save_graph's confirmation] XP. To sync to another machine: copy `~/.claude/knowledge-graphs/`. To share with your team: use option **d**."
+After writing, report the save: "Saved · [XP from save_graph's confirmation] XP. To sync to another machine: copy `~/.claude/ramp/graphs/`. To share with your team: use option **d**."
 
 **For option d**, write `.claude/knowledge-graphs/[active-topic].md` in the current repo. This is the project-local tree — safe to commit, visible to teammates. It records only the `[✓]` nodes demonstrated in this session (a delta, not a full copy of your personal tree):
 

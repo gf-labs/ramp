@@ -12,7 +12,7 @@ When making prioritization decisions, ask: **what best advances that capability-
 
 ## Project
 
-`ramp` activates a **learning mode** — Claude becomes a co-pilot for ramping developers up on Claude Code as an organizational tool, the codebase, and the team's workflows (commits, PRs, testing, CI). It scans the environment, assesses the user, delivers a personalized knowledge graph and learning path, then stays engaged to work through exercises together. Writes an `ONBOARDING.md` artifact and updates `~/.claude/knowledge-graphs/[topic].md`.
+`ramp` activates a **learning mode** — Claude becomes a co-pilot for ramping developers up on Claude Code as an organizational tool, the codebase, and the team's workflows (commits, PRs, testing, CI). It scans the environment, assesses the user, delivers a personalized knowledge graph and learning path, then stays engaged to work through exercises together. Writes an `ONBOARDING.md` artifact and updates `~/.claude/ramp/graphs/[topic].md`.
 
 Companies deploy it as a project-level command for engineer onboarding. Solo devs use it to level up.
 
@@ -126,10 +126,10 @@ Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a struc
 
 **Inference priority (highest to lowest, used only by `/ramp:up`):**
 1. Environmental signals — CLAUDE.md content, hooks/MCP in settings.json, commands in `.claude/commands/`, history scans
-2. Saved graph file — `~/.claude/knowledge-graphs/[topic].md` persists progress from prior sessions; `[✓]` nodes are never downgraded
+2. Saved graph file — `~/.claude/ramp/graphs/[topic].md` persists progress from prior sessions; `[✓]` nodes are never downgraded
 3. Self-reported assessment — fills gaps via targeted gap questions using Feynman framing ("explain X as you'd teach it") — teaching-level answers earn `[✓]`, surface-level answers stay `[~]`
 
-**`/ramp:tree`** is a dumb read-only viewer. It reads `~/.claude/knowledge-graphs/[topic].md` and displays it. No inference, no writes.
+**`/ramp:tree`** is a dumb read-only viewer. It reads `~/.claude/ramp/graphs/[topic].md` and displays it. No inference, no writes.
 
 **`/ramp:review`** is a focused spaced repetition command. It reads due `[✓]` nodes, steps through them one at a time, applies the qualitative rubric, updates `| next:` fields. Passing advances the schedule; XP is unchanged unless a node is upgraded `[~]→[✓]`.
 
@@ -137,7 +137,7 @@ Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a struc
 
 | Tree layer | Claude Code scope | Location | Git? | Phase 4 |
 |-----------|------------------|----------|------|---------|
-| **Personal global** | User | `~/.claude/knowledge-graphs/[topic].md` | No | option `a` |
+| **Personal global** | User | `~/.claude/ramp/graphs/[topic].md` | No | option `a` |
 | **Team** | Project | `.claude/knowledge-graphs/[topic].md` | Yes | option `d` |
 | **Local** | Local | `.claude/knowledge-graphs/local/[topic].md` | No (gitignored) | option `e` |
 
@@ -145,7 +145,7 @@ Merge priority: Local → Team → Personal. A local `[✓]` upgrades anything; 
 
 ## Topics
 
-Topic schemas live in `topics/` and are symlinked into `~/.claude/knowledge-graphs/schemas/` by a SessionStart hook (`skill-observer.py`'s `provision_schema_symlinks`); `/ramp:up` resolves the *single requested* topic from there — it does not scan or enumerate the directory. To add a custom topic: create `topics/[name].md` following the format in any existing file.
+Topic schemas live in `topics/` and are symlinked into `~/.claude/ramp/schemas/` by a SessionStart hook (`skill-observer.py`'s `provision_schema_symlinks`); `/ramp:up` resolves the *single requested* topic from there — it does not scan or enumerate the directory. To add a custom topic: create `topics/[name].md` following the format in any existing file.
 
 **Core (meta-topic + sub-topics):**
 `claude-code` (81 nodes) — full Claude Code curriculum, sources all five sub-topics:
@@ -159,7 +159,7 @@ Topic schemas live in `topics/` and are symlinked into `~/.claude/knowledge-grap
 
 ## Knowledge graph file
 
-**Location:** `~/.claude/knowledge-graphs/[topic].md` (global, personal — follows the developer across all projects)
+**Location:** `~/.claude/ramp/graphs/[topic].md` (global, personal — follows the developer across all projects)
 
 **Format:** YAML frontmatter (machine-parseable) + Markdown body (human-readable).
 Full annotated example: `docs/tree-format.md`

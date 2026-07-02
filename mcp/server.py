@@ -3,7 +3,7 @@
 knowledge-graph MCP server for ramp
 
 Provides structured read/write access to Claude Code knowledge graphs.
-Backend: local files at ~/.claude/knowledge-graphs/ by default.
+Backend: local files at ~/.claude/ramp/graphs/ by default.
 Set KNOWLEDGE_GRAPH_API_URL to proxy reads/writes to a hosted backend,
 enabling cross-device sync, team skill matrices, and org analytics.
 
@@ -49,7 +49,7 @@ import ramp_core
 # Configuration
 # ---------------------------------------------------------------------------
 
-GRAPH_DIR = Path.home() / ".claude" / "knowledge-graphs"
+GRAPH_DIR = Path.home() / ".claude" / "ramp" / "graphs"
 API_URL = os.environ.get("KNOWLEDGE_GRAPH_API_URL", "").rstrip("/")
 TODAY = date.today().isoformat()
 
@@ -119,7 +119,7 @@ def read_graph(topic: str) -> str:
     """
     Read the knowledge graph for a topic.
 
-    Returns the full markdown content of ~/.claude/knowledge-graphs/{topic}.md,
+    Returns the full markdown content of ~/.claude/ramp/graphs/{topic}.md,
     or 'NO_TREE_FILE' if not found. When KNOWLEDGE_GRAPH_API_URL is set,
     fetches from the remote backend instead (local file is a fallback cache).
 
@@ -267,7 +267,7 @@ def list_topics() -> str:
     """
     List all knowledge graph topics with their current level and XP.
 
-    Scans ~/.claude/knowledge-graphs/*.md and extracts frontmatter.
+    Scans ~/.claude/ramp/graphs/*.md and extracts frontmatter.
     Returns a JSON array of objects: [{topic, level, xp, updated}].
     """
     if not GRAPH_DIR.exists():

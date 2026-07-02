@@ -11,7 +11,7 @@ allowed-tools: Read, Glob, Grep, Bash, Write, Edit, WebFetch
 **Today's date**: !`date +%Y-%m-%d`
 
 **Existing topic schemas**:
-!`ls ~/.claude/knowledge-graphs/schemas/ 2>/dev/null || ls "${CLAUDE_PLUGIN_ROOT}/topics/"*.md 2>/dev/null | xargs -I{} basename {} .md | sort || echo "none found"`
+!`ls ~/.claude/ramp/schemas/ 2>/dev/null || ls "${CLAUDE_PLUGIN_ROOT}/topics/"*.md 2>/dev/null | xargs -I{} basename {} .md | sort || echo "none found"`
 
 **Current plugin version**:
 !`python3 -c "import json,os; root=os.environ.get('CLAUDE_PLUGIN_ROOT',''); d=json.load(open(os.path.join(root,'.claude-plugin','plugin.json'))); print(d['version'])" 2>/dev/null || echo "unknown"`

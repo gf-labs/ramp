@@ -9,7 +9,7 @@ allowed-tools: Bash, Write, Edit, mcp__knowledge-graph__read_graph, mcp__knowled
 **Requested topic**: $ARGUMENTS
 
 **Active topic** (first word if it matches a known topic, otherwise "claude-code"):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
 
 **Today's date**: !`date +%Y-%m-%d`
 
@@ -17,10 +17,10 @@ allowed-tools: Bash, Write, Edit, mcp__knowledge-graph__read_graph, mcp__knowled
 !`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" catalog 2>/dev/null | python3 -c "import sys,json; c=json.load(sys.stdin); print('FIRST_RUN' if not any(t['started'] for t in c) else 'HAS_GRAPHS')" 2>/dev/null || echo "HAS_GRAPHS"`
 
 **Knowledge graph contents** (for active topic):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/ramp/graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
 
 **All topics — earliest due dates** (to check if other topics have due nodes):
-!`for f in ~/.claude/knowledge-graphs/*.md; do [ -f "$f" ] || continue; TOPIC=$(basename "$f" .md); EARLIEST=$(sed -nE 's/.*next: ([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\1/p' "$f" 2>/dev/null | sort | head -1); [ -n "$EARLIEST" ] && echo "$TOPIC: next review $EARLIEST"; done 2>/dev/null || echo "none"`
+!`for f in ~/.claude/ramp/graphs/*.md; do [ -f "$f" ] || continue; TOPIC=$(basename "$f" .md); EARLIEST=$(sed -nE 's/.*next: ([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\1/p' "$f" 2>/dev/null | sort | head -1); [ -n "$EARLIEST" ] && echo "$TOPIC: next review $EARLIEST"; done 2>/dev/null || echo "none"`
 
 ---
 
