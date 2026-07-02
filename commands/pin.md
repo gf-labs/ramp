@@ -22,7 +22,7 @@ allowed-tools: Bash, Read, Write, Edit, mcp__knowledge-graph__read_graph, mcp__k
 
 Mid-session knowledge checkpoint for ramp. Work through the three steps below. Step 1 is display-only — proceed immediately. Steps 2 and 3 are interactive — wait for the user's reply before proceeding.
 
-This command is a checkpoint, not a session close. After it completes, the session continues. Do not ask the user to run `/tools:wrap` or mark anything done.
+This command is a checkpoint, not a session close. After it completes, the session continues. Do not ask the user to run any session-close command or mark anything done.
 
 ---
 
@@ -48,7 +48,7 @@ Proceed to Step 2 immediately.
 Scan the **current conversation** for evidence of demonstrated knowledge since the last save (check the `updated:` date from the graph as a reference point):
 - Tool use patterns (Write, Edit, Bash, MCP calls, Agent launches)
 - Exercises completed, configurations made, commands run
-- Feynman-level explanations given (not just "I've used this")
+- Teaching-level explanations given (not just "I've used this")
 - Artifacts created or modified
 
 If no demonstrable activity detected: say "No new demonstrations detected." Skip to Step 3.
@@ -76,7 +76,7 @@ On `yes`: update `~/.claude/ramp/graphs/[topic].md`:
 - `xp:` — do not recompute; `save_graph` recomputes it in code on write
 - Update `updated: YYYY-MM-DD` to today
 
-When the `knowledge-graph` MCP is configured, persist by reading the current tree (`read_graph`), applying your targeted node upgrade to the full content, then calling `save_graph(topic, content)` with the complete updated tree — it preserves every existing `[✓]` node (never-downgrade) and recomputes XP, so a full-file write is safe. If MCP is unavailable, use targeted Edits instead. (Do not mix: either save_graph with the full tree, or Edit in place.)
+When the `knowledge-graph` MCP is configured, persist by reading the current tree (`read_graph`), applying your targeted node upgrade to the full content, then calling `save_graph(topic, content)` with the complete updated tree — it preserves every existing `[✓]` node (never-downgrade) and recomputes XP, so a full-file write is safe. If MCP is unavailable, persist the same full updated tree through the kernel CLI: `python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" save [topic]` with the tree on stdin (heredoc); exit 2 means the writer REJECTED it — report the message verbatim and don't write. If neither is reachable, say so and stop — never Edit the graph file directly.
 
 ---
 
@@ -89,7 +89,7 @@ On `yes`: append 3–5 bullets to the project MEMORY.md covering only ramp-relev
 - Any exercises or patterns demonstrated
 - Decisions about the knowledge graph itself
 
-Do NOT include general session narrative (git, plans, backlog) — that belongs in `/tools:pin`.
+Do NOT include general session narrative (git, plans, backlog) — that's session housekeeping, not knowledge capture.
 
 ---
 
@@ -98,5 +98,5 @@ Do NOT include general session narrative (git, plans, backlog) — that belongs 
 - Never downgrade a `[✓]` node
 - Evidence must be specific — reject vague signals ("user seemed to understand X")
 - One topic per session — if `$ARGUMENTS` is blank, default to `claude-code`
-- Do not run housekeeping steps (git, plans, backlog) — those belong in `/tools:pin` or `/tools:wrap`
+- Do not run housekeeping steps (git, plans, backlog) — this command captures knowledge only
 - Do not mark anything as done or ask about session close

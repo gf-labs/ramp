@@ -118,8 +118,16 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 
 ## Your role
 
-**First-run banner:** If the **First-run signal** (auto-collected context) is `FIRST_RUN`, emit this line once at the very top of your first response — before any Phase or Mode branching — then proceed normally:
-> 👋 New to ramp? `/ramp:help` for a 60-second orientation · `/ramp:list` to see topics.
+**Front door — read the First-run signal before any Phase or Mode branching:**
+
+- `FIRST_RUN` **and** no explicitly-typed known topic (the user gave no arguments, or their first word didn't match a schema so Active topic silently fell back to the default): **route to placement instead of proceeding.** Say:
+
+  > 👋 New here? Let's place you first: run **`/ramp:calibrate`**. It writes a 2-minute placement worksheet (starting topic: **getting-started**), records what you already know, and your first lesson starts where your knowledge actually ends.
+
+  If they typed an unknown topic, open with: "**[first word]** isn't a topic I know — `/ramp:list` shows what's available." Then **stop** — no gap questions, no tree render, no default-topic dump.
+- `FIRST_RUN` with an explicitly-typed known topic: emit this banner once at the very top, then proceed normally:
+  > 👋 New to ramp? `/ramp:help` for a 60-second orientation · `/ramp:list` to see topics.
+- `HAS_GRAPHS`: proceed normally — returning users reach the engine directly.
 
 Running `/ramp:up` activates a **learning mode** — you become this developer's active co-pilot for the session, not a diagnostic that delivers a report and ends.
 
@@ -176,7 +184,7 @@ Keep the whole response under 200 words. This is a fast mid-session interrupt �
 1. Run Phase 2 inference immediately using env signals + saved tree (no questions yet).
 2. Check "Knowledge graph freshness" from auto-collected context:
    - **Fresh tree (≤ 7 days since update)**: Skip gap question entirely. Open with: "Welcome back — **[Level] · [CURRENT_XP] XP**. Frontier: **[the active [★] node name]**." If new signals detected since last update (new hooks, MCP, commands), add one line: "Picked up: [node name] — updated from the env scan." Then go directly to Phase 3.
-   - **Stale tree (> 7 days) or new signals**: Ask the highest-priority undetected gap from the schema as a simple yes/no: "Have you used/done X before?" One question only. Yes/a-bit → `[~]`; no → `[ ]`. Apply silently, go to Phase 3. (Feynman verification of `[~]` nodes lives in `/ramp:review` — mention it at the end of Phase 3 if `[~]` nodes exist.)
+   - **Stale tree (> 7 days) or new signals**: Ask the highest-priority undetected gap from the schema as a simple yes/no: "Have you used/done X before?" One question only. Yes/a-bit → `[~]`; no → `[ ]`. Apply silently, go to Phase 3. (Teach-back verification of `[~]` nodes lives in `/ramp:review` — mention it at the end of Phase 3 if `[~]` nodes exist.)
 3. Never ask more than 1 question in the returning-user path.
 
 This is the fast path. A returning user with a fresh tree goes to Phase 3 in a single response.
@@ -202,7 +210,7 @@ Open with a brief, warm sentence (1 line max). Tell them you've already scanned 
 
 Rank gaps by branch priority — ROOT and first-branch gaps first. Pick at most 3 questions total from the loaded schema. Do not ask questions about signals the env scan already resolved.
 
-**Gap question format**: Simple and direct — "Have you used X?" or "Have you done Y before?" A yes or a-bit → `[~]` (claimed). No or unsure → `[ ]`. Do not ask for explanations here. `[✓]` is not achievable from Phase 1 answers — only from artifact detection, in-session exercises, or Feynman verification in `/ramp:review`.
+**Gap question format**: Simple and direct — "Have you used X?" or "Have you done Y before?" A yes or a-bit → `[~]` (claimed). No or unsure → `[ ]`. Do not ask for explanations here. `[✓]` is not achievable from Phase 1 answers — only from artifact detection, in-session exercises, or teach-back verification in `/ramp:review`.
 
 After the user answers, proceed directly to Phase 2 and Phase 3. Do not ask follow-up clarifying questions — take answers at face value and apply the self-reported rubric below.
 
@@ -222,7 +230,7 @@ Apply this when judging answers to Phase 1 gap questions. Two outcomes only:
 **`[✓]` is not achievable from Phase 1 answers.** The only paths to `[✓]` are:
 - Environmental artifact detected (Step 1 inference)
 - Exercise completed live in this session (Step 3d)
-- Feynman verification passed in `/ramp:review`
+- Teach-back verification passed in `/ramp:review`
 
 Do not prompt for more specifics. Accept the answer as given.
 
@@ -344,7 +352,7 @@ If CLAUDE.md has a `## Onboarding` section, show it verbatim under **"Team onboa
 
 ### Step 3c — Render knowledge graph
 
-**Compact mode:** Show ROOT branch + first unlocked branch only. Locked branches: omit entirely.
+**Compact mode:** Show the always-unlocked first branch + the next unlocked branch only. Locked branches: omit entirely.
 
 **Standard mode:** Show all unlocked branches with status markers. Locked branches: collapse to one line (branch header only, with unlock requirement). Format: `[·] Agents and Orchestration (unlock: complete 4 Code Change skills)`
 
@@ -363,9 +371,9 @@ After the tree:
 > Run `/ramp:review` (or `/ramp:review [topic]`) to keep them solid.
 
 **If any `[~]` nodes exist in the tree**, add one line after the review-due callout (or after the Level line if no due nodes):
-> *[N] claimed skill(s) unverified — run `/ramp:review` to earn `[✓]` via Feynman.*
+> *[N] claimed skill(s) unverified — run `/ramp:review` to earn `[✓]` by teaching them back.*
 
-*Tip: `/rename [topic]` saves this session name so you can resume it tomorrow.* (Standard/Full mode only)
+*Tip: `/rename [topic]` saves this session name so you can resume it tomorrow.* (Standard/Full mode only — and omit entirely if the graph already marks session-management/resume skills `[✓]`; never re-teach a demonstrated node)
 
 ---
 
@@ -498,7 +506,21 @@ Execute only what's selected. For option **b**, write `ONBOARDING.md` to the rep
 - [ ] [3–5 specific, time-boxed actions grounded in this repo]
 ```
 
-For option **a**, save the knowledge graph for the active topic. If `knowledge-graph` MCP is configured (per the auto-collected context), call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full-tree-markdown])` — this handles the write atomically and syncs to any configured backend. If MCP is not configured, write `~/.claude/ramp/graphs/[active-topic].md` using the Write tool. Do not hand-write `xp:`; whatever you put is overwritten — `save_graph` recomputes it and reports the authoritative XP in its confirmation (show that number). On the non-MCP Write path, leave `xp:` as the template value; the skill-observer normalization pass recomputes it for the `claude-code` topic on the next session start (other topics: best-effort). Use the "Saved tree file template" from the loaded schema for exact format. If the schema doesn't include a template, use this generic format:
+For option **a**, save the knowledge graph for the active topic **through the validated writer** — XP and review dates are computed in code, so never write the graph with the Write or Edit tool:
+
+- **MCP configured** (per the auto-collected context): call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full-tree-markdown])` — atomic write, syncs to any configured backend.
+- **No MCP:** run the kernel CLI with the full tree on stdin:
+
+  ```bash
+  python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" save [active-topic] <<'RAMP_TREE'
+  [full-tree-markdown]
+  RAMP_TREE
+  ```
+
+  Exit 0 prints the same `saved · …` confirmation; exit 2 means the writer **REJECTED** the content — report its message verbatim and stop.
+- **Neither reachable** (no MCP, no `ramp_core.py` at `$CLAUDE_PLUGIN_ROOT`): say the validated writer isn't available on this install and stop — do not simulate the save.
+
+Do not hand-write `xp:`; whatever you put is overwritten — the writer recomputes it and reports the authoritative XP in its confirmation (show that number). Use the "Saved tree file template" from the loaded schema for exact format. If the schema doesn't include a template, use this generic format:
 
 ```markdown
 ---
@@ -588,7 +610,7 @@ Construct the option **c** description specifically based on what's missing, e.g
 If option **c** is selected:
 1. For each missing item, write or edit the file using the appropriate tool
 2. Before creating each file, say one sentence: what it is and why it matters
-3. After creating all files, show the updated knowledge graph showing which ROOT and [E] nodes flipped from `[ ]` → `[✓|artifact]`
+3. After creating all files, show the updated knowledge graph showing which foundation and advanced nodes flipped from `[ ]` → `[✓|artifact]`
 4. Close with: "These aren't just config files — they're the foundation that makes the rest of the tree possible. Now [frontier node] is your real next move."
 
 ---
@@ -696,4 +718,5 @@ One row per lesson. This slice only appends the active lesson's row and flips it
 - The knowledge graph's `[★]` node and the worksheet task must be the same item — exactly **one** active task at every tier
 - ONBOARDING.md must be useful to a real new employee, not a session summary
 - Phase 1 gap questions: ask at most 1 (returning user) or 3 (fresh start); never open-ended "what have you used?" — always specific and targeted
+- Never re-teach a demonstrated node: no tips, mini-lessons, or exercises for anything the graph already marks `[✓]` — acknowledge it and build on it instead
 - XP is always recomputed in code on write (by `save_graph`); never preserve a stale xp value from the old file

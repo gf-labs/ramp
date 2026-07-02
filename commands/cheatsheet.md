@@ -40,10 +40,10 @@ This is personal documentation generated from what they've actually done, not ge
 
 ## Rendering the cheat sheet
 
-For each branch in the tree (ROOT, A, B, C, D, E), in order:
+For each section in the tree, in the order they appear:
 
-1. Only include branches that have at least one `[✓]` node
-2. Render the branch as a section header: `## [ROOT] Agents and Orchestration`
+1. Only include sections that have at least one `[✓]` node
+2. Render the section header as its plain title — the text after the closing `]`; the bracketed prefix is internal, never shown: `## Agents and Orchestration`
 3. For each `[✓]` node in that branch:
 
 ```

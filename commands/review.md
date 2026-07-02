@@ -82,7 +82,7 @@ Move to the next due node.
 
 ---
 
-## Step 2b: Feynman verification — claimed `[~]` nodes
+## Step 2b: Teach-back verification — claimed `[~]` nodes
 
 After the SR pass (or if no `[✓]` nodes were due), check if `[~]` nodes exist.
 
@@ -90,15 +90,15 @@ If `[~]` nodes exist, offer: "You have [N] claimed (unverified) skill(s). Want t
 
 If user agrees (or if there were no `[✓]` nodes due and `[~]` nodes exist):
 
-- Pick the highest-priority `[~]` node: ROOT > A > B > C > D > E; leftmost first within each branch.
+- Pick the highest-priority `[~]` node: earliest branch first, in schema order; leftmost first within each branch.
 - Present it:
   ```
   Verifying: [Node name]
   What mastery looks like: [the mastery criterion — one sentence]
   ```
-- Ask one Feynman question: "Explain [X] as you'd teach it — include the *why*, a concrete scenario, and one edge case or tradeoff."
-- Apply the Feynman rubric:
-  - **Pass** — answer includes why, a scenario with context, and an edge/tradeoff: change the node line to `[✓|exercise] Node name — [repo], [today]: verified via Feynman in /ramp:review` (omit the `| next:` field — `save_graph` fills it). Then call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full updated tree])`; it recomputes XP and fills the L1 review date. This `[~]→[✓]` upgrade **does** raise XP — report the new total from save_graph's confirmation. *(Non-MCP fallback: Edit the line and add `| next: [today+1d] [L1]`.)*
+- Ask one teach-back question: "Explain [X] as you'd teach it — include the *why*, a concrete scenario, and one edge case or tradeoff."
+- Apply the teach-back rubric:
+  - **Pass** — answer includes why, a scenario with context, and an edge/tradeoff: change the node line to `[✓|exercise] Node name — [repo], [today]: verified by teach-back in /ramp:review` (omit the `| next:` field — `save_graph` fills it). Then call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full updated tree])`; it recomputes XP and fills the L1 review date. This `[~]→[✓]` upgrade **does** raise XP — report the new total from save_graph's confirmation. *(Non-MCP fallback: apply the same line change to the full tree — still omitting `| next:` — and persist via `python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" save [active-topic]` with the tree on stdin; the writer fills the L1 date and recomputes XP.)*
   - **Fail** — vague or affirmation-only ("I've used it", "it does X"): stays `[~]`. Say "Let's revisit — it'll come up again."
 
 Do **one** `[~]` verification per session. End after one regardless of outcome.
@@ -107,7 +107,7 @@ Do **one** `[~]` verification per session. End after one regardless of outcome.
 
 ## Step 3: Persistence (handled by the tools)
 
-When the `knowledge-graph` MCP is configured, `advance_review` (SR passes) and `save_graph` (Feynman upgrades) have already written the file — XP and review dates are computed in code; do **not** hand-edit `xp:` or `| next:`. Only on the non-MCP fallback do you Edit the file directly, per the best-effort notes above.
+When the `knowledge-graph` MCP is configured, `advance_review` (SR passes) and `save_graph` (teach-back upgrades) have already written the file — XP and review dates are computed in code; do **not** hand-edit `xp:` or `| next:`. Without MCP, teach-back upgrades persist through the kernel CLI `save` verb; only the SR-pass fallback still edits the `| next:` field directly (the CLI has no advance verb yet) — that path touches the date only, never `xp:` or a node's status.
 
 ---
 
@@ -116,7 +116,7 @@ When the `knowledge-graph` MCP is configured, `advance_review` (SR passes) and `
 Show a brief summary:
 ```
 Reviewed [N] nodes. [N passed] passed, [N failed] reset. (SR passes advance the schedule; they do not change XP.)
-[If Feynman ran] Verified: [node name] → [✓] (XP raised — new total from save_graph)   OR   Unverified: [node name] — try again after practicing it.
+[If teach-back ran] Verified: [node name] → [✓] (XP raised — new total from save_graph)   OR   Unverified: [node name] — try again after practicing it.
 Next session: [earliest next: date across all nodes in this topic]
 ```
 
@@ -132,5 +132,5 @@ If other topics have due nodes today (from the "All topics" context above), ment
 - Do not ask follow-up questions after the user answers — accept at face value and apply the rubric
 - Do not explain the spaced repetition system unless asked
 - Do not offer to practice new skills in this command — that's `/ramp:up`
-- Feynman verification: one `[~]` node per session, always offered after the SR pass
+- Teach-back verification: one `[~]` node per session, always offered after the SR pass
 - Keep the whole session under 5 exchanges per node

@@ -32,7 +32,7 @@ You are the end-of-session knowledge harvester for ramp. Work through the steps 
 Scan the **current session's conversation** for evidence of demonstrated knowledge:
 - Tool use patterns (Write, Edit, Bash, MCP calls, Agent launches)
 - Exercises completed, configurations made, commands run
-- Feynman-level explanations given (not just "I've used this")
+- Teaching-level explanations given (not just "I've used this")
 - Artifacts created or modified
 
 Produce a private working list of candidate nodes (do not show yet). Each entry:
@@ -82,7 +82,7 @@ Also update:
 - `xp:` — do not recompute; `save_graph` recomputes it in code on write
 - `updated: YYYY-MM-DD` frontmatter field to today
 
-When the `knowledge-graph` MCP is configured, persist the upgraded tree by calling `save_graph(topic=[topic], content=[full updated tree])` — it recomputes XP, fills review dates on newly-`[✓]` nodes, and never downgrades an on-disk `[✓]`. Otherwise, fall back to targeted Edits (best-effort).
+When the `knowledge-graph` MCP is configured, persist the upgraded tree by calling `save_graph(topic=[topic], content=[full updated tree])` — it recomputes XP, fills review dates on newly-`[✓]` nodes, and never downgrades an on-disk `[✓]`. Otherwise, persist the same full tree through the kernel CLI: `python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" save [topic]` with the tree on stdin (heredoc); exit 2 means the writer REJECTED it — report the message verbatim and don't write. If neither is reachable, say so and stop — never Edit the graph file directly.
 
 If `NO_TREE_FILE:[topic]`: say "No knowledge graph file found. Run `/ramp:up [topic]` to create one." Skip to Step 3.
 
@@ -95,8 +95,8 @@ Draft 3–5 bullets covering only ramp-relevant context from this session:
 - Any exercises or patterns that were demonstrated
 - Topics or areas to revisit
 
-Append directly to the project MEMORY.md (same scope logic as `/tools:wrap` Step 1). No confirmation needed.
-Do NOT duplicate housekeeping context (git, plans, backlog) — that belongs in `/tools:wrap`.
+Append directly to the project MEMORY.md. No confirmation needed.
+Do NOT duplicate housekeeping context (git, plans, backlog) — that's session housekeeping, not knowledge capture.
 
 ---
 
@@ -110,14 +110,12 @@ Show a one-line summary:
 Snapshot: saved.
 ```
 
-Then: "Run `/tools:wrap` for housekeeping (git, plans, backlog, done marker)."
-
 ---
 
 ## Constraints
 
 - Never downgrade a `[✓]` node
-- Use Edit tool for targeted replacements — do not rewrite whole graph file
+- Persist full-tree writes through `save_graph` or the kernel CLI `save` verb — never Edit the graph file directly
 - Evidence must be specific — reject vague signals ("user seemed to understand X")
 - One topic per session — if `$ARGUMENTS` is blank, default to `claude-code`
-- Do not run housekeeping steps — those belong in `/tools:wrap`
+- Do not run housekeeping steps (git, plans, backlog) — this command harvests knowledge only

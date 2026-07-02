@@ -167,7 +167,7 @@ description: [one-sentence description of what this schema covers]
 
 | Branch | Gap | Ask this |
 |--------|-----|----------|
-| [ROOT] | [what's missing] | "[Feynman-framed question]" |
+| [ROOT] | [what's missing] | "[teach-it-back question]" |
 
 ### Qualitative rubric
 

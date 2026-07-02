@@ -32,13 +32,15 @@ Read-only viewer. No inference, no writes, no questions. Render the active topic
 
 **Data source rule:** If "Structured nodes" is a JSON array, render from it — it reproduces the graph faithfully. Each node has `name`, `status` (`done`/`reported`/`todo`/`locked`), `type`, `xp`, `branch`, `section`, `next_date`, `level`, `evidence`, `target`.
 
-**Completeness is mandatory — render EVERY section and EVERY node in the array. Never merge, skip, condense, or drop a section or a node.** First scan the array for the distinct `section` values in the order they first appear, then emit exactly one `## <section>` heading for each, in that order, with that section's nodes listed beneath it. **The number of `## ` headings you print MUST equal the number of distinct `section` values.** Never combine two sections under one heading even when their titles or tiers look related — e.g. `[Getting Started · ROOT] Core Foundations` and `[Getting Started · A] Working Effectively` are SEPARATE headings, each with its own nodes. (The `branch` tier letter alone is ambiguous — several sections share one tier, so always group by the full `section` string, never by `branch`.)
+**Completeness is mandatory — render EVERY section and EVERY node in the array. Never merge, skip, condense, or drop a section or a node.** First scan the array for the distinct `section` values in the order they first appear, then emit exactly one `## ` heading for each, in that order, with that section's nodes listed beneath it — displaying only the section's **plain title** (the text after the closing `]`; the bracketed prefix is internal bookkeeping, never shown). **The number of `## ` headings you print MUST equal the number of distinct `section` values.** Never combine two sections under one heading even when their titles look related — e.g. `[Getting Started · ROOT] Core Foundations` and `[Getting Started · A] Working Effectively` are SEPARATE headings (`## Core Foundations`, `## Working Effectively`), each with its own nodes. (The `branch` letter alone is ambiguous — several sections share one, so always group and count by the full `section` string, never by `branch` and never by the displayed title.)
 
 Render each node as exactly one line:
 - **Marker:** `done`→`[✓]`, `reported`→`[~]`, `todo`→`[ ]`, `locked`→`[·]` — **but if `target` is `true`, render `[★]`** (a mastery-target frontier node). When a `done`/`reported` node has a non-null `type`, keep it in the marker: `[✓|<type>]`, `[~|<type>]`.
 - then the node `name`;
 - then, if `evidence` is non-null, ` — <evidence>`;
 - then **only if `next_date` is non-null**, ` | next: <next_date> [L<level>]`. If `next_date` is null, append nothing — never print the literal word `null`, an empty date, or `[L??]`.
+
+Open every tree render with the legend line: `*[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*`
 
 If "Structured nodes" is `NODES_UNAVAILABLE`, fall back to printing the **Raw graph** contents cleanly.
 
