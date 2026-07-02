@@ -578,3 +578,60 @@ def test_migrate_survives_non_utf8_legacy_file(monkeypatch, tmp_path):
     new = tmp_path / ".claude" / "ramp" / "graphs"
     assert (new / "a-binary.md").read_bytes() == b"\xff\xfenot utf-8\x80"
     assert (new / "z-good.md").exists()
+
+
+# --- save_graph: the kernel-owned validated writer (Task C0) ---
+
+
+def test_save_graph_recomputes_xp_and_fills_dates(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    out = ramp_core.save_graph(
+        "demo",
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 999\nupdated: 2020-01-01\n---\n"
+        "## [Build · ROOT] x\n- [✓|exercise] a — r, 2026-07-02: n\n",
+    )
+    saved = (tmp_path / ".claude" / "ramp" / "graphs" / "demo.md").read_text()
+    assert "xp: 10" in saved                  # model-supplied 999 overwritten in code
+    assert "| next: " in saved                # missing next: seeded at L1
+    assert out.startswith("saved · demo")
+
+
+def test_save_graph_rejects_missing_frontmatter(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    assert ramp_core.save_graph("demo", "- [✓] a\n").startswith("REJECTED")
+    assert not (tmp_path / ".claude" / "ramp" / "graphs" / "demo.md").exists()
+
+
+def test_save_graph_never_downgrades_on_disk_done(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    graphs = tmp_path / ".claude" / "ramp" / "graphs"
+    graphs.mkdir(parents=True)
+    (graphs / "demo.md").write_text(
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 10\nupdated: 2026-07-01\n---\n"
+        "## [Build · ROOT] x\n- [✓|exercise] Kept — r, 2026-07-01: proof | next: 2026-07-03 [L1]\n"
+    )
+    ramp_core.save_graph(
+        "demo",
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+        "## [Build · ROOT] x\n- [ ] Kept\n",
+    )
+    assert "[✓|exercise] Kept" in (graphs / "demo.md").read_text()
+
+
+def test_cli_save_reads_stdin_and_writes(tmp_path):
+    home = tmp_path / "home"
+    (home / ".claude" / "ramp" / "graphs").mkdir(parents=True)
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    core = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    tree = (
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+        "## [Build · ROOT] x\n- [✓|exercise] a — r, 2026-07-02: n\n"
+    )
+    out = subprocess.run(
+        ["python3", core, "save", "demo"], input=tree, env=env, text=True,
+        capture_output=True, cwd=str(tmp_path),
+    )
+    assert out.returncode == 0
+    assert out.stdout.startswith("saved · demo")
+    assert "xp: 10" in (home / ".claude" / "ramp" / "graphs" / "demo.md").read_text()

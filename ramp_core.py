@@ -485,10 +485,11 @@ def list_catalog(schema_dir, graph_dir, today: date) -> list:
 
 
 # ---------------------------------------------------------------------------
-# CLI shim — the no-MCP read path. Emits JSON data; the prompts render layout.
-# Guarded so importing the module (observer, MCP server) never runs this.
-# Verbs: catalog, summary, nodes. (summary -> summarize_graph; nodes ->
-# graph_nodes, the deep per-node read the tree view renders from.)
+# CLI shim — the no-MCP path. Read verbs emit JSON data (the prompts render
+# layout); the save verb is the validated writer, full tree on stdin. Guarded
+# so importing the module (observer, MCP server) never runs this. Verbs:
+# catalog, summary, nodes, save. (summary -> summarize_graph; nodes ->
+# graph_nodes, the deep per-node read; save -> save_graph, exit 2 on REJECTED.)
 # ---------------------------------------------------------------------------
 
 def _graph_dir() -> Path:
@@ -540,6 +541,75 @@ def migrate_graph_home() -> bool:
     return copied
 
 
+# ---------------------------------------------------------------------------
+# Write path — the canonical validated writer. Kernel-owned: the MCP server's
+# save_graph tool delegates here, and the CLI `save` verb exposes the same
+# writer on no-MCP installs, so XP/SR invariants hold on every install.
+# ---------------------------------------------------------------------------
+
+def _atomic_write(path, content: str) -> None:
+    """Write atomically: temp file in the same dir, then os.replace. A partial
+    write can never leave a graph truncated, even under concurrent fires (the
+    observer and the MCP server may both write)."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(f".md.tmp.{os.getpid()}")
+    try:
+        tmp.write_text(content, encoding="utf-8")
+        os.replace(tmp, path)
+    except Exception:
+        tmp.unlink(missing_ok=True)
+        raise
+
+
+def save_graph(topic: str, content: str, graph_dir=None) -> str:
+    """Save a full tree for `topic` — the single validated write composition.
+
+    Gate on frontmatter (REJECTED, no write) -> preserve_demonstrated against
+    the on-disk file (never-downgrade) -> fill_missing_review_dates (L1-seed
+    MISSING next: fields only) -> validate_tree (flag, don't fabricate) ->
+    apply_frontmatter (xp:/updated: recomputed in code) -> file_lock + atomic
+    write. Returns 'saved · {topic} · {level} · {xp} XP → {path}' plus any
+    notes and a '⚠ problems' suffix. `graph_dir` overrides the personal home
+    (the MCP server passes its GRAPH_DIR through; tests isolate via it)."""
+    graph_dir = _graph_dir() if graph_dir is None else Path(graph_dir)
+    path = graph_dir / f"{topic}.md"
+    if not parse_frontmatter(content):
+        return "REJECTED: content has no YAML frontmatter — refusing to write"
+
+    today = date.today()
+    notes = []
+    if path.exists():
+        content, preserved = preserve_demonstrated(
+            path.read_text(encoding="utf-8"), content
+        )
+        if preserved:
+            notes.append(f"preserved {len(preserved)} on-disk [✓]: {', '.join(preserved)}")
+
+    content, filled = fill_missing_review_dates(content, today)
+    if filled:
+        notes.append(f"filled next: on {len(filled)}: {', '.join(filled)}")
+
+    problems = validate_tree(content)
+    content = apply_frontmatter(content, today)
+
+    with file_lock(graph_dir / f".{topic}.md.lock"):
+        _atomic_write(path, content)
+
+    fm = parse_frontmatter(content)
+    level = fm.get("level", "unknown")
+    try:
+        xp = int(fm.get("xp", "0"))
+    except (TypeError, ValueError):
+        xp = 0
+    msg = f"saved · {topic} · {level} · {xp} XP → {path}"
+    if notes:
+        msg += " · " + " · ".join(notes)
+    if problems:
+        msg += " · ⚠ " + "; ".join(problems)
+    return msg
+
+
 def _main(argv) -> int:
     err = python_version_error()
     if err:
@@ -555,12 +625,20 @@ def _main(argv) -> int:
     p_sum.add_argument("topic")
     p_nodes = sub.add_parser("nodes")
     p_nodes.add_argument("topic")
+    p_save = sub.add_parser("save")
+    p_save.add_argument("topic")
     args = parser.parse_args(argv)
 
     if args.cmd == "catalog":
         data = list_catalog(_schema_dir(), _graph_dir(), date.today())
         print(json.dumps(data))
         return 0
+
+    if args.cmd == "save":
+        # full tree on stdin; prints the writer's result string
+        result = save_graph(args.topic, sys.stdin.read())
+        print(result)
+        return 2 if result.startswith("REJECTED") else 0
 
     # args.cmd in ("summary", "nodes") — both read a single topic graph; a
     # missing graph yields the empty shape ({} for summary, [] for nodes).

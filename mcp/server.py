@@ -151,62 +151,45 @@ def save_graph(topic: str, content: str) -> str:
     """
     Save the knowledge graph for a topic — the canonical, validated writer.
 
-    Recomputes xp: in code (overwriting any model-supplied value), refuses to
-    downgrade any node that is [✓] on disk, fills a MISSING next: date on newly
-    [✓] nodes (L1), surfaces every validate_tree problem and repair in the
-    return string, then writes atomically under a file lock. Rejects (does not
-    write) only on unrepairable structural damage: absent frontmatter.
+    Delegates to ramp_core.save_graph (the kernel-owned composition, shared
+    with the CLI `save` verb): recomputes xp: in code (overwriting any
+    model-supplied value), refuses to downgrade any node that is [✓] on disk,
+    fills a MISSING next: date on newly [✓] nodes (L1), surfaces every
+    validate_tree problem and repair in the return string, then writes
+    atomically under a file lock. Rejects (does not write) only on
+    unrepairable structural damage: absent frontmatter.
 
     Args:
         topic:   Topic name, e.g. 'claude-code'
         content: Full markdown content of the graph (version 3 format)
     """
+    result = ramp_core.save_graph(topic, content, graph_dir=GRAPH_DIR)
+    if result.startswith("REJECTED"):
+        logger.info("SAVE topic=%s rejected", topic)
+        return result
+
     path = GRAPH_DIR / f"{topic}.md"
-    if not _parse_frontmatter(content):
-        return "REJECTED: content has no YAML frontmatter — refusing to write"
-
-    notes: list = []
-    if path.exists():
-        content, preserved = ramp_core.preserve_demonstrated(
-            path.read_text(encoding="utf-8"), content
-        )
-        if preserved:
-            notes.append(f"preserved {len(preserved)} on-disk [✓]: {', '.join(preserved)}")
-
-    content, filled = ramp_core.fill_missing_review_dates(content, date.today())
-    if filled:
-        notes.append(f"filled next: on {len(filled)}: {', '.join(filled)}")
-
-    problems = ramp_core.validate_tree(content)
-    content = ramp_core.apply_frontmatter(content, date.today())
-
-    with ramp_core.file_lock(GRAPH_DIR / f".{topic}.md.lock"):
-        _atomic_write(path, content)
-
-    fm = _parse_frontmatter(content)
-    level = fm.get("level", "unknown")
-    xp = _safe_xp(fm.get("xp", "0"))
-    logger.info("SAVE topic=%s level=%s xp=%d problems=%d", topic, level, xp, len(problems))
+    saved = path.read_text(encoding="utf-8")  # the kernel-written state, for log + sync
+    fm = _parse_frontmatter(saved)
+    logger.info(
+        "SAVE topic=%s level=%s xp=%d",
+        topic, fm.get("level", "unknown"), _safe_xp(fm.get("xp", "0")),
+    )
 
     if API_URL:
         try:
             import urllib.request
             req = urllib.request.Request(
                 f"{API_URL}/graphs/{topic}",
-                data=content.encode("utf-8"),
+                data=saved.encode("utf-8"),
                 method="PUT",
                 headers={"Content-Type": "text/plain; charset=utf-8"},
             )
             urllib.request.urlopen(req, timeout=5)
         except Exception as e:
-            notes.append(f"backend sync failed: {e}")
+            result += f" · backend sync failed: {e}"
 
-    msg = f"saved · {topic} · {level} · {xp} XP → {path}"
-    if notes:
-        msg += " · " + " · ".join(notes)
-    if problems:
-        msg += " · ⚠ " + "; ".join(problems)
-    return msg
+    return result
 
 
 @mcp.tool()
