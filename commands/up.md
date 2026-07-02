@@ -648,6 +648,9 @@ Mark what you can already do. I'll verify the high-value ones; the rest seed you
 - [ ] [node title]
 - [ ] [node title]
 
+## Explore next  (other skill trees — start with `/ramp:up <name>`)
+- [topic] — [one-line description] ([N] nodes)
+
 ---
 *Done? Say **done** — I'll record your claims and start you at the right place.*
 ```
