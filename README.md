@@ -45,11 +45,13 @@ That's it. `ramp` detects your level, renders your personalized knowledge graph,
 
 ## The commands
 
-Nine commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, reinforce, and maintain your graph.
+Eleven commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, reinforce, and maintain your graph.
 
 | Command | What it does |
 |---------|--------------|
 | `/ramp:up [topic]`        | **Learning mode.** Scans your environment, assesses your level, delivers a repo-grounded path, and co-pilots the session |
+| `/ramp:calibrate [topic]` | **Placement — the front door.** Writes a pre-filled placement worksheet (`.ramp/calibrate.md`); your claims seed the graph |
+| `/ramp:check [note]`      | Check back the active task — grades the worksheet, persists through the validated writer, reports the XP delta |
 | `/ramp:list`              | Browse every topic and where you've started — read-only catalog |
 | `/ramp:help`              | A 60-second orientation — what ramp is and the full command map |
 | `/ramp:tree [topic\|all]`  | Read-only view of your knowledge graph — no inference, no writes |
@@ -79,6 +81,8 @@ Nine commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, rein
 **Dependency-gated progression.** You don't reach Agents until you've demonstrated Code Changes. The gates *are* the pedagogy.
 
 **Session-persistent, topic-namespaced.** Graphs live at `~/.claude/ramp/graphs/[topic].md` and follow you across every repo. Returning users with a fresh graph (≤ 7 days) skip questions entirely. Progress is never lost.
+
+**Two homes, both inspectable.** Global state — your graphs and schemas — lives at `~/.claude/ramp/`. The active lesson lives at `./.ramp/` in the repo you're working in: the worksheet, a you-are-here marker, your placement sheet, the scan's scope, and the lesson registry — gitignored, regenerable. Nothing you need lives only in chat scrollback.
 
 **Spaced repetition.** `[✓]` nodes carry a `| next: YYYY-MM-DD [LN]` review schedule (1d → 3d → 7d → 21d → 60d → permanent). `/ramp:review` steps through due nodes one at a time. Pass = advance the schedule. Fail = reset to L1.
 

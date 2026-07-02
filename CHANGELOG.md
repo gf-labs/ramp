@@ -5,17 +5,38 @@ All notable changes to `ramp` are documented here. This project follows
 
 ## [Unreleased]
 
-**Honest contracts + discoverability tail.** Accumulating changes for the next
-release (version intentionally not yet bumped): fixes that make existing promises
-true (the Python-version floor; the review/XP claim), plus the knowledge-graph read
-path is now single-sourced for the tree view.
+**Honest contracts, discoverability tail, and the legible workspace.** Accumulating
+changes for the next release (version intentionally not yet bumped): fixes that make
+existing promises true (the Python-version floor; the review/XP claim), the
+single-sourced knowledge-graph read path, and the workspace slice — learning state
+moves out of chat scrollback into two inspectable homes.
 
 ### Added
+- `~/.claude/ramp/` global home (`graphs/` + `schemas/`), with automatic byte-for-byte
+  migration of legacy `~/.claude/knowledge-graphs/` files on session start.
+- `./.ramp/` per-repo session workspace — five fixed files (`worksheet` · `current` ·
+  `calibrate` · `scan` · `lessons`), gitignored and regenerable; the canonical format
+  contract lives in `up.md`.
+- `/ramp:calibrate` — placement-worksheet front door: scan rows pre-filled from the
+  schema's detection table, claims recorded as `[~|reported]` through the validated
+  writer; new users running `/ramp:up` with no (or an unknown) topic are routed here.
+- `/ramp:check` — explicit check-back: grades the active worksheet, persists through
+  `save_graph`, and reports the XP delta (`/ramp:up`'s natural-language **done**
+  handler runs the same protocol).
+- `ramp_core.save_graph` + CLI `save` verb (full tree on stdin; exit 0 saved / 2
+  rejected) — the validated no-MCP write path; the MCP server delegates to it.
 - `ramp_core.graph_nodes` — the deep per-node read parser (status, type, XP, branch,
   section, schedule, evidence, and mastery-target), plus a `nodes` CLI verb exposing
   it: the no-MCP read path the tree view renders from.
 
 ### Changed
+- `/ramp:up` delivers exactly **one task at a time** to `.ramp/worksheet.md` (no
+  menus in the lesson phase) and persists its scan scope + findings to `.ramp/scan.md`.
+- Terminology sweep: bracket letter codes are hidden from user-facing output (plain
+  section titles and position instead of labels), "Feynman" became teach-back, and
+  cross-plugin `tools:*` references are gone.
+- Every non-MCP graph save routes through the kernel CLI `save` verb — no Write- or
+  Edit-simulated saves anywhere; when no writer is reachable, commands stop honestly.
 - `/ramp:tree` renders from the shared `ramp_core` read layer instead of parsing the
   graph in its own prompt — one parser, single-sourced; the raw file is kept only as
   a fallback.

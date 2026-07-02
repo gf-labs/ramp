@@ -26,6 +26,8 @@ Companies deploy it as a project-level command for engineer onboarding. Solo dev
 
 ```
 commands/up.md               # Adaptive onboarding command — manages knowledge graph
+commands/calibrate.md        # Placement worksheet front door — writes .ramp/calibrate.md; claims seed the graph
+commands/check.md            # Check back the active task — grade the worksheet, persist via save_graph, report the XP delta
 commands/list.md             # Read-only topic catalog (CLI-backed) — what exists, where you've started
 commands/help.md             # 60-second orientation — what ramp is + the command map
 commands/tree.md             # Read-only knowledge graph viewer
@@ -63,7 +65,7 @@ BACKLOG.md                   # Pointer to TaskWarrior backlog (task project:busi
 .mcp.json.example            # MCP server config template (copy → .mcp.json, fill in paths)
 README.md                    # Install instructions, modes, company deployment guide
 LICENSE                      # MIT license
-.gitignore                   # Ignores .venv/, .claude/commands/, docs/superpowers/, .mcp.json
+.gitignore                   # Ignores .venv/, .claude/commands/, docs/superpowers/, .mcp.json, .ramp/
 ```
 
 *This listing is maintained manually — update it when files are added or renamed.*
@@ -127,7 +129,7 @@ Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a struc
 **Inference priority (highest to lowest, used only by `/ramp:up`):**
 1. Environmental signals — CLAUDE.md content, hooks/MCP in settings.json, commands in `.claude/commands/`, history scans
 2. Saved graph file — `~/.claude/ramp/graphs/[topic].md` persists progress from prior sessions; `[✓]` nodes are never downgraded
-3. Self-reported assessment — fills gaps via targeted gap questions using Feynman framing ("explain X as you'd teach it") — teaching-level answers earn `[✓]`, surface-level answers stay `[~]`
+3. Self-reported assessment — fills gaps via targeted gap questions using teach-back framing ("explain X as you'd teach it") — teaching-level answers earn `[✓]`, surface-level answers stay `[~]`
 
 **`/ramp:tree`** is a dumb read-only viewer. It reads `~/.claude/ramp/graphs/[topic].md` and displays it. No inference, no writes.
 
@@ -159,7 +161,9 @@ Topic schemas live in `topics/` and are symlinked into `~/.claude/ramp/schemas/`
 
 ## Knowledge graph file
 
-**Location:** `~/.claude/ramp/graphs/[topic].md` (global, personal — follows the developer across all projects)
+**Location:** `~/.claude/ramp/graphs/[topic].md` (global, personal — follows the developer across all projects; schemas are symlinked beside it at `~/.claude/ramp/schemas/`)
+
+**Per-repo workspace:** `./.ramp/` in the host repo (gitignored, regenerable) — five fixed files: `worksheet.md` · `current.md` · `calibrate.md` · `scan.md` · `lessons.md`. The canonical format contract is `commands/up.md` § *The ./.ramp/ workspace*; other commands reference it, never duplicate it.
 
 **Format:** YAML frontmatter (machine-parseable) + Markdown body (human-readable).
 Full annotated example: `docs/tree-format.md`
