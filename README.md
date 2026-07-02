@@ -194,6 +194,8 @@ cp commands/review.md /your-team-repo/.claude/commands/review.md
 
 Knowledge graphs (`~/.claude/ramp/graphs/`) stay personal — they live on each developer's machine, not in the repo.
 
+`ramp` also writes a small session workspace at `./.ramp/` in the host repo (the active worksheet, scan results, lesson registry). Add `.ramp/` to your team repo's `.gitignore` — it's per-developer, regenerable state, and ramp won't edit your ignore file for you.
+
 ### Step 2 — Create a custom topic schema *(recommended)*
 
 Add `.claude/knowledge-graphs/schemas/[your-topic].md` to the team repo. This is the curriculum for onboarding to *this* codebase — nodes, detection signals, gap questions, and mastery criteria specific to your project.

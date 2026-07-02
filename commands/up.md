@@ -175,7 +175,7 @@ Keep the whole response under 200 words. This is a fast mid-session interrupt �
 
 1. Run Phase 2 inference immediately using env signals + saved tree (no questions yet).
 2. Check "Knowledge graph freshness" from auto-collected context:
-   - **Fresh tree (≤ 7 days since update)**: Skip gap question entirely. Open with: "Welcome back — **[Level] · [CURRENT_XP] XP**. Frontier: **[frontier node names]**." If new signals detected since last update (new hooks, MCP, commands), add one line: "Picked up: [node name] — updated from the env scan." Then go directly to Phase 3.
+   - **Fresh tree (≤ 7 days since update)**: Skip gap question entirely. Open with: "Welcome back — **[Level] · [CURRENT_XP] XP**. Frontier: **[the active [★] node name]**." If new signals detected since last update (new hooks, MCP, commands), add one line: "Picked up: [node name] — updated from the env scan." Then go directly to Phase 3.
    - **Stale tree (> 7 days) or new signals**: Ask the highest-priority undetected gap from the schema as a simple yes/no: "Have you used/done X before?" One question only. Yes/a-bit → `[~]`; no → `[ ]`. Apply silently, go to Phase 3. (Feynman verification of `[~]` nodes lives in `/ramp:review` — mention it at the end of Phase 3 if `[~]` nodes exist.)
 3. Never ask more than 1 question in the returning-user path.
 
@@ -261,6 +261,8 @@ Also cross-reference the "Historical skill evidence" (git log signals) injected 
 
 Apply the same inference rules as detection signals: upgrade `[ ]`/`[~]` to `[✓|historical]`; never downgrade existing `[✓]`.
 
+**Then write `.ramp/scan.md`** (format in `## The ./.ramp/ workspace`): the scope actually scanned (this repo's path, `~/.claude/` config, git history + Claude sessions), the explicit **Not looked at** boundary, and every node this step marked demonstrated with the evidence that triggered it. If nothing was detected, still write the scope + boundary with an empty findings list — the file answers "what did the scan look at," not just "what did it find."
+
 **Step 2 — Apply saved knowledge graphs (global + project-local):**
 
 *Step 2a — Global tree (personal):*
@@ -290,12 +292,13 @@ Apply the self-reported rubric (above) to Phase 1 answers. Use the "Answer → n
 
 Use the "Unlock thresholds" from the loaded schema. Mark locked branches as `[·]`. If the schema doesn't specify thresholds, use: ROOT≥2 → A, A≥3 → B, B≥3 → C, C≥4 → D, D≥4 → E.
 
-**Step 5 — Select frontier `[★]` nodes (2–3 maximum):**
-The frontier is unlocked nodes (not `[·]`) that are `[ ]` or `[~]`. Prioritize:
+**Step 5 — Select the active `[★]` node (exactly one):**
+The frontier is unlocked nodes (not `[·]`) that are `[ ]` or `[~]`. The active node is the highest-priority one:
 1. ROOT gaps `[ ]` — always highest priority
 2. Then the lowest unlocked branch with `[ ]` or `[~]` nodes; select leftmost first
 3. `[~]` nodes (self-reported, not demonstrated) are higher priority than `[ ]` nodes at the same branch level — they're partially known, need demonstration
-4. Cap at 2–3 `[★]` total
+
+Mark exactly **one** `[★]`. It is the one task Phase 3 delivers — one task at a time.
 
 **Step 6 — Derive tier (for label only):**
 Use the "Tier definitions" from the loaded schema. If the schema doesn't provide them, use: Explorer (ROOT incomplete) → Builder (A done, B/C active) → Practitioner (C done, D active) → Expert (D done or E active).
@@ -352,7 +355,7 @@ Use the active topic name from the schema `topic:` frontmatter field.
 Marker key: `[✓]` demonstrated · `[~]` self-reported · `[ ]` not yet · `[★]` your next mastery target · `[·]` locked
 
 After the tree:
-- One line: **"Your frontier: →"** followed by the frontier `[★]` node names
+- One line: **"Your frontier: →"** followed by the active `[★]` node name
 - One line: **"Level: [Tier] · [CURRENT_XP] XP"** — tier name + computed XP
 
 **If `HAS_REVIEW_DUE = true`** (from Phase 0b), add this after the Level line:
@@ -366,28 +369,35 @@ After the tree:
 
 ---
 
-### Step 3d — Render next skills
+### Step 3d — Deliver the active task (exactly one)
 
-Number of skills by tier: **1 (Explorer), 2 (Builder), 3 (Practitioner/Expert)**.
+**One task at a time.** The active task is the single `[★]` node Phase 2 selected. Files hold the work; chat holds the quick things — the medium matches the weight.
 
-These are the top `[★]` frontier nodes. For each, use this format:
+1. **Write `.ramp/worksheet.md`** using the format from `## The ./.ramp/ workspace` (the canonical contract): **Goal** = the node's mastery criterion in plain words; **Task** = the ONE concrete exercise, grounded in this repo; **Reference** = the node's `source_url` (omit the line if empty).
+2. **Write `.ramp/current.md`** per the same contract — the you-are-here surface. Rewrite it whenever the active node changes.
+3. **Register the lesson** in `.ramp/lessons.md` (create it per the contract if missing): append the task's row with status `active`. The check-back flips it to `done`.
+4. **In chat**, render a compact pointer (scale wording to tier — never task count):
 
-**[Skill name]** ← exact name of the `[★]` node
-*Why now: [1 sentence specific to their tier AND this actual repo]*
-**What mastery looks like:** [mastery criterion from node table — concise]
-**Try it now:** [concrete exercise grounded in the repo]
-**Reference:** [official docs](source_url) ← only if source_url is non-empty
+   **Your task — [node title]** → `.ramp/worksheet.md`
+   *Why now: [1 sentence specific to their tier AND this actual repo]*
+   **What mastery looks like:** [mastery criterion from node table — concise]
+   **Try it:** [the one exercise, 1–2 lines]
+   **Reference:** [official docs](source_url) ← only if source_url is non-empty
 
 **Exercise construction by demonstration type:**
 - Artifact: "Create [specific file/config] at [specific path]."
 - Exercise: "Right now in this session, [specific action using actual files from this repo]. Watch my tool calls."
-- Qualitative: "Explain [specific thing] — I'm looking for [the detail that meets the criterion]."
+- Qualitative: "Explain [specific thing] — I'm looking for [the detail that meets the criterion]." (The worksheet's `>` block is where they answer.)
 - Historical: "Describe the last time you did [thing]. One concrete specific counts as demonstrated."
 
-**Always ground exercises in the repo:**
+**Always ground the task in the repo:**
 - Use actual file names from the collected context, not invented ones
 - Use the actual test framework detected, not "run your tests"
 - If MCP is configured, the exercise uses the actual configured server
+
+**Missing foundation:** when the user's stated goal needs a skill the tree doesn't cover yet (or that's still locked), surface that foundation as the next node — grow the tree — rather than improvising a one-off lesson outside the graph.
+
+**No menus.** Never render alternatives, "option a/b/c", or a numbered list of next steps in the lesson phase. The next task exists only after this one is checked back.
 
 ---
 
@@ -403,13 +413,25 @@ These are the top `[★]` frontier nodes. For each, use this format:
 
 ### Step 3f — CTA (Let's go)
 
-**Compact:** "That's your move. Want to start now, or tell me what you're working on?"
+**Compact:** "Your task is in `.ramp/worksheet.md` — say **done** when you've got it, or tell me what you're working on."
 
-**Standard/Full:** "Pick one of those exercises and we'll work through it together right now — or tell me what you're actually trying to get done today and we'll use that as the starting point."
+**Standard/Full:** "Your task lives in `.ramp/worksheet.md` — work it with me right here or on your own, then say **done** (or `/ramp:check`) to get it graded. Or tell me what you're actually trying to get done today and we'll use that as the starting point."
 
 **Expert, add:** One proactive suggestion about something they haven't reached yet but their tree positions them to explore.
 
-The mode is now active. Stay engaged for the full session. When they pick an exercise or describe a task, work through it with them — narrating tool use, explaining decisions, connecting what you're doing to the knowledge graph nodes as they come up.
+The mode is now active. Stay engaged for the full session. When they work the task or describe their own goal, work through it with them — narrating tool use, explaining decisions, connecting what you're doing to the knowledge graph nodes as they come up.
+
+---
+
+### Check-back — when they say **done**
+
+When the user says **done** (or equivalent — "finished", "check my work" — or runs `/ramp:check`), run the check-back protocol. **`commands/check.md` is the canonical definition — keep this handler in sync with it.** Inline:
+
+1. Read `.ramp/worksheet.md`; grade the work (session artifacts, the worksheet's `>` answer block, what they tell you) against the node's mastery criterion — pass needs at least one specific, verifiable detail.
+2. **Pass:** update that one node line in the full tree (`[✓|exercise]` or `[✓|artifact]` + evidence trail; no hand-written `| next:` or `xp:`) and persist through the validated writer — `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full tree])`, or without MCP `python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" save [active-topic]` with the full tree on stdin. Never write the graph with the Edit tool: the demonstration must go through the writer so XP actually moves.
+3. **Report the delta** from the writer's confirmation: **+N XP** (before → after), the node now `[✓]`, anything newly unlocked, next review date. An acknowledgment without the XP change is a bug, not a report.
+4. Flip the task's row in `.ramp/lessons.md` to `done`, then select the next node (Phase 2 Step 5) and deliver it (Step 3d) — the loop continues.
+5. **Not yet:** name the one concrete gap; the task stays active; write nothing.
 
 ---
 
@@ -571,6 +593,93 @@ If option **c** is selected:
 
 ---
 
+## The ./.ramp/ workspace
+
+The per-repo session workspace — where the active lesson lives as *files*, not scrollback. Located at `[project_path]/.ramp/` where `project_path = realpath(git rev-parse --show-toplevel)`, else `realpath(cwd)`. Gitignored, regenerable, safe to delete — never commit it, and never store anything in it that can't be rebuilt from the graph + schema.
+
+**The set is fixed at five files:** `worksheet.md`, `current.md`, `calibrate.md`, `scan.md`, `lessons.md`. Never create a sixth — new state belongs in one of these or in the knowledge graph, not in a new file. This section is the canonical format reference; every command that reads or writes a workspace file follows the definitions here.
+
+### `.ramp/worksheet.md` — the active exercise
+
+Exactly **one** task. The footer keeps the check-back protocol and the tangent escape hatch visible where the work is:
+
+```markdown
+# [Node title]
+*Skill tree: [topic] · [✓] demonstrated · [~] self-reported · [ ] not yet*
+
+**Goal:** [the node's mastery criterion, in plain words]
+
+**Task:** [ONE concrete task — do a thing, or answer in your own words here]
+
+> [space for the user's work / answer]
+
+**Reference:** [source_url from the schema]
+
+---
+*Done? Say **done** (or run `/ramp:check`). Stuck or curious about something else? Say so —
+we'll bookmark this and come back.*
+```
+
+### `.ramp/current.md` — you are here
+
+The mode surface — makes "on task" visible. Rewritten whenever the active node changes:
+
+```markdown
+# Active lesson — [topic]
+**You are here:** [branch] → "[node title]"  (node [N] of [M] in this branch)
+**Right now:** [the one task, in one line].
+
+**Navigate:** continue → say *done* · pause → `/ramp:pin` · side question → just ask · scan scope → `.ramp/scan.md`
+```
+
+### `.ramp/calibrate.md` — the placement worksheet
+
+Written by `/ramp:calibrate` (the front door). Scan-detected rows arrive pre-filled `[✓]` with their evidence; the rest is the full node map for self-placement:
+
+```markdown
+# Place yourself — [topic] skill tree
+Mark what you can already do. I'll verify the high-value ones; the rest seed your tree.
+*[✓] I've done this (with evidence) · [~] I know this · [ ] not yet*
+
+## Already detected on this machine  (the scan — see scan.md for scope)
+- [✓] [node title] — [evidence one-liner]
+
+## [Branch name]
+- [ ] [node title]
+- [ ] [node title]
+
+---
+*Done? Say **done** — I'll record your claims and start you at the right place.*
+```
+
+### `.ramp/scan.md` — scan scope + findings
+
+Directly answers "what did the scan look at, and what did it mark demonstrated":
+
+```markdown
+# What I looked at
+**Scope:** this repo (`[project_path]`), `~/.claude/` config, your git history + Claude sessions.
+**Not looked at:** other repos, anything outside this directory and your Claude config.
+
+# What I found → marked demonstrated
+- [node title] — [the evidence that triggered it]
+```
+
+### `.ramp/lessons.md` — lesson registry (stub)
+
+One row per lesson. This slice only appends the active lesson's row and flips its status; the aside/resume flow that consumes the registry is deferred:
+
+```markdown
+# Lessons — [topic]
+| id | title | status | origin | parent_session_id |
+|----|-------|--------|--------|-------------------|
+| 1 | [node title] | active | default | [CLAUDE_CODE_SESSION_ID] |
+```
+
+`status` = `active` | `done` · `origin` = `default` (picked by the engine) | `aside` (spun off a tangent) · `parent_session_id` = the `CLAUDE_CODE_SESSION_ID` of the session that created the lesson.
+
+---
+
 ## Constraints
 
 - Only reference files and tools that actually appeared in the auto-collected context
@@ -578,10 +687,10 @@ If option **c** is selected:
 - `[✓]` (demonstrated) outranks `[~]` (self-reported) — never treat them equivalently in frontier selection
 - Never give advice not tied to their tree position, their goals, and what's actually in the repo
 - Explorer tier: do not suggest hooks, custom MCP, or worktrees unless env signals show they're already there
-- Practitioner tier: skip basics, go straight to frontier nodes in Branch D or E
+- Practitioner tier: skip basics, go straight to a frontier node in Branch D or E
 - Mode A: never lecture about Claude Code features without demonstrating them immediately through building
 - Keep Phase 3 output scannable: tree first, then skill recommendations
-- The knowledge graph's `[★]` nodes and the "Next N Skills" must be the same items — N = 1 (Explorer), 2 (Builder), 3 (Practitioner/Expert)
+- The knowledge graph's `[★]` node and the worksheet task must be the same item — exactly **one** active task at every tier
 - ONBOARDING.md must be useful to a real new employee, not a session summary
 - Phase 1 gap questions: ask at most 1 (returning user) or 3 (fresh start); never open-ended "what have you used?" — always specific and targeted
 - XP is always recomputed in code on write (by `save_graph`); never preserve a stale xp value from the old file
