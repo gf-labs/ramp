@@ -49,3 +49,9 @@ def core():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+@pytest.fixture(scope="session")
+def file_size_warn():
+    """The file-size-warn hook module (M3 — exit-2 stderr surfacing)."""
+    return _load("file_size_warn", "file-size-warn.py")
