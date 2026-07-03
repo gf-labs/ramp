@@ -5,6 +5,7 @@
 <p align="center">
   <a href="https://github.com/gf-labs/ramp"><img src="https://img.shields.io/badge/version-1.2.0-3b82f6?style=flat-square" alt="version"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="license"></a>
+  <a href="https://github.com/gf-labs/ramp/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/gf-labs/ramp/test.yml?branch=develop&style=flat-square&label=tests" alt="tests"></a>
   <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Code plugin">
   <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.8+">
   <img src="https://img.shields.io/badge/topics-5-6366f1?style=flat-square" alt="topics">

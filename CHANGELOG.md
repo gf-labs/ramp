@@ -28,6 +28,10 @@ moves out of chat scrollback into two inspectable homes.
 - `ramp_core.graph_nodes` — the deep per-node read parser (status, type, XP, branch,
   section, schedule, evidence, and mastery-target), plus a `nodes` CLI verb exposing
   it: the no-MCP read path the tree view renders from.
+- Kernel `due` and `advance` CLI verbs — review's SR queue and its schedule writes are
+  kernel-computed on every install (no MCP required).
+- CI: a pytest matrix proving the Python 3.8 floor, a manifest↔CHANGELOG↔tag release
+  gate for `main`, and Dependabot for the SHA-pinned actions.
 
 ### Changed
 - `/ramp:up` delivers exactly **one task at a time** to `.ramp/worksheet.md` (no
@@ -40,6 +44,8 @@ moves out of chat scrollback into two inspectable homes.
 - `/ramp:tree` renders from the shared `ramp_core` read layer instead of parsing the
   graph in its own prompt — one parser, single-sourced; the raw file is kept only as
   a fallback.
+- `/ramp:review` renders its due queue from the kernel `due` verb and persists SR
+  outcomes via MCP or the CLI `advance` verb — the hand-edited date fallback is gone.
 
 ### Fixed
 - **Python floor is now truthful.** `ramp_core` enforces `MIN_PYTHON = (3, 8)` at the
@@ -53,6 +59,12 @@ moves out of chat scrollback into two inspectable homes.
 - Docs no longer claim a `/ramp:review` pass awards XP. A pass advances the
   spaced-repetition schedule; XP rises only when a node first reaches `[✓]` (including a
   `[~]→[✓]` upgrade during review). (README, CLAUDE.md)
+- `compute_xp` counts a duplicated node name once (first occurrence) — a misfiled
+  duplicate can no longer inflate XP; `validate_tree` still flags it for repair.
+- `advance_review` honors the `permanent [L6]` field — a pass can no longer demote a
+  retired node back into the review cycle.
+- The `file-size-warn` hook's warning now reaches the session (exit-2 stderr);
+  previously it only ever printed to the debug log.
 
 ## [1.2.0] — 2026-06-25
 

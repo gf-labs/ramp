@@ -39,6 +39,9 @@ commands/wrap.md             # End-of-session knowledge harvest — node upgrade
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
 .claude-plugin/marketplace.json # Marketplace catalog (source, category, install metadata)
 hooks/hooks.json             # Plugin hook config (PostToolUse + SessionStart)
+.github/workflows/test.yml   # CI — pytest matrix (3.8 floor + current) on develop/main + PRs
+.github/workflows/release-gate.yml # CI — manifest ↔ CHANGELOG ↔ tag consistency for → main
+.github/dependabot.yml       # Weekly SHA-pin bumps for GitHub Actions
 .claude/settings.json        # Project hook config (file-size-warn + skill-observer)
 topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 81 nodes total)
 topics/getting-started.md    # Getting started sub-topic (12 nodes)
@@ -56,7 +59,7 @@ scripts/setup-mcp.py         # Provisions .venv + registers MCP server (opt-in �
 mcp/server.py                # knowledge-graph MCP server (read/write graphs; swappable backend)
 mcp/start.sh                 # MCP launch wrapper — .venv python; avoids macOS symlink trap
 ramp_core.py                 # stdlib-only kernel — write side (XP · SR dates · validate · lock) + read side (catalog · summary · node_count · graph_nodes); imported by skill-observer + mcp/server; CLI-backed for list/help/tree
-tests/                       # stdlib pytest suite (ramp_core, xp, detection, normalization, symlinks, setup-mcp) + server tests under .venv — importlib-loaded
+tests/                       # stdlib pytest suite (ramp_core, xp, detection, normalization, symlinks, setup-mcp, file-size-warn) + server tests under .venv — importlib-loaded
 requirements.txt             # MCP server deps — only to run mcp/server.py, not to test
 requirements-dev.txt         # pytest (test suite)
 docs/tree-format.md          # Annotated v3 knowledge graph format example
