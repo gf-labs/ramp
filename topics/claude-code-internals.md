@@ -92,12 +92,12 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 ## Tree render template
 
 ```
-[ROOT] Execution Environment
+Execution Environment
     [?] !bash vs Bash tool env var inheritance
     [?] Hook stdin contract (JSON shape and exit code semantics)
     [?] settings.json["env"] injection scope
 
-[A] Plugin and Hook Registration   [if locked: "(unlock: complete 2 Execution Environment skills)"]
+Plugin and Hook Registration   [if locked: "(unlock: complete 2 Execution Environment skills)"]
     [?] --plugin-dir hook registration limitation
     [?] SessionStart hook idempotency pattern
 ```

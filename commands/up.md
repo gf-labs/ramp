@@ -647,11 +647,11 @@ we'll bookmark this and come back.*
 
 ### `.ramp/current.md` — you are here
 
-The mode surface — makes "on task" visible. Rewritten whenever the active node changes:
+The mode surface — makes "on task" visible. Rewritten whenever the active node changes. `[branch name]` is the branch's plain title (e.g. *Core Foundations*), never the tier code (`ROOT`/`A`/`B`) — those codes stay in the graph file, out of user-facing text:
 
 ```markdown
 # Active lesson — [topic]
-**You are here:** [branch] → "[node title]"  (node [N] of [M] in this branch)
+**You are here:** [branch name] → "[node title]"  (node [N] of [M] in this branch)
 **Right now:** [the one task, in one line].
 
 **Navigate:** continue → say *done* · pause → `/ramp:pin` · side question → just ask · scan scope → `.ramp/scan.md`

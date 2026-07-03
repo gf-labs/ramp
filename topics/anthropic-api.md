@@ -131,27 +131,27 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 ## Tree render template
 
 ```
-[ROOT] API fundamentals
+API fundamentals
     [?] Authentication and API key management
     [?] Making a basic completion request
     [?] Model selection (which model for which use case)
     [?] Understanding tokens, context windows, and costs
 
-[A] Core API patterns   [if locked: "(unlock: complete 2 API fundamentals)"]
+Core API patterns   [if locked: "(unlock: complete 2 API fundamentals)"]
     [?] System prompts and their effect on behavior
     [?] Multi-turn conversations (message history management)
     [?] Streaming responses
     [?] Stop sequences and max tokens
     [?] Handling API errors and rate limits
 
-[B] Tool use   [if locked: "(unlock: complete 3 Core API patterns)"]
+Tool use   [if locked: "(unlock: complete 3 Core API patterns)"]
     [?] Defining tools (name, description, input schema)
     [?] Parsing tool_use blocks from responses
     [?] Executing tools and returning tool_result blocks
     [?] Agentic loops (repeated tool use until task completion)
     [?] Parallel tool use
 
-[C] Production patterns   [if locked: "(unlock: complete 3 Tool Use skills)"]
+Production patterns   [if locked: "(unlock: complete 3 Tool Use skills)"]
     [?] Prompt caching (cost reduction)
     [?] Batching requests for throughput
     [?] Evaluating outputs programmatically

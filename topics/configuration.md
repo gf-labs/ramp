@@ -119,20 +119,20 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 ## Tree render template
 
 ```
-[ROOT] Settings Fundamentals
+Settings Fundamentals
     [?] Settings scope hierarchy: global, project, local
     [?] Settings file format and key options
     [?] Model selection and budget configuration
     [?] Server-managed settings (policy enforcement)
 
-[A] Permissions and Security   [if locked: "(unlock: complete 2 Settings Fundamentals)"]
+Permissions and Security   [if locked: "(unlock: complete 2 Settings Fundamentals)"]
     [?] Permissions: allow/deny rules and glob patterns
     [?] Permission precedence and scoping
     [?] Sandboxing configuration
     [?] Fast mode
     [?] Plan mode as default
 
-[B] Interface Customization   [if locked: "(unlock: complete 2 Permissions & Security skills)"]
+Interface Customization   [if locked: "(unlock: complete 2 Permissions & Security skills)"]
     [?] Terminal configuration
     [?] Status line customization
     [?] Keybindings customization

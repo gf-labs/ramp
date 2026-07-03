@@ -113,19 +113,19 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 ## Tree render template
 
 ```
-[ROOT] Cloud Provider Integration
+Cloud Provider Integration
     [?] Third-party integrations overview
     [?] Amazon Bedrock setup
     [?] Google Vertex AI setup
     [?] Microsoft Azure AI Foundry setup
 
-[A] Network and Infrastructure   [if locked: "(unlock: complete 1 Cloud Provider skill)"]
+Network and Infrastructure   [if locked: "(unlock: complete 1 Cloud Provider skill)"]
     [?] Network configuration (proxies, certificates)
     [?] LLM gateway patterns
     [?] Dev container configuration
     [?] Authentication for enterprise deployments
 
-[B] Deployment Patterns   [if locked: "(unlock: complete 2 Network & Infrastructure skills)"]
+Deployment Patterns   [if locked: "(unlock: complete 2 Network & Infrastructure skills)"]
     [?] Choosing a deployment model
     [?] Environment variable management for Claude Code
     [?] Headless Claude in CI/CD pipelines

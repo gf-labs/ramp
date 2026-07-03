@@ -117,20 +117,20 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 ## Tree render template
 
 ```
-[ROOT] Core Foundations
+Core Foundations
     [?] What Claude Code does and when to use it
     [?] Installation and first run
     [?] How Claude Code uses computers (tool loop)
     [?] Core feature surface (interactive vs. headless, key tools)
     [?] Memory types and scope hierarchy
 
-[A] Working Effectively   [if locked: "(unlock: complete 3 Core Foundations)"]
+Working Effectively   [if locked: "(unlock: complete 3 Core Foundations)"]
     [?] Common workflow patterns
     [?] When to interrupt vs. let it run
     [?] Reading and verifying Claude's output
     [?] Writing effective prompts for code tasks
 
-[B] Best Practices   [if locked: "(unlock: complete 2 Working Effectively skills)"]
+Best Practices   [if locked: "(unlock: complete 2 Working Effectively skills)"]
     [?] CLAUDE.md as living project memory
     [?] Iterative refinement and course corrections
     [?] Recognizing and avoiding common pitfalls

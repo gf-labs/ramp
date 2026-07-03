@@ -153,14 +153,14 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 ## Tree render template
 
 ```
-[ROOT] MCP fundamentals
+MCP fundamentals
     [?] What MCP is and why it exists
     [?] Community vs custom server selection
     [?] stdio vs. HTTP transport
     [?] Installing and testing an existing MCP server
     [?] Reading MCP server output in Claude sessions
 
-[A] Building a basic MCP server   [if locked: "(unlock: complete 2 MCP fundamentals)"]
+Building a basic MCP server   [if locked: "(unlock: complete 2 MCP fundamentals)"]
     [?] Project structure for an MCP server
     [?] Defining a tool with name, description, and input schema
     [?] Handling tool calls and returning results
@@ -170,24 +170,24 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
     [?] Tool distribution: scoped access per agent role
     [?] Testing locally with claude and mcp-inspector
 
-[B] Advanced tools   [if locked: "(unlock: complete 3 Basic Server skills)"]
+Advanced tools   [if locked: "(unlock: complete 3 Basic Server skills)"]
     [?] Tools with complex input schemas
     [?] Streaming responses from tools
     [?] Resources (file/data exposure)
     [?] Prompts (reusable prompt templates)
     [?] Authentication and secrets management
 
-[C] Production and distribution   [if locked: "(unlock: complete 3 Advanced Tools skills)"]
+Production and distribution   [if locked: "(unlock: complete 3 Advanced Tools skills)"]
     [?] Packaging for distribution
     [?] Writing a compelling server description
     [?] CI testing of MCP tool behavior
 
-[D] Integration patterns   [if locked: "(unlock: complete 2 Production skills)"]
+Integration patterns   [if locked: "(unlock: complete 2 Production skills)"]
     [?] Composing multiple MCP servers
     [?] MCP server for internal APIs
     [?] Claude Code hooks + MCP
 
-[E] Advanced MCP topics   [if locked: "(unlock: complete 2 Integration patterns)"]
+Advanced MCP topics   [if locked: "(unlock: complete 2 Integration patterns)"]
     [?] Sampling: servers requesting LLM completions via the client
     [?] Progress and logging notifications: real-time feedback to clients
     [?] Roots-based file access: permission and security boundary system

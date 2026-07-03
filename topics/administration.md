@@ -115,19 +115,19 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 ## Tree render template
 
 ```
-[ROOT] Setup and Authentication
+Setup and Authentication
     [?] Organization setup and provisioning
     [?] Authentication methods
     [?] Security configuration
     [?] Plugin marketplace administration
 
-[A] Data and Compliance   [if locked: "(unlock: complete 1 Setup & Authentication skill)"]
+Data and Compliance   [if locked: "(unlock: complete 1 Setup & Authentication skill)"]
     [?] Data usage and privacy policies
     [?] Zero data retention (ZDR) configuration
     [?] Server-managed settings and policy enforcement
     [?] Audit logging and security monitoring
 
-[B] Cost and Usage Management   [if locked: "(unlock: complete 2 Data & Compliance skills)"]
+Cost and Usage Management   [if locked: "(unlock: complete 2 Data & Compliance skills)"]
     [?] Usage monitoring (per user, per team)
     [?] Cost management and budgeting
     [?] Token and session limits

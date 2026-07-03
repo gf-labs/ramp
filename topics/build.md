@@ -179,14 +179,14 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 ## Tree render template
 
 ```
-[ROOT] Agents and Orchestration
+Agents and Orchestration
     [?] Subagent basics: spawning and tool access
     [?] Foreground vs. background subagents
     [?] Agent teams: orchestration patterns
     [?] Custom subagent definitions (.claude/agents/)
     [?] Worktrees for parallel development
 
-[A] Skills and Plugins   [if locked: "(unlock: complete 2 Agents & Orchestration skills)"]
+Skills and Plugins   [if locked: "(unlock: complete 2 Agents & Orchestration skills)"]
     [?] Skills (slash commands): creation and syntax
     [?] Skill mechanics: $ARGUMENTS, !bash, @file
     [?] Skill and command composition
@@ -198,7 +198,7 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
     [?] .claude/rules/ with YAML paths: glob patterns for conditional rule loading
     [?] Skill command execution contexts (!bash vs Bash tool)
 
-[B] Hooks System   [if locked: "(unlock: complete 3 Skills & Plugins)"]
+Hooks System   [if locked: "(unlock: complete 3 Skills & Plugins)"]
     [?] PreToolUse hooks (validation, blocking)
     [?] PostToolUse hooks (linting, reactions)
     [?] Stop and Notification hooks (session alerts)
@@ -206,7 +206,7 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
     [?] Scoped hooks (in skill or agent frontmatter)
     [?] Hooks guide: design patterns and gotchas
 
-[C] Headless and MCP   [if locked: "(unlock: complete 3 Hooks System skills)"]
+Headless and MCP   [if locked: "(unlock: complete 3 Hooks System skills)"]
     [?] Headless mode (-p flag, non-interactive)
     [?] Piped input and CI integration
     [?] --output-format json and --json-schema for structured headless output
@@ -215,11 +215,11 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
     [?] MCP project config (.mcp.json)
     [?] Troubleshooting: diagnose and recover
 
-[D] Skills Distribution and Enterprise   [if locked: "(unlock: complete 2 Headless & MCP skills)"]
+Skills Distribution and Enterprise   [if locked: "(unlock: complete 2 Headless & MCP skills)"]
     [?] Skills distribution via plugins and managed_settings.json
     [?] Skills as custom subagent delegation targets
 
-[E] Iterative Refinement Workflows   [if locked: "(unlock: complete 1 Distribution skill)"]
+Iterative Refinement Workflows   [if locked: "(unlock: complete 1 Distribution skill)"]
     [?] Iterative refinement: sequential subagent pattern for test-driven iteration
     [?] Interview pattern: structured questions for ambiguous analysis tasks
 ```

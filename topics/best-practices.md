@@ -134,25 +134,25 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 ## Tree render template
 
 ```
-[ROOT] Understand the scope hierarchy
+Understand the scope hierarchy
     [?] Global vs. project vs. local scope
     [?] What belongs where (scoping judgment)
     [?] Auto-memory system (/memory command)
 
-[A] Writing effective CLAUDE.md files
+Writing effective CLAUDE.md files
     [?] Build and run commands
     [?] Architecture and structure documentation
     [?] Team conventions and contacts
     [?] Security-sensitive path exclusions
     [?] Onboarding section for team tools
 
-[B] Configuration patterns   [if locked: "(unlock: complete 3 CLAUDE.md skills)"]
+Configuration patterns   [if locked: "(unlock: complete 3 CLAUDE.md skills)"]
     [?] Scoped allowed-tools rules
     [?] Hook design (exit codes and output)
     [?] MCP server selection and scope
     [?] Project vs. global settings discipline
 
-[C] Session hygiene   [if locked: "(unlock: complete 2 Configuration skills)"]
+Session hygiene   [if locked: "(unlock: complete 2 Configuration skills)"]
     [?] Compact timing and triggers
     [?] Session naming and project hygiene
     [?] Rewind vs. restart judgment
