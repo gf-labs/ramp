@@ -33,9 +33,11 @@ self-reported, and keeps skills alive with spaced repetition.
 ## Commands
 
 **Start**
-  /ramp:up <topic>    Assess, build your graph, and learn — the main command
-  /ramp:list          See every topic and where you've started
-  /ramp:help          This 60-second orientation
+  /ramp:up <topic>       Assess, build your graph, and learn — the main command
+  /ramp:calibrate <topic> Place yourself on a topic's tree — a worksheet seeds your graph
+  /ramp:check            Check back your active task — grade it, save, report the XP delta
+  /ramp:list             See every topic and where you've started
+  /ramp:help             This 60-second orientation
 
 **Review & reference**
   /ramp:review        Run spaced-repetition review of what's due
