@@ -687,3 +687,62 @@ def test_cli_due_emits_due_nodes(tmp_path):
     assert out.returncode == 0
     names = [n["name"] for n in json.loads(out.stdout)]
     assert names == ["Old node"]
+
+
+_ADV_TREE = (
+    "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+    "## [Build · A] One\n"
+    "- [✓|exercise] Recursion — r, 2026-06-01: n | next: 2026-07-01 [L1]\n"
+    "- [✓|exercise] Recursion basics — r, 2026-06-01: n | next: 2026-07-01 [L1]\n"
+    "- [✓|exercise] Old timer — r, 2026-06-01: n | next: permanent [L6]\n"
+)
+
+
+def test_advance_review_pass_advances_ladder(core, tmp_path):
+    from datetime import date as _date
+    (tmp_path / "demo.md").write_text(_ADV_TREE, encoding="utf-8")
+    out = core.advance_review("demo", "Recursion", "pass", graph_dir=tmp_path)
+    expected_date = core.next_review_date(2, _date.today())
+    assert out == f"advanced · Recursion · pass → L2, next {expected_date}"
+    saved = (tmp_path / "demo.md").read_text(encoding="utf-8")
+    assert f"Recursion — r, 2026-06-01: n | next: {expected_date} [L2]" in saved
+    # Exact-name match: the sibling node is untouched.
+    assert "Recursion basics — r, 2026-06-01: n | next: 2026-07-01 [L1]" in saved
+
+
+def test_advance_review_fail_resets_to_l1(core, tmp_path):
+    from datetime import date as _date
+    (tmp_path / "demo.md").write_text(_ADV_TREE, encoding="utf-8")
+    out = core.advance_review("demo", "Recursion basics", "fail", graph_dir=tmp_path)
+    tomorrow = core.next_review_date(1, _date.today())
+    assert out == f"advanced · Recursion basics · fail → L1, next {tomorrow}"
+
+
+def test_advance_review_l6_stays_permanent(core, tmp_path):
+    (tmp_path / "demo.md").write_text(_ADV_TREE, encoding="utf-8")
+    out = core.advance_review("demo", "Old timer", "pass", graph_dir=tmp_path)
+    assert out == "advanced · Old timer · pass → L6, next permanent"
+    assert "| next: permanent [L6]" in (tmp_path / "demo.md").read_text(encoding="utf-8")
+
+
+def test_advance_review_errors(core, tmp_path):
+    (tmp_path / "demo.md").write_text(_ADV_TREE, encoding="utf-8")
+    assert core.advance_review("demo", "Recursion", "meh", graph_dir=tmp_path).startswith("Invalid outcome")
+    assert core.advance_review("nope", "Recursion", "pass", graph_dir=tmp_path) == "NO_TREE_FILE: nope"
+    assert core.advance_review("demo", "Ghost", "pass", graph_dir=tmp_path) == "Node not found or not [✓]: 'Ghost'"
+
+
+def test_cli_advance_exit_codes(tmp_path):
+    home = tmp_path / "home"
+    graphs = home / ".claude" / "ramp" / "graphs"
+    graphs.mkdir(parents=True)
+    (graphs / "demo.md").write_text(_ADV_TREE, encoding="utf-8")
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    core_path = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    ok = subprocess.run(["python3", core_path, "advance", "demo", "Recursion", "pass"],
+                        env=env, text=True, capture_output=True, cwd=str(tmp_path))
+    assert ok.returncode == 0 and ok.stdout.startswith("advanced · Recursion · pass → L2")
+    bad = subprocess.run(["python3", core_path, "advance", "demo", "Ghost", "pass"],
+                         env=env, text=True, capture_output=True, cwd=str(tmp_path))
+    assert bad.returncode == 2 and "Node not found" in bad.stdout

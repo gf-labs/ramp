@@ -81,6 +81,10 @@ def compute_xp(tree: str) -> int:
 # A review schedule field: "| next: YYYY-MM-DD [LN]" (date must be zero-padded).
 _REVIEW_RE = re.compile(r"\|\s*next:\s*(\d{4}-\d{2}-\d{2})\s*\[L(\d)\]")
 
+# The retired form of the field: "| next: permanent [LN]" — no date, but the
+# level is real and must be honored (an L6 node can't re-enter the SR cycle).
+_PERMANENT_RE = re.compile(r"\|\s*next:\s*permanent\s*\[L(\d)\]")
+
 
 def is_valid_iso_date(s: str) -> bool:
     """True only for a real, zero-padded YYYY-MM-DD calendar date."""
@@ -632,6 +636,56 @@ def save_graph(topic: str, content: str, graph_dir=None) -> str:
     return msg
 
 
+def advance_review(topic: str, node: str, outcome: str, graph_dir=None) -> str:
+    """Advance (pass) or reset (fail) a [✓] node's SR schedule — the single
+    review-write composition, shared by the MCP tool and the CLI `advance` verb.
+
+    Matches the node EXACTLY by name (never a substring — advancing "Recursion"
+    must not touch "Recursion basics"). All level/date math is the ladder above;
+    xp: is recomputed by apply_frontmatter (an SR pass changes no status, so XP
+    is unchanged). Writes atomically under the graph lock."""
+    if outcome not in ("pass", "fail"):
+        return f"Invalid outcome {outcome!r} — use 'pass' or 'fail'"
+    graph_dir = _graph_dir() if graph_dir is None else Path(graph_dir)
+    path = graph_dir / f"{topic}.md"
+    if not path.exists():
+        return f"NO_TREE_FILE: {topic}"
+
+    content = path.read_text(encoding="utf-8")
+    lines = content.splitlines()
+    today = date.today()
+    found = False
+    new_level = new_date = None
+    for i, line in enumerate(lines):
+        if not line.strip().startswith("- [✓"):
+            continue
+        if node_name(line) != node:
+            continue
+        parsed = parse_review_field(line)
+        if parsed:
+            cur_level = parsed[1]
+        else:
+            # "permanent [LN]" has no parseable date but a real level — honor it
+            # so a pass can't demote L6 back into the cycle. Any other malformed
+            # or absent field reads as L1 (the repair path the server tests pin).
+            perm = _PERMANENT_RE.search(line)
+            cur_level = int(perm.group(1)) if perm else 1
+        new_level = advance_level(cur_level) if outcome == "pass" else reset_level()
+        new_date = next_review_date(new_level, today)
+        lines[i] = set_review_field(line, new_date, new_level)
+        found = True
+        break
+    if not found:
+        return f"Node not found or not [✓]: {node!r}"
+
+    new_content = "\n".join(lines) + ("\n" if content.endswith("\n") else "")
+    new_content = apply_frontmatter(new_content, today)
+    with file_lock(graph_dir / f".{topic}.md.lock"):
+        _atomic_write(path, new_content)
+    when = new_date if new_date else "permanent"
+    return f"advanced · {node} · {outcome} → L{new_level}, next {when}"
+
+
 def _main(argv) -> int:
     err = python_version_error()
     if err:
@@ -651,6 +705,10 @@ def _main(argv) -> int:
     p_due.add_argument("topic")
     p_save = sub.add_parser("save")
     p_save.add_argument("topic")
+    p_adv = sub.add_parser("advance")
+    p_adv.add_argument("topic")
+    p_adv.add_argument("node")
+    p_adv.add_argument("outcome", choices=["pass", "fail"])
     args = parser.parse_args(argv)
 
     if args.cmd == "catalog":
@@ -663,6 +721,11 @@ def _main(argv) -> int:
         result = save_graph(args.topic, sys.stdin.read())
         print(result)
         return 2 if result.startswith("REJECTED") else 0
+
+    if args.cmd == "advance":
+        result = advance_review(args.topic, args.node, args.outcome)
+        print(result)
+        return 0 if result.startswith("advanced") else 2
 
     # args.cmd in ("summary", "nodes", "due") — all read a single topic graph; a
     # missing graph yields the empty shape ({} for summary, [] for nodes/due).

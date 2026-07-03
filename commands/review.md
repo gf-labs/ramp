@@ -1,7 +1,7 @@
 ---
 description: Spaced repetition review — practice knowledge graph nodes due today
 argument-hint: [optional: topic name]
-allowed-tools: Bash, Write, Edit, mcp__knowledge-graph__read_graph, mcp__knowledge-graph__advance_review, mcp__knowledge-graph__save_graph
+allowed-tools: Bash, mcp__knowledge-graph__read_graph, mcp__knowledge-graph__advance_review, mcp__knowledge-graph__save_graph
 ---
 
 ## Context
@@ -84,7 +84,11 @@ Wait for the user's answer. Apply the qualitative rubric, then record the outcom
 - **Pass** — specific, verifiable detail. Call `mcp__knowledge-graph__advance_review(topic=[active-topic], node_name=[node name], outcome="pass")`. It advances the level, computes the next date, and recomputes XP. Report what it returns: "✓ Solid — [its result line]". A [✓]-node SR pass does **not** change XP (status is unchanged), so do not announce an XP gain — report the schedule advance only.
 - **Fail** — vague or none. Call `advance_review(..., outcome="fail")` (resets to L1, next = tomorrow). Report: "× Let's revisit soon — [its result line]".
 
-*Non-MCP fallback (best effort):* if the `knowledge-graph` MCP is not configured, advance the level one rung (L1→L2→L3→L4→L5; L1=1d, L2=3d, L3=7d, L4=21d, L5=60d) and edit the node's `| next:` field with the Edit tool. This path is the documented degradation; the MCP path is authoritative.
+*Non-MCP fallback:* if the `knowledge-graph` MCP is not configured, run
+`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" advance [topic] "[node name]" pass` (or `fail`) —
+same math, same validated writer; report its result line exactly as above. If that exits 2,
+report its output verbatim. If the kernel CLI is unavailable too, say the pass couldn't be
+recorded and move on — never hand-edit the `| next:` field.
 
 Move to the next due node.
 
@@ -115,7 +119,10 @@ Do **one** `[~]` verification per session. End after one regardless of outcome.
 
 ## Step 3: Persistence (handled by the tools)
 
-When the `knowledge-graph` MCP is configured, `advance_review` (SR passes) and `save_graph` (teach-back upgrades) have already written the file — XP and review dates are computed in code; do **not** hand-edit `xp:` or `| next:`. Without MCP, teach-back upgrades persist through the kernel CLI `save` verb; only the SR-pass fallback still edits the `| next:` field directly (the CLI has no advance verb yet) — that path touches the date only, never `xp:` or a node's status.
+Every outcome is written by code: `advance_review` (SR passes) and `save_graph` (teach-back
+upgrades) via MCP when configured, or the kernel CLI verbs `advance` and `save` when not — XP
+and review dates are always computed in code. Never hand-edit `xp:`, `| next:`, or a node's
+status marker.
 
 ---
 

@@ -91,18 +91,6 @@ def _parse_frontmatter(content: str) -> dict:
     return fields
 
 
-def _atomic_write(path: Path, content: str) -> None:
-    """Write content atomically via a temp file."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    try:
-        tmp.write_text(content, encoding="utf-8")
-        tmp.rename(path)
-    except Exception:
-        tmp.unlink(missing_ok=True)
-        raise
-
-
 def _safe_xp(value: str) -> int:
     try:
         return int(value)
@@ -208,41 +196,10 @@ def advance_review(topic: str, node_name: str, outcome: str) -> str:
         node_name: The node's name (text after the status marker)
         outcome:   'pass' or 'fail'
     """
-    if outcome not in ("pass", "fail"):
-        return f"Invalid outcome {outcome!r} — use 'pass' or 'fail'"
-    path = GRAPH_DIR / f"{topic}.md"
-    if not path.exists():
-        return f"NO_TREE_FILE: {topic}"
-
-    content = path.read_text(encoding="utf-8")
-    lines = content.splitlines()
-    today = date.today()
-    found = False
-    for i, line in enumerate(lines):
-        if not line.strip().startswith("- [✓"):
-            continue
-        # Finding #1: match the node EXACTLY by name, never a substring — else
-        # asking for "Recursion" could advance "Recursion basics" (wrong node).
-        if ramp_core.node_name(line) != node_name:
-            continue
-        parsed = ramp_core.parse_review_field(line)
-        cur_level = parsed[1] if parsed else 1
-        new_level = ramp_core.advance_level(cur_level) if outcome == "pass" else ramp_core.reset_level()
-        new_date = ramp_core.next_review_date(new_level, today)
-        lines[i] = ramp_core.set_review_field(line, new_date, new_level)
-        found = True
-        break
-    if not found:
-        return f"Node not found or not [✓]: {node_name!r}"
-
-    new_content = "\n".join(lines) + ("\n" if content.endswith("\n") else "")
-    new_content = ramp_core.apply_frontmatter(new_content, today)
-    with ramp_core.file_lock(GRAPH_DIR / f".{topic}.md.lock"):
-        _atomic_write(path, new_content)
-
-    logger.info("ADVANCE_REVIEW topic=%s node=%s outcome=%s level=%s", topic, node_name, outcome, new_level)
-    when = new_date if new_date else "permanent"
-    return f"advanced · {node_name} · {outcome} → L{new_level}, next {when}"
+    result = ramp_core.advance_review(topic, node_name, outcome, graph_dir=GRAPH_DIR)
+    logger.info("ADVANCE_REVIEW topic=%s node=%s outcome=%s result=%s",
+                topic, node_name, outcome, result)
+    return result
 
 
 @mcp.tool()
