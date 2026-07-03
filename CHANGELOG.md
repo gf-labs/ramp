@@ -78,6 +78,13 @@ moves out of chat scrollback into two inspectable homes.
   retired node back into the review cycle.
 - The `file-size-warn` hook's warning now reaches the session (exit-2 stderr);
   previously it only ever printed to the debug log.
+- Bracket tier codes (`ROOT`/`A`/`B`) no longer leak into user-facing output — the
+  terminology sweep missed the nine schemas' Tree-render templates and `up.md`'s
+  `current.md` contract, so `.ramp/current.md` showed `[ROOT] …`. The render templates
+  now use plain branch titles; the saved-tree-file templates and graph-file headers
+  keep the codes (the kernel parses them).
+- `/ramp:help`'s command map omitted `/ramp:calibrate` and `/ramp:check`, the two
+  workspace-slice commands — now listed under **Start**.
 
 ## [1.2.0] — 2026-06-25
 
