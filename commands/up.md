@@ -31,11 +31,14 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 **CLAUDE.md line count** (to assess whether it has real content):
 !`wc -l < CLAUDE.md 2>/dev/null || echo "0"`
 
+**CLAUDE.local.md** (gitignored personal layer at the repo root):
+!`[ -f CLAUDE.local.md ] && echo "exists" || echo "absent"`
+
 **Custom slash commands in this repo**:
 !`ls .claude/commands/ 2>/dev/null | wc -l | tr -d ' '` commands: !`ls .claude/commands/ 2>/dev/null || echo "none"`
 
-**MCP servers configured**:
-!`python3 -c "import json; d=json.load(open('.claude/settings.json')); s=d.get('mcpServers',{}); print('project-level:', list(s.keys()) if s else 'none')" 2>/dev/null; python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); s=d.get('mcpServers',{}); print('global:', list(s.keys()) if s else 'none')" 2>/dev/null || echo "none found"`
+**MCP servers configured** (registries: project `.mcp.json`; `~/.claude.json` project + user scope — Claude Code does not register MCP servers in `settings.json`):
+!`python3 -c "import json; s=json.load(open('.mcp.json')).get('mcpServers',{}); print('project (.mcp.json):', list(s.keys()) if s else 'none')" 2>/dev/null; python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude.json'))); loc=d.get('projects',{}).get(os.getcwd(),{}).get('mcpServers',{}); usr=d.get('mcpServers',{}); print('project (~/.claude.json):', list(loc.keys()) if loc else 'none'); print('user:', list(usr.keys()) if usr else 'none')" 2>/dev/null || echo "none found"`
 
 **Hooks configured**:
 !`python3 -c "import json; d=json.load(open('.claude/settings.json')); h=d.get('hooks',{}); print('project hooks:', list(h.keys()) if h else 'none')" 2>/dev/null; python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); h=d.get('hooks',{}); print('global hooks:', list(h.keys()) if h else 'none')" 2>/dev/null || echo "none found"`
@@ -252,7 +255,7 @@ The schema file contains:
 
 **Step 0 — MCP tree source (if `knowledge-graph` MCP is configured):**
 
-Check the "MCP servers configured" line in the auto-collected context above. If `knowledge-graph` appears (project-level or global), call `mcp__knowledge-graph__read_graph` with the active topic now. Use the result as the authoritative tree for all Phase 2 inference — it takes precedence over the bash-injected "Existing knowledge graph" content, which was a fallback snapshot taken at invocation time.
+Check the "MCP servers configured" lines in the auto-collected context above. If `knowledge-graph` appears in any scope (project `.mcp.json`, or the project/user entries of `~/.claude.json`), call `mcp__knowledge-graph__read_graph` with the active topic now — MCP tools can be deferred (absent from your visible tool list until searched for), so trust the registry and load the tool rather than concluding from the list. Use the result as the authoritative tree for all Phase 2 inference — it takes precedence over the bash-injected "Existing knowledge graph" content, which was a fallback snapshot taken at invocation time.
 
 If `knowledge-graph` MCP is not configured, skip this step and use the bash-injected tree as normal.
 
@@ -309,7 +312,7 @@ The frontier is unlocked nodes (not `[·]`) that are `[ ]` or `[~]`. The active 
 Mark exactly **one** `[★]`. It is the one task Phase 3 delivers — one task at a time.
 
 **Step 6 — Derive tier (for label only):**
-Use the "Tier definitions" from the loaded schema. If the schema doesn't provide them, use: Explorer (ROOT incomplete) → Builder (A done, B/C active) → Practitioner (C done, D active) → Expert (D done or E active).
+Use the "Tier definitions" from the loaded schema. If the schema doesn't provide them, use: Explorer (ROOT incomplete) → Builder (A done, B/C active) → Practitioner (C done, D active) → Expert (D done or E active). Apply the definitions to **this topic's tree only** — progress, XP, or level on any other topic (visible in the catalog or other graphs) is irrelevant: a claude-code veteran can still be an Explorer on a fresh topic. Between two tiers, pick the lower — pacing errs compact.
 
 ---
 
@@ -370,7 +373,7 @@ After the tree:
 > **Due for review ([N] nodes):** [list due node names, bullet format]
 > Run `/ramp:review` (or `/ramp:review [topic]`) to keep them solid.
 
-**If any `[~]` nodes exist in the tree**, add one line after the review-due callout (or after the Level line if no due nodes):
+**If any `[~]` nodes exist in the tree**, add one line after the review-due callout (or after the Level line if no due nodes). Count **every** `[~]` node, including the active `[★]` target — the star marks targeting, not a status:
 > *[N] claimed skill(s) unverified — run `/ramp:review` to earn `[✓]` by teaching them back.*
 
 *Tip: `/rename [topic]` saves this session name so you can resume it tomorrow.* (Standard/Full mode only — and omit entirely if the graph already marks session-management/resume skills `[✓]`; never re-teach a demonstrated node)
@@ -435,9 +438,9 @@ The mode is now active. Stay engaged for the full session. When they work the ta
 
 When the user says **done** (or equivalent — "finished", "check my work" — or runs `/ramp:check`), run the check-back protocol. **`commands/check.md` is the canonical definition — keep this handler in sync with it.** Inline:
 
-1. Read `.ramp/worksheet.md`; grade the work (session artifacts, the worksheet's `>` answer block, what they tell you) against the node's mastery criterion — pass needs at least one specific, verifiable detail.
+1. Read `.ramp/worksheet.md`; grade the work (session artifacts, the worksheet's `>` answer block, what they tell you) against the node's mastery criterion — pass needs at least one specific, verifiable detail. If your feedback corrects a factual claim, verify the fact first (the node's **Reference** URL outranks the schema's criterion text; flag any discrepancy) — never teach an unverified correction.
 2. **Pass:** update that one node line in the full tree (`[✓|exercise]` or `[✓|artifact]` + evidence trail; no hand-written `| next:` or `xp:`) and persist through the validated writer — `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full tree])`, or without MCP `python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" save [active-topic]` with the full tree on stdin. Never write the graph with the Edit tool: the demonstration must go through the writer so XP actually moves.
-3. **Report the delta** from the writer's confirmation: **+N XP** (before → after), the node now `[✓]`, anything newly unlocked, next review date. An acknowledgment without the XP change is a bug, not a report.
+3. **Report the delta** from the writer's confirmation: **+N XP** (before → after), the node now `[✓]`, anything newly unlocked, next review date — and which writer path ran. An acknowledgment without the XP change is a bug, not a report.
 4. Flip the task's row in `.ramp/lessons.md` to `done`, then select the next node (Phase 2 Step 5) and deliver it (Step 3d) — the loop continues.
 5. **Not yet:** name the one concrete gap; the task stays active; write nothing.
 
@@ -506,7 +509,7 @@ Execute only what's selected. For option **b**, write `ONBOARDING.md` to the rep
 - [ ] [3–5 specific, time-boxed actions grounded in this repo]
 ```
 
-For option **a**, save the knowledge graph for the active topic **through the validated writer** — XP and review dates are computed in code, so never write the graph with the Write or Edit tool:
+For option **a**, save the knowledge graph for the active topic **through the validated writer** — XP and review dates are computed in code, so never write the graph with the Write or Edit tool. State which writer path ran in your confirmation. (MCP tools can be deferred — absent from the visible tool list until searched for; trust the registry lines in the auto-collected context and load the tool rather than assuming no MCP.)
 
 - **MCP configured** (per the auto-collected context): call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full-tree-markdown])` — atomic write, syncs to any configured backend.
 - **No MCP:** run the kernel CLI with the full tree on stdin:
@@ -688,7 +691,15 @@ Directly answers "what did the scan look at, and what did it mark demonstrated":
 
 # What I found → marked demonstrated
 - [node title] — [the evidence that triggered it]
+
+# Weaker signals → marked self-reported `[~]`
+- [node title] — [the weaker signal]
+
+# Not detected
+- [node title] — [what was absent, or why no artifact is possible]
 ```
+
+The last two sections are the tree's provenance — include them whenever the scan produced `[~]` markers or notable absences; omit them only when empty.
 
 ### `.ramp/lessons.md` — lesson registry (stub)
 

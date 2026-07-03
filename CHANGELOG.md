@@ -46,8 +46,21 @@ moves out of chat scrollback into two inspectable homes.
   a fallback.
 - `/ramp:review` renders its due queue from the kernel `due` verb and persists SR
   outcomes via MCP or the CLI `advance` verb — the hand-edited date fallback is gone.
+- Write-path honesty: every graph write says which writer ran (MCP tool or kernel
+  CLI), commands treat deferred MCP tools as loadable rather than absent, check-back
+  verifies factual corrections against the node's reference before teaching them,
+  and the tier label derives strictly from the active topic's tree.
 
 ### Fixed
+- `/ramp:up`'s MCP scan read `settings.json`, where Claude Code never registers MCP
+  servers — it now reads the real registries (project `.mcp.json`; `~/.claude.json`
+  project + user scope), so configured servers are detected instead of silently
+  falling back to the CLI writer.
+- The best-practices schema taught wrong memory-scope facts: project memory lives at
+  `./CLAUDE.md` (or `./.claude/CLAUDE.md`) and the personal layer is
+  `./CLAUDE.local.md` at the repo root. The old `.claude/CLAUDE.md.local` never
+  existed, so its detection signal could never fire — the up scan now checks the
+  real file. (Facts verified against the live memory docs.)
 - **Python floor is now truthful.** `ramp_core` enforces `MIN_PYTHON = (3, 8)` at the
   CLI boundary (`python_version_error`), and `skill-observer.py` gained
   `from __future__ import annotations` so its PEP-585 type hints no longer break import

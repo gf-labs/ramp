@@ -122,7 +122,9 @@ Do **one** `[~]` verification per session. End after one regardless of outcome.
 Every outcome is written by code: `advance_review` (SR passes) and `save_graph` (teach-back
 upgrades) via MCP when configured, or the kernel CLI verbs `advance` and `save` when not — XP
 and review dates are always computed in code. Never hand-edit `xp:`, `| next:`, or a node's
-status marker.
+status marker. MCP tools can be deferred (absent from the visible tool list until searched
+for) — if the server is registered, load the tool rather than assuming no MCP. In the Step 4
+close, say which path persisted this session's outcomes (MCP tools or kernel CLI verbs).
 
 ---
 

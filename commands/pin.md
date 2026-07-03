@@ -76,7 +76,7 @@ On `yes`: update `~/.claude/ramp/graphs/[topic].md`:
 - `xp:` — do not recompute; `save_graph` recomputes it in code on write
 - Update `updated: YYYY-MM-DD` to today
 
-When the `knowledge-graph` MCP is configured, persist by reading the current tree (`read_graph`), applying your targeted node upgrade to the full content, then calling `save_graph(topic, content)` with the complete updated tree — it preserves every existing `[✓]` node (never-downgrade) and recomputes XP, so a full-file write is safe. If MCP is unavailable, persist the same full updated tree through the kernel CLI: `python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" save [topic]` with the tree on stdin (heredoc); exit 2 means the writer REJECTED it — report the message verbatim and don't write. If neither is reachable, say so and stop — never Edit the graph file directly.
+When the `knowledge-graph` MCP is configured, persist by reading the current tree (`read_graph`), applying your targeted node upgrade to the full content, then calling `save_graph(topic, content)` with the complete updated tree — it preserves every existing `[✓]` node (never-downgrade) and recomputes XP, so a full-file write is safe. If MCP is unavailable, persist the same full updated tree through the kernel CLI: `python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" save [topic]` with the tree on stdin (heredoc); exit 2 means the writer REJECTED it — report the message verbatim and don't write. If neither is reachable, say so and stop — never Edit the graph file directly. Say which writer path ran. (MCP tools can be deferred — absent from the visible tool list until searched for; if the server is registered, load the tool rather than assuming no MCP.)
 
 ---
 

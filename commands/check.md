@@ -48,6 +48,8 @@ Evidence, in priority order: work done in this session (files created, commands 
 
 **Pass** requires at least one specific, verifiable detail tied to the criterion — a flag, a path, an observed behavior, a tradeoff navigated. "I did it" / "makes sense" is not evidence.
 
+If your feedback corrects a factual claim, verify the fact first — against the node's **Reference** URL when fetchable, otherwise state only what you actually know. If the schema's criterion itself conflicts with the reference, trust the reference and flag the discrepancy in your report. Never teach an unverified correction — a confident wrong fact from the grader is worse than a miss.
+
 - Demonstration type: `artifact` if a file/config now exists (check it), else `exercise`.
 - **Not yet:** name the one concrete gap ("the criterion needs X; I saw Y"), leave the task active, write nothing. Stop.
 
@@ -57,7 +59,7 @@ Build the **full updated tree**: take the graph contents above and change only t
 `- [✓|<type>] <Node title> — <repo>, <today>: <specific evidence> via /ramp:check`
 (append to an existing evidence trail with ` · `). Do **not** hand-write `| next:` (the writer fills L1 on newly-`[✓]` nodes) and do **not** touch `xp:` (recomputed in code).
 
-- **MCP configured:** call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full updated tree])`.
+- **MCP configured:** call `mcp__knowledge-graph__save_graph(topic=[active-topic], content=[full updated tree])`. MCP tools can be *deferred* — absent from your visible tool list until searched for — so don't conclude "no MCP" from the list alone: if the server is registered, load the tool and call it.
 - **No MCP, `KERNEL_OK`:** run the CLI verb with the tree on stdin:
 
   ```bash
@@ -77,7 +79,7 @@ From the writer's confirmation (`saved · [topic] · [level] · [XP] XP → [pat
 > Unlocked: [branch name] — only if this flip crossed an unlock threshold in the schema; omit otherwise
 > Next review: tomorrow (L1) · Level: [level from the confirmation]
 
-The XP numbers come from the graph frontmatter and the writer's confirmation — never from your own arithmetic.
+The XP numbers come from the graph frontmatter and the writer's confirmation — never from your own arithmetic. Name the writer path that ran (MCP tool or kernel CLI).
 
 ## Step 5 — Workspace bookkeeping
 

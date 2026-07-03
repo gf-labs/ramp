@@ -22,8 +22,8 @@ A developer who completes this tree writes CLAUDE.md files that onboard new engi
 
 | Node | Mastery criterion | Type | Auto-detect signal | source_url |
 |------|-------------------|------|-------------------|----|
-| Global vs. project vs. local scope | Knows the three CLAUDE.md scopes; understands that `~/.claude/CLAUDE.md` applies everywhere, `.claude/CLAUDE.md` is committed and shared, `.claude/CLAUDE.md.local` is gitignored and personal | Qualitative | `~/.claude/CLAUDE.md` exists (global scope in use → `[~]`) | https://docs.anthropic.com/en/docs/claude-code/memory |
-| What belongs where (scoping judgment) | Has placed at least one item in each scope with a deliberate reason; can explain a concrete example of global vs. project vs. local placement | Qualitative | `.claude/CLAUDE.md.local` exists → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/memory |
+| Global vs. project vs. local scope | Knows the three CLAUDE.md scopes; understands that `~/.claude/CLAUDE.md` applies everywhere, `./CLAUDE.md` at the repo root (or `./.claude/CLAUDE.md`) is committed and shared, and `./CLAUDE.local.md` at the repo root is gitignored and personal | Qualitative | `~/.claude/CLAUDE.md` exists (global scope in use → `[~]`) | https://docs.anthropic.com/en/docs/claude-code/memory |
+| What belongs where (scoping judgment) | Has placed at least one item in each scope with a deliberate reason; can explain a concrete example of global vs. project vs. local placement | Qualitative | `./CLAUDE.local.md` exists → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/memory |
 | Auto-memory system (/memory command) | Has run `/memory` to see current memory state; understands that auto-memory captures session context automatically; has reviewed and curated the auto-memory file | Exercise | auto-memory files > 0 → `[~\|historical]` | https://docs.anthropic.com/en/docs/claude-code/memory |
 
 ### [A] Writing effective CLAUDE.md files (unlocks when ROOT ≥ 2 `[✓]` — 5 nodes)
@@ -60,7 +60,7 @@ A developer who completes this tree writes CLAUDE.md files that onboard new engi
 | Collected evidence | Node → status |
 |--------------------|---------------|
 | `~/.claude/CLAUDE.md` exists | ROOT: "Global vs. project vs. local scope" → `[~\|artifact]` |
-| `.claude/CLAUDE.md.local` exists | ROOT: "What belongs where" → `[~\|artifact]` |
+| `./CLAUDE.local.md` exists | ROOT: "What belongs where" → `[~\|artifact]` |
 | auto-memory files > 0 | ROOT: "Auto-memory system" → `[~\|historical]` |
 | CLAUDE.md contains code blocks with commands | A: "Build and run commands" → `[~\|artifact]` |
 | CLAUDE.md line count > 30 | A: "Architecture and structure documentation" → `[~\|artifact]` |

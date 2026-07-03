@@ -82,7 +82,7 @@ Also update:
 - `xp:` — do not recompute; `save_graph` recomputes it in code on write
 - `updated: YYYY-MM-DD` frontmatter field to today
 
-When the `knowledge-graph` MCP is configured, persist the upgraded tree by calling `save_graph(topic=[topic], content=[full updated tree])` — it recomputes XP, fills review dates on newly-`[✓]` nodes, and never downgrades an on-disk `[✓]`. Otherwise, persist the same full tree through the kernel CLI: `python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" save [topic]` with the tree on stdin (heredoc); exit 2 means the writer REJECTED it — report the message verbatim and don't write. If neither is reachable, say so and stop — never Edit the graph file directly.
+When the `knowledge-graph` MCP is configured, persist the upgraded tree by calling `save_graph(topic=[topic], content=[full updated tree])` — it recomputes XP, fills review dates on newly-`[✓]` nodes, and never downgrades an on-disk `[✓]`. Otherwise, persist the same full tree through the kernel CLI: `python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" save [topic]` with the tree on stdin (heredoc); exit 2 means the writer REJECTED it — report the message verbatim and don't write. If neither is reachable, say so and stop — never Edit the graph file directly. Say which writer path ran. (MCP tools can be deferred — absent from the visible tool list until searched for; if the server is registered, load the tool rather than assuming no MCP.)
 
 If `NO_TREE_FILE:[topic]`: say "No knowledge graph file found. Run `/ramp:up [topic]` to create one." Skip to Step 3.
 
