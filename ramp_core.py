@@ -630,14 +630,22 @@ def _probe_git_worktree_count() -> int:
     return sum(1 for ln in _git(["worktree", "list"]).splitlines() if ln.strip())
 
 
-_TRUSTED_ONLY = {"cmd"}
+def _probe_git_max_commit_files(n: int = 10) -> int:
+    """Max files touched in any of the last n commits, read from `git log
+    --stat` summary lines (' N files changed, ...'). 0 on no history / not a
+    repo. Replaces up.md's legacy shell pipe with no shell."""
+    best = 0
+    for ln in _git(["log", "--stat", "--oneline", "-" + str(n)]).splitlines():
+        m = re.match(r"\s+(\d+) files? changed", ln)
+        if m:
+            best = max(best, int(m.group(1)))
+    return best
 
 
-def run_probe(primitive: str, arg_str: str, trusted: bool = False):
+def run_probe(primitive: str, arg_str: str):
     """Dispatch a single probe. `arg_str` is the raw args cell from the schema
-    table (pipes already unescaped by parse_probes). Trusted gates `cmd`."""
-    if primitive in _TRUSTED_ONLY and not trusted:
-        return "SKIPPED_UNTRUSTED"
+    table (pipes already unescaped by parse_probes). All primitives are
+    read-only and shell-free; each degrades to its zero value on error."""
     try:
         toks = shlex.split(arg_str) if arg_str else []
     except ValueError:
@@ -676,12 +684,12 @@ def run_probe(primitive: str, arg_str: str, trusted: bool = False):
         return _probe_git_log_grep(pos[0], diff_filter, path) if pos else 0
     if primitive == "git-worktree-count":
         return _probe_git_worktree_count()
-    if primitive == "cmd":  # trusted path only (gated above)
+    if primitive == "git-max-commit-files":
         try:
-            out = subprocess.run(arg_str, shell=True, capture_output=True, text=True, timeout=10)
-            return out.stdout.strip()
-        except (OSError, subprocess.SubprocessError):
-            return ""
+            n = int(toks[0]) if toks else 10
+        except ValueError:
+            n = 10
+        return _probe_git_max_commit_files(n)
     return "UNKNOWN_PRIMITIVE:" + primitive
 
 
@@ -714,24 +722,10 @@ def parse_probes(content: str) -> list:
     return rows
 
 
-def _is_trusted_schema_dir(schema_dir) -> bool:
-    """Trust = provenance. A schema is trusted (may run `cmd` probes) only when
-    it is loaded from the plugin's bundled `$CLAUDE_PLUGIN_ROOT/topics/` dir. A
-    self-declared `trusted:` flag is worthless in an untrusted file, so trust is
-    the directory, not a field."""
-    root = os.environ.get("CLAUDE_PLUGIN_ROOT")
-    if not root:
-        return False
-    try:
-        return Path(schema_dir).resolve() == (Path(root) / "topics").resolve()
-    except OSError:
-        return False
-
-
 def load_topic_probes(topic: str, schema_dir):
     """Union the topic's own `## Probes` with those of its `sources:` sub-schemas.
     First declaration of a probe name wins (compute_xp's dedup rule). Returns
-    ({name: (primitive, args)}, trusted)."""
+    {name: (primitive, args)}."""
     schema_dir = Path(schema_dir)
 
     def read(name):
@@ -746,16 +740,16 @@ def load_topic_probes(topic: str, schema_dir):
     for n in names:
         for pname, primitive, args in parse_probes(read(n)):
             probes.setdefault(pname, (primitive, args))  # first wins
-    return probes, _is_trusted_schema_dir(schema_dir)
+    return probes
 
 
 def run_detection(topic: str, schema_dir=None) -> dict:
     """Run every probe the active topic declares (own + sourced), returning
     {name: value}. Insertion order follows first-declaration order."""
     schema_dir = _schema_dir() if schema_dir is None else Path(schema_dir)
-    probes, trusted = load_topic_probes(topic, schema_dir)
+    probes = load_topic_probes(topic, schema_dir)
     return {
-        name: run_probe(primitive, args, trusted=trusted)
+        name: run_probe(primitive, args)
         for name, (primitive, args) in probes.items()
     }
 

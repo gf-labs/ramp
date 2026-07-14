@@ -72,14 +72,6 @@ def test_grep_count_recursive(tmp_path, monkeypatch):
     assert ramp_core.run_probe("grep-count", '"claude -p|claude --print" scripts/ Makefile .github/') == 2
 
 
-def test_cmd_gated_when_untrusted():
-    assert ramp_core.run_probe("cmd", "echo hi", trusted=False) == "SKIPPED_UNTRUSTED"
-
-
-def test_cmd_runs_when_trusted():
-    assert ramp_core.run_probe("cmd", "echo hi", trusted=True) == "hi"
-
-
 def test_git_worktree_count_in_a_repo(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
@@ -99,20 +91,15 @@ def test_git_worktree_count_outside_repo_is_zero(tmp_path, monkeypatch):
 
 # --- Fix pass 1: robustness guards ------------------------------------------
 # Every primitive must degrade to its zero value on error (the probe-layer
-# banner contract). These three fixes address reproducible crashes found by
-# an independent review of Task 1.
+# banner contract). These fixes address reproducible crashes found by an
+# independent review of Task 1.
 
-# Fix 1: `run_probe` tokenizes `arg_str` with shlex unconditionally, even
-# though `cmd` never uses the tokens — shell-hostile input (e.g. an
-# apostrophe) blows up shlex before `cmd`'s own branch is ever reached.
+# Fix 1: `run_probe` tokenizes `arg_str` with shlex unconditionally; shell-
+# hostile input (e.g. an unbalanced quote) must not blow up shlex — it degrades
+# to no-tokens and the primitive returns its zero value.
 
-def test_cmd_survives_shell_hostile_quoting():
-    result = ramp_core.run_probe("cmd", "echo it's fine", trusted=True)
-    assert isinstance(result, str)
-
-
-def test_cmd_runs_real_shell_syntax():
-    assert ramp_core.run_probe("cmd", "echo hi | tr a-z A-Z", trusted=True) == "HI"
+def test_shlex_hostile_args_degrade_not_crash():
+    assert ramp_core.run_probe("file-exists", "it's") is False
 
 
 # Fix 2: token-indexed branches (toks[0]/toks[1]/pos[0]) raise IndexError when
@@ -200,6 +187,36 @@ def test_git_log_grep_bare_commit_message_match(tmp_path, monkeypatch):
     assert ramp_core.run_probe("git-log-grep", '"^feat"') == 1
 
 
+# --- git-max-commit-files: the no-shell replacement for the removed `cmd`
+# probe (Task 6 fork B). up.md's legacy scan took the max "N files changed"
+# over the last 10 commits via a shell pipe; this reproduces it with no shell.
+
+def test_git_max_commit_files_counts_max_in_recent_commits(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "config", "user.email", "t@t"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "config", "user.name", "t"], cwd=tmp_path, check=True)
+    (tmp_path / "a").write_text("x")
+    subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-qm", "one file"], cwd=tmp_path, check=True)
+    for nm in ("b", "c", "d"):
+        (tmp_path / nm).write_text("x")
+    subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-qm", "three files"], cwd=tmp_path, check=True)
+    # last two commits touched 1 and 3 files -> max is 3
+    assert ramp_core.run_probe("git-max-commit-files", "10") == 3
+
+
+def test_git_max_commit_files_outside_repo_is_zero(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)  # not a git repo
+    assert ramp_core.run_probe("git-max-commit-files", "10") == 0
+
+
+def test_git_max_commit_files_missing_arg_defaults_and_is_zero(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)  # empty args -> default n=10, no crash, 0 outside repo
+    assert ramp_core.run_probe("git-max-commit-files", "") == 0
+
+
 # --- Probe-table parsing + composite source union ---------------------------
 
 PROBES_BLOCK = """---
@@ -262,21 +279,10 @@ def test_load_topic_probes_unions_sources_first_wins(tmp_path):
         ("worktrees", "git-worktree-count", "—"),
         ("shared", "file-lines", "B.md"),  # duplicate name: first (subA) wins
     ])
-    probes, trusted = ramp_core.load_topic_probes("combo", d)
+    probes = ramp_core.load_topic_probes("combo", d)
     assert probes["sessions"] == ("glob-count", "a/**/*.jsonl")
     assert probes["worktrees"] == ("git-worktree-count", "")
     assert probes["shared"] == ("file-lines", "A.md")  # first declaration wins
-    assert trusted is False  # tmp dir is not the bundled topics/ dir
-
-
-def test_load_topic_probes_trusted_only_for_bundled_dir(tmp_path, monkeypatch):
-    plugin_root = tmp_path / "plugin"
-    topics = plugin_root / "topics"
-    topics.mkdir(parents=True)
-    _write_schema(topics, "solo", "topic: solo\n", [("x", "file-exists", "f")])
-    monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(plugin_root))
-    _, trusted = ramp_core.load_topic_probes("solo", topics)
-    assert trusted is True
 
 
 def test_run_detection_end_to_end(tmp_path, monkeypatch):

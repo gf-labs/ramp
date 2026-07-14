@@ -53,7 +53,7 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 | claude_md_lines      | file-lines      | CLAUDE.md |
 | headless_invocations | grep-count      | "claude -p\|claude --print" scripts/ Makefile .github/ |
 | git_history          | git-log-grep    | "." |
-| max_commit_files     | cmd             | git log --stat --oneline -10 2>/dev/null \| grep -E "^\s+[0-9]+ files? changed" \| awk '{print $1}' \| sort -n \| tail -1 \|\| echo 0 |
+| max_commit_files     | git-max-commit-files | 10 |
 
 ---
 
