@@ -30,12 +30,20 @@ moves out of chat scrollback into two inspectable homes.
   it: the no-MCP read path the tree view renders from.
 - Kernel `due` and `advance` CLI verbs — review's SR queue and its schedule writes are
   kernel-computed on every install (no MCP required).
+- Schema-declared `## Probes` detection: topics carry their own read-only environment
+  probes — 27 probe declarations across the claude-code composite, built from 10
+  shell-free primitive types — unioned across a composite topic's sub-schemas, run by a
+  new `ramp_core` detection engine (`run_detection`/`format_detection`) and a
+  `detect <topic>` CLI verb — adding a topic adds its detection with no command change.
 - CI: a pytest matrix proving the Python 3.8 floor, a manifest↔CHANGELOG↔tag release
   gate for `main`, and Dependabot for the SHA-pinned actions.
 
 ### Changed
 - `/ramp:up` delivers exactly **one task at a time** to `.ramp/worksheet.md` (no
   menus in the lesson phase) and persists its scan scope + findings to `.ramp/scan.md`.
+- `/ramp:up` detection is schema-driven: a single `detect <topic>` block replaces the
+  hardcoded Claude-Code `!bash` environment scans, and the role goal is read from the
+  schema's `goal:` field — the command is now topic-agnostic.
 - Terminology sweep: bracket letter codes are hidden from user-facing output (plain
   section titles and position instead of labels), "Feynman" became teach-back, and
   cross-plugin `tools:*` references are gone.

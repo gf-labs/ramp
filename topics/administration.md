@@ -46,6 +46,15 @@ This file defines the curriculum for the `administration` topic. Covers the Admi
 
 ---
 
+## Probes
+
+| name | primitive | args |
+|------|-----------|------|
+
+*(none — administration nodes require organizational context and cannot be auto-detected from local filesystem signals; see the Detection signals note below.)*
+
+---
+
 ## Detection signals
 
 | Collected evidence | Node → status |

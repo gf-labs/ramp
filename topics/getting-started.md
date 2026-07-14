@@ -45,6 +45,18 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 
 ---
 
+## Probes
+
+| name | primitive | args |
+|------|-----------|------|
+| sessions             | glob-count      | ~/.claude/projects/**/*.jsonl --exclude ~/.claude/projects/**/agent-*.jsonl |
+| claude_md_lines      | file-lines      | CLAUDE.md |
+| headless_invocations | grep-count      | "claude -p\|claude --print" scripts/ Makefile .github/ |
+| git_history          | git-log-grep    | "." |
+| max_commit_files     | git-max-commit-files | 10 |
+
+---
+
 ## Detection signals
 
 | Collected evidence | Node → status |
@@ -55,7 +67,7 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 | sessions > 10 | A: "Iterative refinement" → `[~\|historical]` |
 | CLAUDE.md line count > 20 | B: "CLAUDE.md as living project memory" → `[✓\|artifact]` |
 | headless invocations > 0 | ROOT: "Core feature surface" → `[~\|historical]` |
-| max files in recent commit ≥ 3 | A: "Reading and verifying Claude's output" → `[~\|historical]` |
+| max_commit_files ≥ 3 | A: "Reading and verifying Claude's output" → `[~\|historical]` |
 
 ---
 

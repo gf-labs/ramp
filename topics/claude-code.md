@@ -5,6 +5,7 @@ version: 2
 sources: [getting-started, build, configuration, deployment, administration]
 source_url: https://code.claude.com/docs/en/overview
 description: Complete Claude Code curriculum — aggregates all sub-topics (getting-started, build, configuration, deployment, administration) into one comprehensive learning path.
+goal: ramp them up on Claude Code as an organizational tool — how this team navigates codebases, writes PRs, runs tests, catches regressions, and automates repetitive work
 ---
 
 # Claude Code — Meta Topic

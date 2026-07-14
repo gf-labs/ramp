@@ -28,29 +28,8 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 **CLAUDE.md**:
 !`cat CLAUDE.md 2>/dev/null || echo "No CLAUDE.md found"`
 
-**CLAUDE.md line count** (to assess whether it has real content):
-!`wc -l < CLAUDE.md 2>/dev/null || echo "0"`
-
-**CLAUDE.local.md** (gitignored personal layer at the repo root):
-!`[ -f CLAUDE.local.md ] && echo "exists" || echo "absent"`
-
-**Custom slash commands in this repo**:
-!`ls .claude/commands/ 2>/dev/null | wc -l | tr -d ' '` commands: !`ls .claude/commands/ 2>/dev/null || echo "none"`
-
 **MCP servers configured** (registries: project `.mcp.json`; `~/.claude.json` project + user scope — Claude Code does not register MCP servers in `settings.json`):
 !`python3 -c "import json; s=json.load(open('.mcp.json')).get('mcpServers',{}); print('project (.mcp.json):', list(s.keys()) if s else 'none')" 2>/dev/null; python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude.json'))); loc=d.get('projects',{}).get(os.getcwd(),{}).get('mcpServers',{}); usr=d.get('mcpServers',{}); print('project (~/.claude.json):', list(loc.keys()) if loc else 'none'); print('user:', list(usr.keys()) if usr else 'none')" 2>/dev/null || echo "none found"`
-
-**Hooks configured**:
-!`python3 -c "import json; d=json.load(open('.claude/settings.json')); h=d.get('hooks',{}); print('project hooks:', list(h.keys()) if h else 'none')" 2>/dev/null; python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); h=d.get('hooks',{}); print('global hooks:', list(h.keys()) if h else 'none')" 2>/dev/null || echo "none found"`
-
-**Model settings**:
-!`python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); found={k:d[k] for k in ['model','fastModePerSessionOptIn'] if k in d}; dm=d.get('permissions',{}).get('defaultMode') or d.get('defaultMode'); found.update({'defaultMode': dm} if dm else {}); print(found if found else 'none configured')" 2>/dev/null || echo "not found"`
-
-**Plan mode default**:
-!`python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); dm=d.get('permissions',{}).get('defaultMode') or d.get('defaultMode'); print('defaultMode:', dm if dm else 'not set')" 2>/dev/null || echo "not set"`
-
-**Global permissions**:
-!`python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); p=d.get('permissions',{}); print('allow:', len(p.get('allow',[])), 'rules, deny:', len(p.get('deny',[])), 'rules')" 2>/dev/null || echo "0 rules"`
 
 **Scripts directory**:
 !`ls scripts/ 2>/dev/null | head -10 || echo "no scripts/ directory"`
@@ -58,14 +37,14 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 **Recent git activity**:
 !`git log --oneline -8 2>/dev/null || echo "no git history"`
 
-**Max files in a recent commit** (proxy for multi-file change experience):
-!`git log --stat --oneline -10 2>/dev/null | grep -E "^\s+[0-9]+ files? changed" | awk '{print $1}' | sort -n | tail -1 2>/dev/null || echo "0"`
-
 **Source files (sampled)**:
 !`find . -maxdepth 3 \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.py" -o -name "*.go" -o -name "*.rs" \) 2>/dev/null | grep -v node_modules | grep -v ".git" | head -20`
 
 **Active topic** (derived from first word of $ARGUMENTS if it matches a known topic keyword):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
+
+**Detected signals (topic-scoped)** (schema-declared probes for the active topic):
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" detect "$TOPIC" 2>/dev/null || echo "DETECT_UNAVAILABLE"`
 
 **Topic schema** (project/global schemas, then the plugin's bundled `topics/` — composite if sources: declared):
 !`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; SCHEMA=$(cat .claude/knowledge-graphs/schemas/$TOPIC.md 2>/dev/null || cat ~/.claude/ramp/schemas/$TOPIC.md 2>/dev/null || cat "$CLAUDE_PLUGIN_ROOT/topics/$TOPIC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: Create a schema at .claude/knowledge-graphs/schemas/$TOPIC.md (project-local) or ~/.claude/ramp/schemas/$TOPIC.md (global)"); echo "$SCHEMA"; if echo "$SCHEMA" | grep -q "^sources:"; then for SRC in $(echo "$SCHEMA" | grep "^sources:" | head -1 | sed 's/sources: *//' | tr -d '[]' | tr ',' '\n' | tr -d ' '); do [ -n "$SRC" ] && { echo ""; echo "---"; echo "# Sourced schema: $SRC"; cat ".claude/knowledge-graphs/schemas/$SRC.md" 2>/dev/null || cat "$HOME/.claude/ramp/schemas/$SRC.md" 2>/dev/null || cat "$CLAUDE_PLUGIN_ROOT/topics/$SRC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: $SRC"; }; done; fi`
@@ -104,19 +83,6 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 **Test framework**:
 !`{ [ -f jest.config.js ] && echo "Jest (jest.config.js)"; [ -f jest.config.ts ] && echo "Jest (jest.config.ts)"; [ -f vitest.config.js ] && echo "Vitest (vitest.config.js)"; [ -f vitest.config.ts ] && echo "Vitest (vitest.config.ts)"; [ -f pytest.ini ] && echo "pytest (pytest.ini)"; grep -q '\[tool.pytest' pyproject.toml 2>/dev/null && echo "pytest (pyproject.toml)"; [ -f go.mod ] && echo "go test"; } 2>/dev/null || echo "none detected"`
 
-**History signals** (detect past Claude Code usage):
-!`git worktree list 2>/dev/null | wc -l | tr -d ' '` git worktrees (>1 = has used worktrees)
-!`find ~/.claude/projects -name "agent-*.jsonl" 2>/dev/null | wc -l | tr -d ' '` subagent sessions in history
-!`find ~/.claude/projects -name "*.jsonl" -not -name "agent-*" 2>/dev/null | wc -l | tr -d ' '` total Claude Code sessions
-!`find ~/.claude/projects -name "MEMORY.md" 2>/dev/null | wc -l | tr -d ' '` auto-memory files (>0 = memory has fired before)
-!`find ~/.claude/agents .claude/agents -name "*.md" 2>/dev/null | wc -l | tr -d ' '` custom subagent definitions
-!`grep -r "claude -p\|claude --print" scripts/ Makefile .github/ 2>/dev/null | wc -l | tr -d ' '` headless claude invocations in repo
-!`ls .claude/worktrees/ 2>/dev/null | wc -l | tr -d ' '` project worktree dirs
-!`python3 -c "import glob; print(sum(1 for f in glob.glob('.claude/commands/*.md') + glob.glob('.claude/agents/*.md') if any(line.lstrip().startswith('!') for line in open(f))))" 2>/dev/null || echo "0"` agent files with bash injection
-
-**Historical knowledge graph evidence** (git log signals — corroborate knowledge graph inference):
-!`{ echo "=== commits mentioning claude/mcp/hook/worktree ==="; git log --all --oneline --grep="worktree\|mcp\|hook\|claude -p\|subagent" -5 2>/dev/null | head -5; echo "=== .claude/ files added historically ==="; git log --all --diff-filter=A --name-only --pretty="" 2>/dev/null | grep -E "\.claude/" | head -10; echo "=== hooks or mcpServers in settings history ==="; git log --all -p -- ".claude/settings.json" 2>/dev/null | grep -E '"hooks"|"mcpServers"' | head -3; } 2>/dev/null || echo "none"`
-
 ---
 
 ## Your role
@@ -134,9 +100,7 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 
 Running `/ramp:up` activates a **learning mode** — you become this developer's active co-pilot for the session, not a diagnostic that delivers a report and ends.
 
-Your goal: ramp them up on **Claude Code** as an organizational tool by using it *through* their actual codebase and team workflows. Claude Code is not just a code editor — it's how this team will navigate codebases, write PRs, run tests, catch regressions, and automate repetitive work. Every capability unlocked here compounds: a developer who is fluent with Claude Code moves faster across every workflow they touch.
-
-The compounding effect is the point. Stay engaged after delivering the learning path — invite them to start the first exercise immediately, and work through it with them.
+Your goal is the active topic's **goal** — read the `goal:` line from the loaded Topic schema's frontmatter (fall back to its `description:` if absent). For claude-code that goal is ramping them up on Claude Code as an organizational tool; for any other topic it is that topic's declared goal. The compounding effect is the point: stay engaged after delivering the learning path — invite them to start the first exercise immediately, and work through it with them.
 
 ---
 
@@ -261,16 +225,7 @@ If `knowledge-graph` MCP is not configured, skip this step and use the bash-inje
 
 **Step 1 — Apply environmental signals (primary evidence, takes precedence over self-report):**
 
-Apply every signal from the "Detection signals" section of the loaded schema. Cross-reference each auto-collected signal (above) against the detection table. Environmental signals take precedence over self-report.
-
-Also cross-reference the "Historical skill evidence" (git log signals) injected above:
-- Commits adding `.claude/commands/*.md` → `[✓|historical]` for "Custom slash commands"
-- Commits adding `.claude/settings.json` with `"hooks"` content → `[✓|historical]` for the relevant hook node
-- Commits adding `.claude/settings.json` with `"mcpServers"` content → `[✓|historical]` for "MCP servers configured and used"
-- Commits with message mentioning `worktree` → corroborating evidence for "Worktrees for parallel development"
-- Commits with message mentioning `mcp`, `hook`, or `subagent` → corroborating evidence for the relevant D/E nodes
-
-Apply the same inference rules as detection signals: upgrade `[ ]`/`[~]` to `[✓|historical]`; never downgrade existing `[✓]`.
+Apply every signal from the "Detection signals" section of the loaded schema. Each predicate references a probe name from the **Detected signals (topic-scoped)** block injected above (e.g. `sessions > 5`, `claude_md_lines > 20`, `mcp_project`). Cross-reference each probe value against the detection table; environmental signals take precedence over self-report. Never downgrade an existing `[✓]`.
 
 **Then write `.ramp/scan.md`** (format in `## The ./.ramp/ workspace`): the scope actually scanned (this repo's path, `~/.claude/` config, git history + Claude sessions), the explicit **Not looked at** boundary, and every node this step marked demonstrated with the evidence that triggered it. If nothing was detected, still write the scope + boundary with an empty findings list — the file answers "what did the scan look at," not just "what did it find."
 
@@ -340,7 +295,7 @@ Use the "Tier definitions" from the loaded schema. If the schema doesn't provide
 **Full mode (Practitioner/Expert):** 3–4 sentences describing what the codebase does, the tech stack, structure, and what's actively changing. Use actual names from the collected context — no generic descriptions. Then:
 
 Team workflows and tooling (full mode only):
-- Claude Code setup: (CLAUDE.md present? Custom slash commands? MCP servers configured?)
+- Topic setup: surface the environment signals the **Detected signals** block reported that are relevant to this topic (e.g. for claude-code: CLAUDE.md, custom commands, MCP servers; for another topic: whatever its probes found).
 - CI/CD: (from `.github/workflows/` scan — what pipelines run on PRs/merges?)
 - Testing: (test framework detected + how to run tests based on Makefile or scripts)
 - PR process: (PR template present? Contributing guide?)
@@ -493,6 +448,7 @@ Execute only what's selected. For option **b**, write `ONBOARDING.md` to the rep
 ## Tech stack
 [bulleted list from context]
 
+<!-- Generating this section: if the active topic is `claude-code`, emit the "## Claude Code setup for this repo" heading and the bullets below as-is. For any other topic, replace the heading with "## <Topic> setup for this repo" and fill its bullets from that topic's Detected signals block — omit the section entirely if the topic reported no relevant signals. Never emit a "Claude Code setup" heading for a non-claude-code topic. -->
 ## Claude Code setup for this repo
 - Custom commands: [list from .claude/commands/ or "none configured"]
 - MCP servers: [configured servers or "none configured"]
