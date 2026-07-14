@@ -89,6 +89,7 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | custom_agents_home | glob-count         | ~/.claude/agents/*.md |
 | worktrees          | git-worktree-count | — |
 | slash_commands     | glob-count         | .claude/commands/*.md |
+| skill_bash_injection | grep-count       | "^\s*!" .claude/commands .claude/agents |
 | hooks_pretooluse   | json-has-key       | .claude/settings.json hooks.PreToolUse |
 | hooks_posttooluse  | json-has-key       | .claude/settings.json hooks.PostToolUse |
 | hooks_stop         | json-has-key       | .claude/settings.json hooks.Stop |
@@ -104,14 +105,14 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 
 | Collected evidence | Node → status |
 |--------------------|---------------|
-| subagent sessions > 3 | ROOT: "Subagent basics" → `[✓\|historical]` |
-| subagent sessions > 0 (≤3) | ROOT: "Subagent basics" → `[~\|historical]` |
-| subagent sessions > 10 | ROOT: "Foreground vs. background subagents" → `[~\|historical]` |
-| subagent sessions > 20 | ROOT: "Agent teams: orchestration patterns" → `[~\|historical]` |
+| agent_sessions > 3 | ROOT: "Subagent basics" → `[✓\|historical]` |
+| agent_sessions > 0 (≤3) | ROOT: "Subagent basics" → `[~\|historical]` |
+| agent_sessions > 10 | ROOT: "Foreground vs. background subagents" → `[~\|historical]` |
+| agent_sessions > 20 | ROOT: "Agent teams: orchestration patterns" → `[~\|historical]` |
 | custom_agents > 0 OR custom_agents_home > 0 | ROOT: "Custom subagent definitions" → `[✓\|artifact]` |
-| git worktrees > 1 | ROOT: "Worktrees for parallel development" → `[✓\|historical]` |
-| `.claude/commands/` count ≥ 1 | A: "Skills: creation and syntax" → `[✓\|artifact]` |
-| skill files with bash injection > 0 | A: "Skill mechanics: $ARGUMENTS, !bash, @file" → `[✓\|artifact]` |
+| worktrees > 1 | ROOT: "Worktrees for parallel development" → `[✓\|historical]` |
+| slash_commands ≥ 1 | A: "Skills: creation and syntax" → `[✓\|artifact]` |
+| skill_bash_injection > 0 | A: "Skill mechanics: $ARGUMENTS, !bash, @file" → `[✓\|artifact]` |
 | command files with both `!` and `@` usage | A: "Skill and command composition" → `[✓\|artifact]` |
 | `enabledPlugins` in settings | A: "Plugin discovery and installation" → `[✓\|artifact]` |
 | `.claude-plugin/plugin.json` exists | A: "Plugin manifest (plugin.json)" → `[✓\|artifact]` |

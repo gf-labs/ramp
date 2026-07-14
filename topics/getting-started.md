@@ -67,7 +67,7 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 | sessions > 10 | A: "Iterative refinement" → `[~\|historical]` |
 | CLAUDE.md line count > 20 | B: "CLAUDE.md as living project memory" → `[✓\|artifact]` |
 | headless invocations > 0 | ROOT: "Core feature surface" → `[~\|historical]` |
-| max files in recent commit ≥ 3 | A: "Reading and verifying Claude's output" → `[~\|historical]` |
+| max_commit_files ≥ 3 | A: "Reading and verifying Claude's output" → `[~\|historical]` |
 
 ---
 

@@ -31,8 +31,9 @@ moves out of chat scrollback into two inspectable homes.
 - Kernel `due` and `advance` CLI verbs — review's SR queue and its schedule writes are
   kernel-computed on every install (no MCP required).
 - Schema-declared `## Probes` detection: topics carry their own read-only environment
-  probes (26 shell-free primitives), unioned across a composite topic's sub-schemas, run
-  by a new `ramp_core` detection engine (`run_detection`/`format_detection`) and a
+  probes — 27 probe declarations across the claude-code composite, built from 10
+  shell-free primitive types — unioned across a composite topic's sub-schemas, run by a
+  new `ramp_core` detection engine (`run_detection`/`format_detection`) and a
   `detect <topic>` CLI verb — adding a topic adds its detection with no command change.
 - CI: a pytest matrix proving the Python 3.8 floor, a manifest↔CHANGELOG↔tag release
   gate for `main`, and Dependabot for the SHA-pinned actions.

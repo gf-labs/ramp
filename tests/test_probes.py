@@ -217,6 +217,39 @@ def test_git_max_commit_files_missing_arg_defaults_and_is_zero(tmp_path, monkeyp
     assert ramp_core.run_probe("git-max-commit-files", "") == 0
 
 
+# --- Fork B: the arbitrary-shell `cmd` primitive + its trust gate were removed
+# (Task 6). run_probe must treat `cmd` (and any unknown primitive) as inert and
+# NEVER execute a shell — asserted positively here, not just by grep-absence, so
+# a silent reintroduction of a shell surface fails the suite.
+
+def test_removed_cmd_primitive_is_inert_and_runs_no_shell(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    sentinel = tmp_path / "PWNED"
+    assert ramp_core.run_probe("cmd", f"touch {sentinel}") == "UNKNOWN_PRIMITIVE:cmd"
+    assert not sentinel.exists()  # the payload was never executed
+    # shell metacharacters in an unknown primitive's args are likewise never run
+    assert ramp_core.run_probe("shell", "git status; rm -rf .") == "UNKNOWN_PRIMITIVE:shell"
+
+
+# --- Item 1 (whole-branch review): the `skill_bash_injection` probe restores the
+# base up.md scan for `!`-injection lines under .claude/commands + .claude/agents,
+# which build.md's "Skill mechanics" node consumes. Pins the exact args string
+# (incl. the "^\\s*!" regex through parse-args -> shlex -> re) declared in build.md.
+
+def test_skill_bash_injection_probe_counts_leading_bang_lines(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    cmds = tmp_path / ".claude" / "commands"
+    cmds.mkdir(parents=True)
+    (cmds / "clean.md").write_text("---\ndesc: x\n---\n!`git status`\nplain text\n")
+    (cmds / "plain.md").write_text("no injection here\n")
+    agents = tmp_path / ".claude" / "agents"
+    agents.mkdir(parents=True)
+    (agents / "r.md").write_text("  !ls\n")  # indented `!` still counts (lstrip semantics)
+    assert ramp_core.run_probe(
+        "grep-count", '"^\\s*!" .claude/commands .claude/agents'
+    ) == 2
+
+
 # --- Probe-table parsing + composite source union ---------------------------
 
 PROBES_BLOCK = """---

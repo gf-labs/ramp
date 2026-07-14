@@ -67,10 +67,10 @@ This file defines the curriculum for the `configuration` topic. Covers the Confi
 |--------------------|---------------|
 | settings file exists with non-empty content | ROOT: "Settings file format and key options" → `[✓\|artifact]` |
 | settings file exists (any) | ROOT: "Settings scope hierarchy" → `[~\|artifact]` |
-| `model` in settings | ROOT: "Model selection and budget configuration" → `[✓\|artifact]` |
-| global permission rules > 0 | A: "Permissions: allow/deny rules" → `[✓\|artifact]` |
+| model_set = true | ROOT: "Model selection and budget configuration" → `[✓\|artifact]` |
+| global_permissions = true | A: "Permissions: allow/deny rules" → `[✓\|artifact]` |
 | global + project permissions both present | A: "Permission precedence and scoping" → `[~\|historical]` |
-| `fastModePerSessionOptIn` in settings | A: "Fast mode" → `[~\|artifact]` |
+| fast_mode = true | A: "Fast mode" → `[~\|artifact]` |
 | `defaultMode: plan` set (under `permissions` or top-level) | A: "Plan mode as default" → `[✓\|artifact]` |
 | `~/.claude/keybindings.json` exists with content | B: "Keybindings customization" → `[✓\|artifact]` |
 | sessions > 5 | B: "Interactive mode features" → `[~\|historical]` |
