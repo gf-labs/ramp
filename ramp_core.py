@@ -685,6 +685,70 @@ def run_probe(primitive: str, arg_str: str, trusted: bool = False):
     return "UNKNOWN_PRIMITIVE:" + primitive
 
 
+def parse_probes(content: str) -> list:
+    """A schema's `## Probes` table -> [(name, primitive, args)].
+
+    Rows are `| name | primitive | args |`. Header (`name`) and `|---|`
+    separator rows are skipped. A `\\|` inside the args cell is a literal pipe
+    (markdown escaping) and is restored; an em-dash args cell means "no args"
+    -> empty string. Scoped strictly to the `## Probes` section."""
+    rows = []
+    in_probes = False
+    for line in content.splitlines():
+        if line.startswith("## "):
+            in_probes = line.strip().lower().startswith("## probes")
+            continue
+        if not in_probes:
+            continue
+        s = line.strip()
+        if not s.startswith("|"):
+            continue
+        raw = s.strip("|").replace("\\|", "\x00")  # protect escaped pipes
+        cells = [c.replace("\x00", "|").strip() for c in raw.split("|")]
+        if len(cells) < 3:
+            continue
+        name, primitive, args = cells[0], cells[1], cells[2]
+        if not name or name.lower() == "name" or set(name) <= {"-", ":"}:
+            continue
+        rows.append((name, primitive, "" if args == "—" else args))
+    return rows
+
+
+def _is_trusted_schema_dir(schema_dir) -> bool:
+    """Trust = provenance. A schema is trusted (may run `cmd` probes) only when
+    it is loaded from the plugin's bundled `$CLAUDE_PLUGIN_ROOT/topics/` dir. A
+    self-declared `trusted:` flag is worthless in an untrusted file, so trust is
+    the directory, not a field."""
+    root = os.environ.get("CLAUDE_PLUGIN_ROOT")
+    if not root:
+        return False
+    try:
+        return Path(schema_dir).resolve() == (Path(root) / "topics").resolve()
+    except OSError:
+        return False
+
+
+def load_topic_probes(topic: str, schema_dir):
+    """Union the topic's own `## Probes` with those of its `sources:` sub-schemas.
+    First declaration of a probe name wins (compute_xp's dedup rule). Returns
+    ({name: (primitive, args)}, trusted)."""
+    schema_dir = Path(schema_dir)
+
+    def read(name):
+        try:
+            return (schema_dir / (name + ".md")).read_text(encoding="utf-8")
+        except OSError:
+            return ""
+
+    fm = parse_frontmatter(read(topic))
+    names = [topic] + (_parse_sources(fm["sources"]) if "sources" in fm else [])
+    probes = {}
+    for n in names:
+        for pname, primitive, args in parse_probes(read(n)):
+            probes.setdefault(pname, (primitive, args))  # first wins
+    return probes, _is_trusted_schema_dir(schema_dir)
+
+
 # ---------------------------------------------------------------------------
 # CLI shim — the no-MCP path. Read verbs emit JSON data (the prompts render
 # layout); the save verb is the validated writer, full tree on stdin. Guarded

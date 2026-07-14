@@ -197,3 +197,82 @@ def test_git_log_grep_bare_commit_message_match(tmp_path, monkeypatch):
     subprocess.run(["git", "commit", "-qm", "chore: bump deps"], cwd=tmp_path, check=True)
     # only the "feat: add widget" commit message matches ^feat
     assert ramp_core.run_probe("git-log-grep", '"^feat"') == 1
+
+
+# --- Probe-table parsing + composite source union ---------------------------
+
+PROBES_BLOCK = """---
+topic: demo
+---
+
+## Probes
+
+| name | primitive | args |
+|------|-----------|------|
+| sessions             | glob-count   | ~/.claude/projects/**/*.jsonl --exclude ~/.claude/projects/**/agent-*.jsonl |
+| claude_md_lines      | file-lines   | CLAUDE.md |
+| headless_invocations | grep-count   | "claude -p\\|claude --print" scripts/ Makefile .github/ |
+| worktrees            | git-worktree-count | — |
+
+## Detection signals
+
+| Collected evidence | Node -> status |
+|--------------------|----------------|
+| sessions > 5 | A -> [~] |
+"""
+
+
+def test_parse_probes_reads_rows_and_unescapes_pipes():
+    rows = ramp_core.parse_probes(PROBES_BLOCK)
+    by_name = {r[0]: (r[1], r[2]) for r in rows}
+    assert by_name["sessions"] == (
+        "glob-count",
+        "~/.claude/projects/**/*.jsonl --exclude ~/.claude/projects/**/agent-*.jsonl",
+    )
+    assert by_name["claude_md_lines"] == ("file-lines", "CLAUDE.md")
+    # the escaped table pipe is restored to a literal | in the args
+    assert by_name["headless_invocations"] == (
+        "grep-count",
+        '"claude -p|claude --print" scripts/ Makefile .github/',
+    )
+    # an em-dash "no args" cell becomes an empty string
+    assert by_name["worktrees"] == ("git-worktree-count", "")
+    # only the Probes table is read, not the Detection signals table
+    assert "sessions > 5" not in {r[0] for r in rows}
+
+
+def _write_schema(d, name, frontmatter, probes_rows):
+    body = "---\n" + frontmatter + "---\n\n## Probes\n\n| name | primitive | args |\n|--|--|--|\n"
+    for row in probes_rows:
+        body += "| " + " | ".join(row) + " |\n"
+    (d / (name + ".md")).write_text(body)
+
+
+def test_load_topic_probes_unions_sources_first_wins(tmp_path):
+    d = tmp_path / "schemas"
+    d.mkdir()
+    # composite declares no probes of its own, sources two sub-schemas
+    _write_schema(d, "combo", "topic: combo\nsources: [subA, subB]\n", [])
+    _write_schema(d, "subA", "topic: subA\n", [
+        ("sessions", "glob-count", "a/**/*.jsonl"),
+        ("shared", "file-lines", "A.md"),
+    ])
+    _write_schema(d, "subB", "topic: subB\n", [
+        ("worktrees", "git-worktree-count", "—"),
+        ("shared", "file-lines", "B.md"),  # duplicate name: first (subA) wins
+    ])
+    probes, trusted = ramp_core.load_topic_probes("combo", d)
+    assert probes["sessions"] == ("glob-count", "a/**/*.jsonl")
+    assert probes["worktrees"] == ("git-worktree-count", "")
+    assert probes["shared"] == ("file-lines", "A.md")  # first declaration wins
+    assert trusted is False  # tmp dir is not the bundled topics/ dir
+
+
+def test_load_topic_probes_trusted_only_for_bundled_dir(tmp_path, monkeypatch):
+    plugin_root = tmp_path / "plugin"
+    topics = plugin_root / "topics"
+    topics.mkdir(parents=True)
+    _write_schema(topics, "solo", "topic: solo\n", [("x", "file-exists", "f")])
+    monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(plugin_root))
+    _, trusted = ramp_core.load_topic_probes("solo", topics)
+    assert trusted is True
