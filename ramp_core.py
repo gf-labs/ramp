@@ -10,6 +10,10 @@ python3 with no .venv, so no third-party imports, ever.
 import os
 import re
 import sys
+import glob as _glob
+import json as _json
+import shlex
+import subprocess
 from contextlib import contextmanager
 from datetime import date, timedelta
 from pathlib import Path
@@ -508,6 +512,177 @@ def list_catalog(schema_dir, graph_dir, today: date) -> list:
             "summary": summary,
         })
     return catalog
+
+
+# ---------------------------------------------------------------------------
+# Detection probe layer — the topic-driven half of environment detection.
+# up.md used to hardcode ~15 Claude-Code-specific !bash scans; those move into
+# each schema's `## Probes` table, wiring probe NAMES to these declarative,
+# read-only primitives. `detect <topic>` runs the active topic's probes and
+# emits the name=value evidence block Phase 2 Step 1 reads. STDLIB-ONLY.
+# Every primitive degrades to its zero value on error — detection is
+# best-effort, matching the old scans' `2>/dev/null || echo 0`.
+# ---------------------------------------------------------------------------
+
+def _probe_file_exists(path: str) -> bool:
+    return Path(os.path.expanduser(path)).exists()
+
+
+def _probe_file_lines(path: str) -> int:
+    try:
+        with Path(os.path.expanduser(path)).open("r", encoding="utf-8", errors="replace") as fh:
+            return sum(1 for _ in fh)
+    except OSError:
+        return 0
+
+
+def _probe_glob_count(pattern: str, exclude: str = None) -> int:
+    hits = set(_glob.glob(os.path.expanduser(pattern), recursive=True))
+    if exclude:
+        hits -= set(_glob.glob(os.path.expanduser(exclude), recursive=True))
+    return len(hits)
+
+
+def _probe_dir_count(path: str) -> int:
+    try:
+        return sum(1 for _ in Path(os.path.expanduser(path)).iterdir())
+    except OSError:
+        return 0
+
+
+def _json_load(path: str):
+    try:
+        return _json.loads(Path(os.path.expanduser(path)).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def _dotted_get(obj, dotted: str):
+    cur = obj
+    for key in dotted.split("."):
+        if isinstance(cur, dict) and key in cur:
+            cur = cur[key]
+        else:
+            return None
+    return cur
+
+
+def _probe_json_has_key(path: str, dotted: str) -> bool:
+    val = _dotted_get(_json_load(path), dotted)
+    return val is not None and val != {} and val != []
+
+
+def _probe_json_value(path: str, dotted: str):
+    return _dotted_get(_json_load(path), dotted)
+
+
+def _iter_files(base: Path):
+    if base.is_dir():
+        for f in base.rglob("*"):
+            if f.is_file():
+                yield f
+    elif base.is_file():
+        yield base
+
+
+def _probe_grep_count(regex: str, paths) -> int:
+    try:
+        rx = re.compile(regex)
+    except re.error:
+        return 0
+    count = 0
+    for base in paths:
+        for f in _iter_files(Path(os.path.expanduser(base))):
+            try:
+                with f.open("r", encoding="utf-8", errors="replace") as fh:
+                    count += sum(1 for line in fh if rx.search(line))
+            except OSError:
+                continue
+    return count
+
+
+def _git(args) -> str:
+    """git stdout on success, '' on any failure (not a repo, git absent)."""
+    try:
+        out = subprocess.run(["git"] + list(args), capture_output=True, text=True, timeout=10)
+        return out.stdout if out.returncode == 0 else ""
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def _probe_git_log_grep(regex: str, diff_filter: str = None, path: str = None) -> int:
+    if diff_filter:
+        # count ADDED file paths (across all history) whose name matches regex
+        args = ["log", "--all", "--diff-filter=" + diff_filter, "--name-only", "--pretty=format:"]
+        if path:
+            args += ["--", path]
+        try:
+            rx = re.compile(regex)
+        except re.error:
+            return 0
+        return sum(1 for ln in _git(args).splitlines() if ln.strip() and rx.search(ln))
+    # count COMMITS whose message matches regex (extended-regex --grep)
+    out = _git(["log", "--all", "--oneline", "-E", "--grep", regex])
+    return sum(1 for ln in out.splitlines() if ln.strip())
+
+
+def _probe_git_worktree_count() -> int:
+    return sum(1 for ln in _git(["worktree", "list"]).splitlines() if ln.strip())
+
+
+_TRUSTED_ONLY = {"cmd"}
+
+
+def run_probe(primitive: str, arg_str: str, trusted: bool = False):
+    """Dispatch a single probe. `arg_str` is the raw args cell from the schema
+    table (pipes already unescaped by parse_probes). Trusted gates `cmd`."""
+    if primitive in _TRUSTED_ONLY and not trusted:
+        return "SKIPPED_UNTRUSTED"
+    try:
+        toks = shlex.split(arg_str) if arg_str else []
+    except ValueError:
+        toks = []
+    if primitive == "file-exists":
+        return _probe_file_exists(toks[0]) if toks else False
+    if primitive == "file-lines":
+        return _probe_file_lines(toks[0]) if toks else 0
+    if primitive == "glob-count":
+        exclude, pos, i = None, [], 0
+        while i < len(toks):
+            if toks[i] == "--exclude" and i + 1 < len(toks):
+                exclude = toks[i + 1]; i += 2
+            else:
+                pos.append(toks[i]); i += 1
+        return _probe_glob_count(pos[0], exclude) if pos else 0
+    if primitive == "dir-count":
+        return _probe_dir_count(toks[0]) if toks else 0
+    if primitive == "json-has-key":
+        return _probe_json_has_key(toks[0], toks[1]) if len(toks) >= 2 else False
+    if primitive == "json-value":
+        return _probe_json_value(toks[0], toks[1]) if len(toks) >= 2 else None
+    if primitive == "grep-count":
+        return _probe_grep_count(toks[0], toks[1:]) if toks else 0
+    if primitive == "git-log-grep":
+        diff_filter, path, pos, i = None, None, [], 0
+        while i < len(toks):
+            if toks[i].startswith("--diff-filter="):
+                diff_filter = toks[i].split("=", 1)[1]; i += 1
+            elif toks[i] == "--diff-filter" and i + 1 < len(toks):
+                diff_filter = toks[i + 1]; i += 2
+            elif toks[i] == "--path" and i + 1 < len(toks):
+                path = toks[i + 1]; i += 2
+            else:
+                pos.append(toks[i]); i += 1
+        return _probe_git_log_grep(pos[0], diff_filter, path) if pos else 0
+    if primitive == "git-worktree-count":
+        return _probe_git_worktree_count()
+    if primitive == "cmd":  # trusted path only (gated above)
+        try:
+            out = subprocess.run(arg_str, shell=True, capture_output=True, text=True, timeout=10)
+            return out.stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            return ""
+    return "UNKNOWN_PRIMITIVE:" + primitive
 
 
 # ---------------------------------------------------------------------------
