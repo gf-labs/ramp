@@ -972,6 +972,8 @@ def _main(argv) -> int:
     p_adv.add_argument("topic")
     p_adv.add_argument("node")
     p_adv.add_argument("outcome", choices=["pass", "fail"])
+    p_detect = sub.add_parser("detect")
+    p_detect.add_argument("topic")
     args = parser.parse_args(argv)
 
     if args.cmd == "catalog":
@@ -989,6 +991,10 @@ def _main(argv) -> int:
         result = advance_review(args.topic, args.node, args.outcome)
         print(result)
         return 0 if result.startswith("advanced") else 2
+
+    if args.cmd == "detect":
+        print(format_detection(run_detection(args.topic, _schema_dir())))
+        return 0
 
     # args.cmd in ("summary", "nodes", "due") — all read a single topic graph; a
     # missing graph yields the empty shape ({} for summary, [] for nodes/due).

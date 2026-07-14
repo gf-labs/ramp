@@ -5,6 +5,7 @@ zero value on any error. `run_probe` is the dispatch; `run_detection` runs a
 topic's declared probes. STDLIB-ONLY, like the kernel it lives in.
 """
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -322,3 +323,40 @@ def test_run_detection_end_to_end(tmp_path, monkeypatch):
     assert "mcp_project=true" in text
     assert "claude_local=false" in text
     assert "headless=2" in text
+
+
+def test_cli_detect_emits_name_value_block(tmp_path):
+    plugin_root = tmp_path / "plugin"
+    topics = plugin_root / "topics"
+    topics.mkdir(parents=True)
+    (topics / "demo.md").write_text(
+        "---\ntopic: demo\n---\n\n## Probes\n\n"
+        "| name | primitive | args |\n|--|--|--|\n"
+        "| claude_md_lines | file-lines  | CLAUDE.md |\n"
+        "| claude_local    | file-exists | CLAUDE.local.md |\n"
+    )
+    work = tmp_path / "work"
+    work.mkdir()
+    (work / "CLAUDE.md").write_text("one\ntwo\nthree\n")
+    home = tmp_path / "home"
+    (home / ".claude" / "ramp" / "graphs").mkdir(parents=True)
+
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    env["CLAUDE_PLUGIN_ROOT"] = str(plugin_root)
+    core = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    out = subprocess.check_output(["python3", core, "detect", "demo"], env=env, text=True, cwd=str(work))
+    lines = set(out.strip().splitlines())
+    assert "claude_md_lines=3" in lines
+    assert "claude_local=false" in lines
+
+
+def test_cli_detect_unknown_topic_is_empty(tmp_path):
+    home = tmp_path / "home"
+    (home / ".claude" / "ramp" / "graphs").mkdir(parents=True)
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    env.pop("CLAUDE_PLUGIN_ROOT", None)
+    core = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    out = subprocess.check_output(["python3", core, "detect", "nope"], env=env, text=True, cwd=str(tmp_path))
+    assert out.strip() == ""
