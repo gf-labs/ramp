@@ -749,6 +749,30 @@ def load_topic_probes(topic: str, schema_dir):
     return probes, _is_trusted_schema_dir(schema_dir)
 
 
+def run_detection(topic: str, schema_dir=None) -> dict:
+    """Run every probe the active topic declares (own + sourced), returning
+    {name: value}. Insertion order follows first-declaration order."""
+    schema_dir = _schema_dir() if schema_dir is None else Path(schema_dir)
+    probes, trusted = load_topic_probes(topic, schema_dir)
+    return {
+        name: run_probe(primitive, args, trusted=trusted)
+        for name, (primitive, args) in probes.items()
+    }
+
+
+def _fmt_value(v) -> str:
+    if isinstance(v, bool):  # bool before int — bool is an int subclass
+        return "true" if v else "false"
+    if v is None:
+        return "none"
+    return str(v)
+
+
+def format_detection(result: dict) -> str:
+    """The name=value evidence block up.md injects. One line per probe."""
+    return "\n".join(f"{name}={_fmt_value(val)}" for name, val in result.items())
+
+
 # ---------------------------------------------------------------------------
 # CLI shim — the no-MCP path. Read verbs emit JSON data (the prompts render
 # layout); the save verb is the validated writer, full tree on stdin. Guarded

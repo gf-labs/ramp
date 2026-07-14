@@ -276,3 +276,49 @@ def test_load_topic_probes_trusted_only_for_bundled_dir(tmp_path, monkeypatch):
     monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(plugin_root))
     _, trusted = ramp_core.load_topic_probes("solo", topics)
     assert trusted is True
+
+
+def test_run_detection_end_to_end(tmp_path, monkeypatch):
+    # a synthetic repo + schema; assert the runner wires probes -> values.
+    # The `headless` grep-count probe is declared with an ESCAPED pipe (\|) so this
+    # test pins the full markdown -> parse_probes (unescape) -> shlex -> re path in
+    # CI — the exact escape path the regex-bearing probes take, and the layer most
+    # likely to silently regress. Without this, that path is only checked by the
+    # un-committed, machine-dependent Task 6 gate.
+    home = tmp_path / "home"
+    (home / ".claude" / "projects" / "x").mkdir(parents=True)
+    (home / ".claude" / "projects" / "x" / "s1.jsonl").write_text("")
+    (home / ".claude" / "projects" / "x" / "agent-s2.jsonl").write_text("")
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "CLAUDE.md").write_text("a\nb\n")
+    (repo / ".mcp.json").write_text(json.dumps({"mcpServers": {"kg": {}}}))
+    scripts = repo / "scripts"
+    scripts.mkdir()
+    (scripts / "run.sh").write_text("claude -p hi\nclaude --print yo\necho skip\n")
+    schemas = tmp_path / "schemas"
+    schemas.mkdir()
+    (schemas / "demo.md").write_text(
+        "---\ntopic: demo\n---\n\n## Probes\n\n"
+        "| name | primitive | args |\n|--|--|--|\n"
+        "| sessions        | glob-count   | ~/.claude/projects/**/*.jsonl --exclude ~/.claude/projects/**/agent-*.jsonl |\n"
+        "| claude_md_lines | file-lines   | CLAUDE.md |\n"
+        "| mcp_project     | json-has-key | .mcp.json mcpServers |\n"
+        "| claude_local    | file-exists  | CLAUDE.local.md |\n"
+        "| headless        | grep-count   | \"claude -p\\|claude --print\" scripts/ |\n"
+    )
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.chdir(repo)
+    result = ramp_core.run_detection("demo", schemas)
+    assert result == {
+        "sessions": 1,          # s1.jsonl counted, agent-s2 excluded
+        "claude_md_lines": 2,
+        "mcp_project": True,
+        "claude_local": False,
+        "headless": 2,          # \| in the table cell -> real alternation at re; both lines match
+    }
+    text = ramp_core.format_detection(result)
+    assert "sessions=1" in text
+    assert "mcp_project=true" in text
+    assert "claude_local=false" in text
+    assert "headless=2" in text
