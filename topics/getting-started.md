@@ -45,6 +45,18 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 
 ---
 
+## Probes
+
+| name | primitive | args |
+|------|-----------|------|
+| sessions             | glob-count      | ~/.claude/projects/**/*.jsonl --exclude ~/.claude/projects/**/agent-*.jsonl |
+| claude_md_lines      | file-lines      | CLAUDE.md |
+| headless_invocations | grep-count      | "claude -p\|claude --print" scripts/ Makefile .github/ |
+| git_history          | git-log-grep    | "." |
+| max_commit_files     | cmd             | git log --stat --oneline -10 2>/dev/null \| grep -E "^\s+[0-9]+ files? changed" \| awk '{print $1}' \| sort -n \| tail -1 \|\| echo 0 |
+
+---
+
 ## Detection signals
 
 | Collected evidence | Node → status |

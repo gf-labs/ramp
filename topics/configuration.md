@@ -46,6 +46,20 @@ This file defines the curriculum for the `configuration` topic. Covers the Confi
 
 ---
 
+## Probes
+
+| name | primitive | args |
+|------|-----------|------|
+| model_set          | json-has-key | ~/.claude/settings.json model |
+| global_permissions | json-has-key | ~/.claude/settings.json permissions.allow |
+| fast_mode          | json-has-key | ~/.claude/settings.json fastModePerSessionOptIn |
+| plan_mode          | json-value   | ~/.claude/settings.json permissions.defaultMode |
+| claude_local       | file-exists  | CLAUDE.local.md |
+| memory_files       | glob-count   | ~/.claude/projects/**/MEMORY.md |
+| hist_claude_files  | git-log-grep | ".claude/" --diff-filter=A |
+
+---
+
 ## Detection signals
 
 | Collected evidence | Node → status |

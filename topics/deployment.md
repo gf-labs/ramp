@@ -44,6 +44,15 @@ This file defines the curriculum for the `deployment` topic. Covers the Deployme
 
 ---
 
+## Probes
+
+| name | primitive | args |
+|------|-----------|------|
+
+*(none — deployment's detection signals are environment-variable based; the vocabulary has no `env-exists`/`env-value` primitive yet, so this schema declares no probes in this slice.)*
+
+---
+
 ## Detection signals
 
 | Collected evidence | Node → status |
