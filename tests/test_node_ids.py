@@ -65,6 +65,23 @@ def test_set_review_field_without_id_unchanged_behavior():
     assert ramp_core.set_review_field(line, "2026-06-25", 2).endswith("| next: 2026-06-25 [L2]")
 
 
+# --- Hardening: `| id:` is the final field, so a literal "| id:" appearing
+#     inside evidence text must not be read as the node's id (regex anchored to
+#     end-of-line). Plausible here since the curriculum teaches the id syntax. ---
+
+def test_node_id_ignores_id_literal_in_evidence():
+    line = "- [✓|exercise] Node ids — ramp: used the | id: field syntax | next: 2026-07-01 [L1] | id: build-node-ids"
+    assert ramp_core.node_id(line) == "build-node-ids"
+
+
+def test_set_review_field_survives_id_literal_in_evidence():
+    # the confirmed corruption: the greedy first-match peeled evidence + real id,
+    # writing a garbage id to disk on the next schedule advance
+    line = "- [✓|exercise] Node ids — ramp: used the | id: field syntax | next: 2026-07-01 [L1] | id: build-node-ids"
+    out = ramp_core.set_review_field(line, "2026-09-01", 2)
+    assert out == "- [✓|exercise] Node ids — ramp: used the | id: field syntax | next: 2026-09-01 [L2] | id: build-node-ids"
+
+
 # --- Task 3: parse_node_ids + load_topic_node_ids ---
 
 _NODEDEFS = """---

@@ -125,8 +125,10 @@ def parse_review_field(line: str):
     return (date.fromisoformat(m.group(1)), int(m.group(2)))
 
 
-# A trailing identity field: "| id: <slug>". Always the final field on a line.
-_ID_RE = re.compile(r"\|\s*id:\s*(\S+)")
+# A trailing identity field: "| id: <slug>". Always the final field on a line, so
+# anchor to end-of-line — otherwise a literal "| id:" inside evidence text (the
+# curriculum teaches this very syntax) would be mis-read as the node's id.
+_ID_RE = re.compile(r"\|\s*id:\s*(\S+)\s*$")
 
 
 def node_id(line: str):
