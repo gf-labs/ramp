@@ -266,3 +266,76 @@ def test_validate_tree_flags_duplicate_id():
         "- [ ] One | id: dup\n- [ ] Two | id: dup\n"
     )
     assert any("duplicate id" in p.lower() for p in ramp_core.validate_tree(tree))
+
+
+# --- Task 7: ids verb (slug suggestions + lint) ---
+
+def test_suggest_node_id_is_full_kebab():
+    assert ramp_core.suggest_node_id("getting-started", "Memory types and scope hierarchy") == \
+        "getting-started-memory-types-and-scope-hierarchy"
+    assert ramp_core.suggest_node_id("getting-started", "How Claude Code uses computers (tool loop)") == \
+        "getting-started-how-claude-code-uses-computers-tool-loop"
+    assert ramp_core.suggest_node_id("gs", "Reading and verifying Claude's output") == \
+        "gs-reading-and-verifying-claude-s-output"
+
+
+_LINT_SCHEMA = """---
+topic: demo
+---
+
+## Node definitions
+
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|--|--|--|--|--|--|
+| Alpha | c | Q | None | u | demo-alpha |
+| Beta | c | Q | None | u | demo-beta |
+
+## Saved tree file template
+
+```markdown
+## [ROOT] x
+- [STATUS|TYPE] Alpha
+- [STATUS|TYPE] Beta
+```
+"""
+
+
+def test_lint_clean_schema_has_no_problems():
+    result = ramp_core.lint_schema_ids("demo", _LINT_SCHEMA)
+    assert result["problems"] == []
+    assert {r["title"]: r["id"] for r in result["rows"]} == {"Alpha": "demo-alpha", "Beta": "demo-beta"}
+
+
+def test_lint_flags_missing_id_and_suggests_slug():
+    schema = _LINT_SCHEMA.replace(" u | demo-beta |", " u |  |")  # Beta id blanked
+    result = ramp_core.lint_schema_ids("demo", schema)
+    beta = next(r for r in result["rows"] if r["title"] == "Beta")
+    assert beta["id"] is None
+    assert beta["suggested"] == "demo-beta"
+    assert any("missing id" in p.lower() and "Beta" in p for p in result["problems"])
+
+
+def test_lint_flags_duplicate_id():
+    schema = _LINT_SCHEMA.replace("demo-beta", "demo-alpha")  # dup
+    assert any("duplicate id" in p.lower() for p in ramp_core.lint_schema_ids("demo", schema)["problems"])
+
+
+def test_lint_flags_template_nodedef_parity_skew():
+    schema = _LINT_SCHEMA.replace("- [STATUS|TYPE] Beta", "- [STATUS|TYPE] Beta renamed")
+    problems = ramp_core.lint_schema_ids("demo", schema)["problems"]
+    assert any("parity" in p.lower() for p in problems)
+
+
+def test_cli_ids_emits_json(tmp_path):
+    plugin_root = tmp_path / "plugin"
+    (plugin_root / "topics").mkdir(parents=True)
+    (plugin_root / "topics" / "demo.md").write_text(_LINT_SCHEMA)
+    home = tmp_path / "home"
+    (home / ".claude" / "ramp" / "graphs").mkdir(parents=True)
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    env["CLAUDE_PLUGIN_ROOT"] = str(plugin_root)
+    out = subprocess.check_output(["python3", CORE, "ids", "demo"], env=env, text=True, cwd=str(tmp_path))
+    data = json.loads(out)
+    assert data["problems"] == []
+    assert {r["title"]: r["id"] for r in data["rows"]} == {"Alpha": "demo-alpha", "Beta": "demo-beta"}

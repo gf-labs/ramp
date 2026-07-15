@@ -854,6 +854,81 @@ def stamp_ids(content: str, title_to_id: dict) -> str:
     return _preserve_trailing_newline(content, lines)
 
 
+def suggest_node_id(topic: str, title: str) -> str:
+    """The canonical frozen id for a node at creation: `<topic>-<kebab(title)>`,
+    where kebab lowercases and collapses every run of non-alphanumerics to a
+    single hyphen. Deterministic — the `ids` verb suggests it, the author pastes
+    it, and it is then frozen (a later reword does not change it)."""
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    return f"{topic}-{slug}"
+
+
+def _template_titles(content: str) -> list:
+    """Node titles from the `## Saved tree file template` — fence-aware (the
+    `## [...]` headers inside the fenced block do not end the section)."""
+    titles = []
+    in_sec = False
+    for line in content.splitlines():
+        st = line.strip()
+        if st.startswith("## ") and not st.startswith("## ["):
+            in_sec = st.lower().startswith("## saved tree file template")
+            continue
+        if not in_sec:
+            continue
+        m = re.match(r"-\s*\[STATUS\|TYPE\]\s*(.+?)\s*$", st)
+        if m:
+            titles.append(m.group(1).strip())
+    return titles
+
+
+def lint_schema_ids(topic: str, content: str) -> dict:
+    """Lint a leaf schema's ids. Returns {"rows": [{title, id, suggested}],
+    "problems": [...]}. Problems: a Node-definitions row missing an id; a
+    duplicate id; and Node-definitions <-> saved-tree-template title parity
+    (stamp keys on Node-def titles but the graph is generated from the
+    template, so they must agree per node)."""
+    ids = parse_node_ids(content)  # {} if no id column: every row reads as missing
+    # rows in Node-definitions order, with id or a suggestion
+    from_defs = _node_def_titles(content)
+    rows, problems, seen = [], [], {}
+    for title in from_defs:
+        nid = ids.get(title)
+        rows.append({"title": title, "id": nid, "suggested": suggest_node_id(topic, title)})
+        if nid is None:
+            problems.append(f"missing id for node {title!r}")
+        elif nid in seen:
+            problems.append(f"duplicate id {nid!r} ({title!r} and {seen[nid]!r})")
+        else:
+            seen[nid] = title
+    defs_set, tpl_set = set(from_defs), set(_template_titles(content))
+    for t in sorted(defs_set - tpl_set):
+        problems.append(f"parity: {t!r} in Node definitions but not the saved-tree template")
+    for t in sorted(tpl_set - defs_set):
+        problems.append(f"parity: {t!r} in the saved-tree template but not Node definitions")
+    return {"rows": rows, "problems": problems}
+
+
+def _node_def_titles(content: str) -> list:
+    """Ordered Node-definitions titles (first cell of each data row), scoped like
+    parse_node_ids. The title list `lint_schema_ids` reports against."""
+    titles = []
+    in_defs = False
+    for line in content.splitlines():
+        if line.startswith("## "):
+            in_defs = line.strip().lower().startswith("## node definitions")
+            continue
+        if not in_defs:
+            continue
+        s = line.strip()
+        if not s.startswith("|"):
+            continue
+        first = s.strip("|").replace("\\|", "\x00").split("|")[0].replace("\x00", "|").strip()
+        if not first or first.lower() == "node" or set(first) <= {"-", ":"}:
+            continue
+        titles.append(first)
+    return titles
+
+
 def run_detection(topic: str, schema_dir=None) -> dict:
     """Run every probe the active topic declares (own + sourced), returning
     {name: value}. Insertion order follows first-declaration order."""
@@ -1081,6 +1156,8 @@ def _main(argv) -> int:
     p_adv.add_argument("outcome", choices=["pass", "fail"])
     p_detect = sub.add_parser("detect")
     p_detect.add_argument("topic")
+    p_ids = sub.add_parser("ids")
+    p_ids.add_argument("topic")
     args = parser.parse_args(argv)
 
     if args.cmd == "catalog":
@@ -1101,6 +1178,12 @@ def _main(argv) -> int:
 
     if args.cmd == "detect":
         print(format_detection(run_detection(args.topic, _schema_dir())))
+        return 0
+
+    if args.cmd == "ids":
+        schema_path = _schema_dir() / f"{args.topic}.md"
+        content = schema_path.read_text(encoding="utf-8") if schema_path.exists() else ""
+        print(json.dumps(lint_schema_ids(args.topic, content)))
         return 0
 
     # args.cmd in ("summary", "nodes", "due") — all read a single topic graph; a
