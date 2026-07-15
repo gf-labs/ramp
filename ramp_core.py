@@ -239,11 +239,20 @@ def apply_frontmatter(tree: str, today: date) -> str:
 
 
 def set_review_field(line: str, date_str, level: int) -> str:
-    """Replace (or append) the '| next: ...' field on a node line."""
-    base = re.sub(r"\s*\|\s*next:.*$", "", line.rstrip())
+    """Replace (or append) the '| next: ...' field on a node line, preserving a
+    trailing '| id:' as the final field (peeled first so the greedy next-strip
+    can't eat it, and re-appended last so the 'id is final' invariant holds even
+    when the line had no '| next:' yet)."""
+    stripped = line.rstrip()
+    id_suffix = ""
+    m = _ID_RE.search(stripped)
+    if m:
+        id_suffix = f" | id: {m.group(1)}"
+        stripped = stripped[:m.start()].rstrip()
+    base = re.sub(r"\s*\|\s*next:.*$", "", stripped)
     if date_str is None:  # L6 permanent — a non-date value never matches the due-filter
-        return f"{base} | next: permanent [L6]"
-    return f"{base} | next: {date_str} [L{level}]"
+        return f"{base} | next: permanent [L6]{id_suffix}"
+    return f"{base} | next: {date_str} [L{level}]{id_suffix}"
 
 
 def fill_missing_review_dates(tree: str, today: date):

@@ -36,3 +36,30 @@ def test_node_evidence_strips_trailing_id():
     # a [✓] node (cut at | next:) is unchanged, and a bare node is still None
     assert ramp_core._node_evidence("- [✓|exercise] Foo — ev | next: 2026-01-01 [L1] | id: gs-foo") == "ev"
     assert ramp_core._node_evidence("- [ ] Foo | id: gs-foo") is None
+
+
+# --- Task 2: set_review_field keeps a trailing id final ---
+
+def test_set_review_field_keeps_id_final_with_prior_next():
+    line = "- [✓|exercise] Foo — ev | next: 2026-01-01 [L1] | id: gs-foo"
+    out = ramp_core.set_review_field(line, "2026-06-25", 2)
+    assert out == "- [✓|exercise] Foo — ev | next: 2026-06-25 [L2] | id: gs-foo"
+
+
+def test_set_review_field_keeps_id_final_without_prior_next():
+    # the fill_missing_review_dates path: no | next: yet, id already stamped
+    line = "- [✓|exercise] Foo — ev | id: gs-foo"
+    out = ramp_core.set_review_field(line, "2026-08-01", 1)
+    assert out == "- [✓|exercise] Foo — ev | next: 2026-08-01 [L1] | id: gs-foo"
+
+
+def test_set_review_field_permanent_keeps_id():
+    line = "- [✓|exercise] Foo — ev | next: 2026-01-01 [L1] | id: gs-foo"
+    out = ramp_core.set_review_field(line, None, 6)
+    assert out == "- [✓|exercise] Foo — ev | next: permanent [L6] | id: gs-foo"
+
+
+def test_set_review_field_without_id_unchanged_behavior():
+    # regression: a line with no id behaves exactly as before
+    line = "- [✓|exercise] Foo — ev | next: 2026-01-01 [L1]"
+    assert ramp_core.set_review_field(line, "2026-06-25", 2).endswith("| next: 2026-06-25 [L2]")
