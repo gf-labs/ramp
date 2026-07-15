@@ -37,6 +37,13 @@ moves out of chat scrollback into two inspectable homes.
   `detect <topic>` CLI verb — adding a topic adds its detection with no command change.
 - CI: a pytest matrix proving the Python 3.8 floor, a manifest↔CHANGELOG↔tag release
   gate for `main`, and Dependabot for the SHA-pinned actions.
+- Frozen node ids: the kernel stamps a `| id: <topic>-<slug>` onto every graph
+  line at write time (derived from a new `id` column in each schema's
+  `## Node definitions`), and `preserve_demonstrated` matches on it — so a schema
+  title reword no longer orphans a demonstrated `[✓]` node. Read/write parsers
+  round-trip the suffix; an `ids <topic>` CLI verb suggests slugs and lints
+  present/unique/parity. Landed for the 5 `claude-code` sub-schemas (81 nodes);
+  standalones follow in the topic-authoring wave.
 
 ### Changed
 - `/ramp:up` delivers exactly **one task at a time** to `.ramp/worksheet.md` (no

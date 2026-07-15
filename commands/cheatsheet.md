@@ -61,7 +61,7 @@ Skip all `[~]`, `[ ]`, `[·]` nodes entirely — this is a reference of what's b
 ## Format rules
 
 - No status markers (`[✓]`, `[~]`) in the output — the cheat sheet assumes everything shown is demonstrated
-- No review dates (`| next: ...`) — strip these from the evidence trail display
+- No review dates or ids (`| next: …`, `| id: …`) — strip both from the evidence trail display
 - Each node fits in 2–4 lines: name, evidence, reference
 - Branch headers only appear if the branch has demonstrated nodes
 - If all branches are empty (no `[✓]` nodes at all): "Nothing demonstrated yet. Run `/ramp:up` to start your first session."

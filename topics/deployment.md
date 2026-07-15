@@ -18,29 +18,29 @@ This file defines the curriculum for the `deployment` topic. Covers the Deployme
 
 ### [ROOT] Cloud provider integration (always unlocked — 4 nodes)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Third-party integrations overview | Can describe why organizations use Claude Code through a cloud provider (data residency, compliance, billing consolidation, enterprise contracts); knows the three supported providers | Qualitative | None | https://code.claude.com/docs/en/third-party-integrations |
-| Amazon Bedrock setup | Has configured Claude Code to use AWS Bedrock as the model backend; knows the required env vars (`ANTHROPIC_BEDROCK_BASE_URL`, AWS credentials) and region selection | Artifact / Historical | AWS credentials or Bedrock env vars in environment → `[~\|historical]` | https://code.claude.com/docs/en/amazon-bedrock |
-| Google Vertex AI setup | Has configured Claude Code to use Google Vertex AI; knows the required env vars (`ANTHROPIC_VERTEX_PROJECT_ID`, `CLOUD_ML_REGION`, GCP credentials) | Artifact / Historical | GCP credentials or Vertex env vars in environment → `[~\|historical]` | https://code.claude.com/docs/en/google-vertex-ai |
-| Microsoft Azure AI Foundry setup | Has configured Claude Code to use Azure AI Foundry; knows the required env vars and endpoint format | Artifact / Historical | Azure credentials in environment → `[~\|historical]` | https://code.claude.com/docs/en/microsoft-foundry |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Third-party integrations overview | Can describe why organizations use Claude Code through a cloud provider (data residency, compliance, billing consolidation, enterprise contracts); knows the three supported providers | Qualitative | None | https://code.claude.com/docs/en/third-party-integrations | deployment-third-party-integrations-overview |
+| Amazon Bedrock setup | Has configured Claude Code to use AWS Bedrock as the model backend; knows the required env vars (`ANTHROPIC_BEDROCK_BASE_URL`, AWS credentials) and region selection | Artifact / Historical | AWS credentials or Bedrock env vars in environment → `[~\|historical]` | https://code.claude.com/docs/en/amazon-bedrock | deployment-amazon-bedrock-setup |
+| Google Vertex AI setup | Has configured Claude Code to use Google Vertex AI; knows the required env vars (`ANTHROPIC_VERTEX_PROJECT_ID`, `CLOUD_ML_REGION`, GCP credentials) | Artifact / Historical | GCP credentials or Vertex env vars in environment → `[~\|historical]` | https://code.claude.com/docs/en/google-vertex-ai | deployment-google-vertex-ai-setup |
+| Microsoft Azure AI Foundry setup | Has configured Claude Code to use Azure AI Foundry; knows the required env vars and endpoint format | Artifact / Historical | Azure credentials in environment → `[~\|historical]` | https://code.claude.com/docs/en/microsoft-foundry | deployment-microsoft-azure-ai-foundry-setup |
 
 ### [A] Network and infrastructure (4 nodes, unlocks when ROOT ≥ 1 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Network configuration (proxies, certificates) | Has configured Claude Code to work through a corporate proxy or with a custom TLS certificate; knows `HTTPS_PROXY`, `SSL_CERT_FILE`, and other relevant env vars | Historical / Qualitative | Proxy or cert env vars in environment → `[~\|historical]` | https://code.claude.com/docs/en/network-config |
-| LLM gateway patterns | Knows what an LLM gateway is (a proxy between Claude Code and the model API for logging, rate limiting, cost control); has configured or observed one; understands `ANTHROPIC_BASE_URL` | Qualitative | `ANTHROPIC_BASE_URL` in environment → `[~\|historical]` | https://code.claude.com/docs/en/llm-gateway |
-| Dev container configuration | Has used Claude Code inside a dev container (`devcontainer.json`); knows how to configure the Claude Code extension or CLI in a containerized environment | Artifact / Historical | `devcontainer.json` in repo → `[~\|artifact]` | https://code.claude.com/docs/en/devcontainer |
-| Authentication for enterprise deployments | Can describe the auth flow for each cloud provider (IAM roles, service accounts, managed identity); knows the difference between API key auth and federated identity | Qualitative | None | https://code.claude.com/docs/en/authentication |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Network configuration (proxies, certificates) | Has configured Claude Code to work through a corporate proxy or with a custom TLS certificate; knows `HTTPS_PROXY`, `SSL_CERT_FILE`, and other relevant env vars | Historical / Qualitative | Proxy or cert env vars in environment → `[~\|historical]` | https://code.claude.com/docs/en/network-config | deployment-network-configuration-proxies-certificates |
+| LLM gateway patterns | Knows what an LLM gateway is (a proxy between Claude Code and the model API for logging, rate limiting, cost control); has configured or observed one; understands `ANTHROPIC_BASE_URL` | Qualitative | `ANTHROPIC_BASE_URL` in environment → `[~\|historical]` | https://code.claude.com/docs/en/llm-gateway | deployment-llm-gateway-patterns |
+| Dev container configuration | Has used Claude Code inside a dev container (`devcontainer.json`); knows how to configure the Claude Code extension or CLI in a containerized environment | Artifact / Historical | `devcontainer.json` in repo → `[~\|artifact]` | https://code.claude.com/docs/en/devcontainer | deployment-dev-container-configuration |
+| Authentication for enterprise deployments | Can describe the auth flow for each cloud provider (IAM roles, service accounts, managed identity); knows the difference between API key auth and federated identity | Qualitative | None | https://code.claude.com/docs/en/authentication | deployment-authentication-for-enterprise-deployments |
 
 ### [B] Deployment patterns (3 nodes, unlocks when Branch A ≥ 2 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Choosing a deployment model | Can compare direct Anthropic API vs. Bedrock vs. Vertex vs. gateway for a given org's requirements (data residency, compliance, cost, latency); knows the key tradeoffs | Qualitative | None | https://code.claude.com/docs/en/third-party-integrations |
-| Environment variable management for Claude Code | Has a strategy for managing Claude Code env vars across local dev, CI, and production (dotenv, secret manager, shell profile); knows which vars are required vs. optional | Historical / Qualitative | None | https://code.claude.com/docs/en/amazon-bedrock |
-| Headless Claude in CI/CD pipelines | Has integrated `claude -p` or the Claude Code SDK into a CI pipeline; knows how to authenticate non-interactively and handle rate limits | Historical / Exercise | CI workflow with claude command → `[✓\|artifact]` | https://code.claude.com/docs/en/headless |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Choosing a deployment model | Can compare direct Anthropic API vs. Bedrock vs. Vertex vs. gateway for a given org's requirements (data residency, compliance, cost, latency); knows the key tradeoffs | Qualitative | None | https://code.claude.com/docs/en/third-party-integrations | deployment-choosing-a-deployment-model |
+| Environment variable management for Claude Code | Has a strategy for managing Claude Code env vars across local dev, CI, and production (dotenv, secret manager, shell profile); knows which vars are required vs. optional | Historical / Qualitative | None | https://code.claude.com/docs/en/amazon-bedrock | deployment-environment-variable-management-for-claude-code |
+| Headless Claude in CI/CD pipelines | Has integrated `claude -p` or the Claude Code SDK into a CI pipeline; knows how to authenticate non-interactively and handle rate limits | Historical / Exercise | CI workflow with claude command → `[✓\|artifact]` | https://code.claude.com/docs/en/headless | deployment-headless-claude-in-ci-cd-pipelines |
 
 ---
 

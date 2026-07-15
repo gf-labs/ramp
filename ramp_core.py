@@ -125,7 +125,19 @@ def parse_review_field(line: str):
     return (date.fromisoformat(m.group(1)), int(m.group(2)))
 
 
-_NODE_NAME_RE = re.compile(r"-\s*\[[^\]]*\]\s*(.+?)(?:\s*—|\s*\|\s*next:|$)")
+# A trailing identity field: "| id: <slug>". Always the final field on a line, so
+# anchor to end-of-line — otherwise a literal "| id:" inside evidence text (the
+# curriculum teaches this very syntax) would be mis-read as the node's id.
+_ID_RE = re.compile(r"\|\s*id:\s*(\S+)\s*$")
+
+
+def node_id(line: str):
+    """The frozen `| id: <slug>` on a graph line, or None."""
+    m = _ID_RE.search(line)
+    return m.group(1) if m else None
+
+
+_NODE_NAME_RE = re.compile(r"-\s*\[[^\]]*\]\s*(.+?)(?:\s*—|\s*\|\s*next:|\s*\|\s*id:|$)")
 
 
 def node_name(line: str):
@@ -143,6 +155,7 @@ def validate_tree(tree: str) -> list:
     """
     problems = []
     seen = {}
+    seen_ids = {}
     declared_xp = None
     in_front = False
     front_seen = False
@@ -173,6 +186,12 @@ def validate_tree(tree: str) -> list:
                 problems.append(f"line {lineno}: duplicate node name: {name!r}")
             else:
                 seen[name] = lineno
+            nid = node_id(line)
+            if nid is not None:
+                if nid in seen_ids:
+                    problems.append(f"line {lineno}: duplicate id: {nid!r}")
+                else:
+                    seen_ids[nid] = lineno
             if stripped.startswith("- [✓"):
                 rev = _REVIEW_RE.search(stripped)
                 if rev is None:
@@ -229,11 +248,20 @@ def apply_frontmatter(tree: str, today: date) -> str:
 
 
 def set_review_field(line: str, date_str, level: int) -> str:
-    """Replace (or append) the '| next: ...' field on a node line."""
-    base = re.sub(r"\s*\|\s*next:.*$", "", line.rstrip())
+    """Replace (or append) the '| next: ...' field on a node line, preserving a
+    trailing '| id:' as the final field (peeled first so the greedy next-strip
+    can't eat it, and re-appended last so the 'id is final' invariant holds even
+    when the line had no '| next:' yet)."""
+    stripped = line.rstrip()
+    id_suffix = ""
+    m = _ID_RE.search(stripped)
+    if m:
+        id_suffix = f" | id: {m.group(1)}"
+        stripped = stripped[:m.start()].rstrip()
+    base = re.sub(r"\s*\|\s*next:.*$", "", stripped)
     if date_str is None:  # L6 permanent — a non-date value never matches the due-filter
-        return f"{base} | next: permanent [L6]"
-    return f"{base} | next: {date_str} [L{level}]"
+        return f"{base} | next: permanent [L6]{id_suffix}"
+    return f"{base} | next: {date_str} [L{level}]{id_suffix}"
 
 
 def fill_missing_review_dates(tree: str, today: date):
@@ -257,23 +285,34 @@ def fill_missing_review_dates(tree: str, today: date):
 def preserve_demonstrated(existing: str, incoming: str):
     """Never-downgrade: if a node is [✓] on disk, keep that line in `incoming`.
 
-    Returns (new_incoming, preserved_node_names). Matches nodes by name.
-    """
-    done = {}
+    Returns (new_incoming, preserved_node_names). Matches each incoming
+    non-[✓] line by frozen id first (survives a schema title reword), then by
+    name (for id-less custom / frontier / historical nodes)."""
+    by_id, by_name = {}, {}
     for line in existing.splitlines():
         if line.strip().startswith("- [✓"):
+            i = node_id(line)
+            if i:
+                by_id[i] = line
             k = node_name(line)
             if k:
-                done[k] = line
+                by_name[k] = line
     preserved = []
     out = []
     for line in incoming.splitlines():
         s = line.strip()
         if s.startswith("- [") and not s.startswith("- [✓"):
-            k = node_name(line)
-            if k and k in done:
-                out.append(done[k])  # restore the demonstrated line verbatim
-                preserved.append(k)
+            match = None
+            i = node_id(line)
+            if i and i in by_id:
+                match = by_id[i]
+            else:
+                k = node_name(line)
+                if k and k in by_name:
+                    match = by_name[k]
+            if match is not None:
+                out.append(match)  # restore the demonstrated line verbatim
+                preserved.append(node_name(match))
                 continue
         out.append(line)
     return _preserve_trailing_newline(incoming, out), preserved
@@ -356,7 +395,7 @@ def _node_evidence(line: str):
     m = _STATUS_RE.match(line.strip())
     if not m:
         return None
-    after = line.strip()[m.end():].split("| next:")[0]
+    after = line.strip()[m.end():].split("| next:")[0].split("| id:")[0]
     if "—" not in after:
         return None
     return after.split("—", 1)[1].strip() or None
@@ -402,6 +441,7 @@ def graph_nodes(content: str) -> list:
             "next_date": parsed[0].isoformat() if parsed else None,
             "level": parsed[1] if parsed else None,
             "evidence": _node_evidence(line),
+            "id": node_id(line),
             "target": bool(marker) and marker.group(1).strip() == "★",
         })
     return nodes
@@ -743,6 +783,154 @@ def load_topic_probes(topic: str, schema_dir):
     return probes
 
 
+def parse_node_ids(content: str) -> dict:
+    """A schema's `## Node definitions` table -> {title: id}.
+
+    Locates the `id` column by its header cell (case-insensitive), then reads
+    each data row's first cell (title) and id cell. `{}` when no id column is
+    present. Scoped to the `## Node definitions` section like _derived_node_count
+    (the saved-tree template is excluded); escaped table pipes are restored like
+    parse_probes."""
+    out = {}
+    in_defs = False
+    id_index = None
+    for line in content.splitlines():
+        if line.startswith("## "):
+            in_defs = line.strip().lower().startswith("## node definitions")
+            id_index = None  # each per-tier table re-declares its header
+            continue
+        if not in_defs:
+            continue
+        s = line.strip()
+        if not s.startswith("|"):
+            continue
+        raw = s.strip("|").replace("\\|", "\x00")  # protect escaped pipes
+        cells = [c.replace("\x00", "|").strip() for c in raw.split("|")]
+        first = cells[0] if cells else ""
+        if not first or set(first) <= {"-", ":"}:
+            continue  # blank or |---| separator
+        if first.lower() == "node":  # header row: (re)locate the id column
+            id_index = next((i for i, c in enumerate(cells) if c.lower() == "id"), None)
+            continue
+        if id_index is not None and id_index < len(cells) and cells[id_index]:
+            out[first] = cells[id_index]
+    return out
+
+
+def load_topic_node_ids(topic: str, schema_dir) -> dict:
+    """Union the topic's own `parse_node_ids` with its `sources:` sub-schemas'.
+    First declaration of a title wins (compute_xp's dedup rule). Mirrors
+    load_topic_probes. Returns {title: id}."""
+    schema_dir = Path(schema_dir)
+
+    def read(name):
+        try:
+            return (schema_dir / (name + ".md")).read_text(encoding="utf-8")
+        except OSError:
+            return ""
+
+    fm = parse_frontmatter(read(topic))
+    names = [topic] + (_parse_sources(fm["sources"]) if "sources" in fm else [])
+    ids = {}
+    for n in names:
+        for title, nid in parse_node_ids(read(n)).items():
+            ids.setdefault(title, nid)  # first wins
+    return ids
+
+
+def stamp_ids(content: str, title_to_id: dict) -> str:
+    """Append `| id: <slug>` (as the final field) to every node line that lacks
+    one and whose title is in `title_to_id`. Idempotent; leaves id-bearing and
+    no-match lines untouched. Frozen: an existing id is never re-derived."""
+    if not title_to_id:
+        return content
+    lines = content.splitlines()
+    for i, line in enumerate(lines):
+        if not line.strip().startswith("- ["):
+            continue
+        if node_id(line) is not None:
+            continue  # frozen
+        name = node_name(line)
+        if name and name in title_to_id:
+            lines[i] = f"{line.rstrip()} | id: {title_to_id[name]}"
+    return _preserve_trailing_newline(content, lines)
+
+
+def suggest_node_id(topic: str, title: str) -> str:
+    """The canonical frozen id for a node at creation: `<topic>-<kebab(title)>`,
+    where kebab lowercases and collapses every run of non-alphanumerics to a
+    single hyphen. Deterministic — the `ids` verb suggests it, the author pastes
+    it, and it is then frozen (a later reword does not change it)."""
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    return f"{topic}-{slug}"
+
+
+def _template_titles(content: str) -> list:
+    """Node titles from the `## Saved tree file template` — fence-aware (the
+    `## [...]` headers inside the fenced block do not end the section)."""
+    titles = []
+    in_sec = False
+    for line in content.splitlines():
+        st = line.strip()
+        if st.startswith("## ") and not st.startswith("## ["):
+            in_sec = st.lower().startswith("## saved tree file template")
+            continue
+        if not in_sec:
+            continue
+        m = re.match(r"-\s*\[STATUS\|TYPE\]\s*(.+?)\s*$", st)
+        if m:
+            titles.append(m.group(1).strip())
+    return titles
+
+
+def lint_schema_ids(topic: str, content: str) -> dict:
+    """Lint a leaf schema's ids. Returns {"rows": [{title, id, suggested}],
+    "problems": [...]}. Problems: a Node-definitions row missing an id; a
+    duplicate id; and Node-definitions <-> saved-tree-template title parity
+    (stamp keys on Node-def titles but the graph is generated from the
+    template, so they must agree per node)."""
+    ids = parse_node_ids(content)  # {} if no id column: every row reads as missing
+    # rows in Node-definitions order, with id or a suggestion
+    from_defs = _node_def_titles(content)
+    rows, problems, seen = [], [], {}
+    for title in from_defs:
+        nid = ids.get(title)
+        rows.append({"title": title, "id": nid, "suggested": suggest_node_id(topic, title)})
+        if nid is None:
+            problems.append(f"missing id for node {title!r}")
+        elif nid in seen:
+            problems.append(f"duplicate id {nid!r} ({title!r} and {seen[nid]!r})")
+        else:
+            seen[nid] = title
+    defs_set, tpl_set = set(from_defs), set(_template_titles(content))
+    for t in sorted(defs_set - tpl_set):
+        problems.append(f"parity: {t!r} in Node definitions but not the saved-tree template")
+    for t in sorted(tpl_set - defs_set):
+        problems.append(f"parity: {t!r} in the saved-tree template but not Node definitions")
+    return {"rows": rows, "problems": problems}
+
+
+def _node_def_titles(content: str) -> list:
+    """Ordered Node-definitions titles (first cell of each data row), scoped like
+    parse_node_ids. The title list `lint_schema_ids` reports against."""
+    titles = []
+    in_defs = False
+    for line in content.splitlines():
+        if line.startswith("## "):
+            in_defs = line.strip().lower().startswith("## node definitions")
+            continue
+        if not in_defs:
+            continue
+        s = line.strip()
+        if not s.startswith("|"):
+            continue
+        first = s.strip("|").replace("\\|", "\x00").split("|")[0].replace("\x00", "|").strip()
+        if not first or first.lower() == "node" or set(first) <= {"-", ":"}:
+            continue
+        titles.append(first)
+    return titles
+
+
 def run_detection(topic: str, schema_dir=None) -> dict:
     """Run every probe the active topic declares (own + sourced), returning
     {name: value}. Insertion order follows first-declaration order."""
@@ -845,20 +1033,22 @@ def _atomic_write(path, content: str) -> None:
         raise
 
 
-def save_graph(topic: str, content: str, graph_dir=None) -> str:
+def save_graph(topic: str, content: str, graph_dir=None, schema_dir=None) -> str:
     """Save a full tree for `topic` — the single validated write composition.
 
-    Gate on frontmatter (REJECTED, no write) -> preserve_demonstrated against
-    the on-disk file (never-downgrade) -> fill_missing_review_dates (L1-seed
-    MISSING next: fields only) -> validate_tree (flag, don't fabricate) ->
-    apply_frontmatter (xp:/updated: recomputed in code) -> file_lock + atomic
-    write. Returns 'saved · {topic} · {level} · {xp} XP → {path}' plus any
-    notes and a '⚠ problems' suffix. `graph_dir` overrides the personal home
-    (the MCP server passes its GRAPH_DIR through; tests isolate via it)."""
+    Stamp ids from the schema (best-effort) -> gate on frontmatter (REJECTED, no
+    write) -> preserve_demonstrated against the on-disk file (never-downgrade,
+    id-keyed) -> fill_missing_review_dates -> validate_tree -> apply_frontmatter
+    -> file_lock + atomic write. `graph_dir`/`schema_dir` override the personal
+    home / schema search (the MCP server passes GRAPH_DIR; tests isolate via
+    them). Returns 'saved · ...' plus notes and a '⚠ problems' suffix."""
     graph_dir = _graph_dir() if graph_dir is None else Path(graph_dir)
+    schema_dir = _schema_dir() if schema_dir is None else Path(schema_dir)
     path = graph_dir / f"{topic}.md"
     if not parse_frontmatter(content):
         return "REJECTED: content has no YAML frontmatter — refusing to write"
+
+    content = stamp_ids(content, load_topic_node_ids(topic, schema_dir))
 
     today = date.today()
     notes = []
@@ -968,6 +1158,8 @@ def _main(argv) -> int:
     p_adv.add_argument("outcome", choices=["pass", "fail"])
     p_detect = sub.add_parser("detect")
     p_detect.add_argument("topic")
+    p_ids = sub.add_parser("ids")
+    p_ids.add_argument("topic")
     args = parser.parse_args(argv)
 
     if args.cmd == "catalog":
@@ -988,6 +1180,12 @@ def _main(argv) -> int:
 
     if args.cmd == "detect":
         print(format_detection(run_detection(args.topic, _schema_dir())))
+        return 0
+
+    if args.cmd == "ids":
+        schema_path = _schema_dir() / f"{args.topic}.md"
+        content = schema_path.read_text(encoding="utf-8") if schema_path.exists() else ""
+        print(json.dumps(lint_schema_ids(args.topic, content)))
         return 0
 
     # args.cmd in ("summary", "nodes", "due") — all read a single topic graph; a
