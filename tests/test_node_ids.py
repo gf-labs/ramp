@@ -163,3 +163,37 @@ def test_stamp_ids_result_round_trips_through_node_name():
     line = [ln for ln in out.splitlines() if ln.startswith("- [")][0]
     assert ramp_core.node_name(line) == "Alpha node"   # Task 1 keeps the name clean
     assert ramp_core.node_id(line) == "b-alpha-node"
+
+
+# --- Task 5: preserve_demonstrated by id (name fallback) ---
+
+def test_preserve_reword_survives_via_id():
+    # earned on disk with an id; the schema reworded the title (same id) on incoming
+    existing = "## [Build · A] x\n- [✓|exercise] Old title — r, 2026-06-01: proof | next: 2026-07-01 [L3] | id: b-node\n"
+    incoming = "## [Build · A] x\n- [ ] New title | id: b-node\n"
+    out, preserved = ramp_core.preserve_demonstrated(existing, incoming)
+    assert "[✓|exercise] Old title" in out          # earned line restored despite title change
+    assert "2026-07-01 [L3]" in out
+    assert preserved == ["Old title"]
+
+
+def test_preserve_name_fallback_for_idless_nodes():
+    # regression: nodes with no id still match by name (custom/frontier/historical)
+    existing = "## [Build · A] x\n- [✓|exercise] Kept — r, 2026-06-01: proof | next: 2026-07-01 [L3]\n"
+    incoming = "## [Build · A] x\n- [ ] Kept\n"
+    out, preserved = ramp_core.preserve_demonstrated(existing, incoming)
+    assert "[✓|exercise] Kept" in out
+    assert preserved == ["Kept"]
+
+
+def test_preserve_id_beats_a_stale_name_collision():
+    # incoming's new title happens to collide with a *different* earned node's name;
+    # id-match must win so the right node is preserved
+    existing = (
+        "## [Build · A] x\n"
+        "- [✓|exercise] Target — r, d: p | next: 2026-07-01 [L2] | id: b-target\n"
+        "- [✓|exercise] Decoy — r, d: p | next: 2026-07-01 [L2] | id: b-decoy\n"
+    )
+    incoming = "## [Build · A] x\n- [ ] Decoy | id: b-target\n"  # title says Decoy, id says target
+    out, preserved = ramp_core.preserve_demonstrated(existing, incoming)
+    assert preserved == ["Target"]                  # id wins over the name collision

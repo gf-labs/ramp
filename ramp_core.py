@@ -276,23 +276,34 @@ def fill_missing_review_dates(tree: str, today: date):
 def preserve_demonstrated(existing: str, incoming: str):
     """Never-downgrade: if a node is [✓] on disk, keep that line in `incoming`.
 
-    Returns (new_incoming, preserved_node_names). Matches nodes by name.
-    """
-    done = {}
+    Returns (new_incoming, preserved_node_names). Matches each incoming
+    non-[✓] line by frozen id first (survives a schema title reword), then by
+    name (for id-less custom / frontier / historical nodes)."""
+    by_id, by_name = {}, {}
     for line in existing.splitlines():
         if line.strip().startswith("- [✓"):
+            i = node_id(line)
+            if i:
+                by_id[i] = line
             k = node_name(line)
             if k:
-                done[k] = line
+                by_name[k] = line
     preserved = []
     out = []
     for line in incoming.splitlines():
         s = line.strip()
         if s.startswith("- [") and not s.startswith("- [✓"):
-            k = node_name(line)
-            if k and k in done:
-                out.append(done[k])  # restore the demonstrated line verbatim
-                preserved.append(k)
+            match = None
+            i = node_id(line)
+            if i and i in by_id:
+                match = by_id[i]
+            else:
+                k = node_name(line)
+                if k and k in by_name:
+                    match = by_name[k]
+            if match is not None:
+                out.append(match)  # restore the demonstrated line verbatim
+                preserved.append(node_name(match))
                 continue
         out.append(line)
     return _preserve_trailing_newline(incoming, out), preserved
