@@ -18,31 +18,31 @@ This file defines the curriculum for the `administration` topic. Covers the Admi
 
 ### [ROOT] Setup and authentication (4 nodes, always unlocked)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Organization setup and provisioning | Has set up Claude Code for a team or org; knows the provisioning flow (workspace creation, member invitation, license assignment) | Historical / Qualitative | None | https://code.claude.com/docs/en/setup |
-| Authentication methods | Can describe the supported auth methods (API key, SSO/SAML, OAuth); knows when each is appropriate and how to configure them | Qualitative | None | https://code.claude.com/docs/en/authentication |
-| Security configuration | Has reviewed or configured security settings: IP allowlisting, session timeouts, audit log retention; can describe the security model | Qualitative | None | https://code.claude.com/docs/en/security |
-| Plugin marketplace administration | Has managed plugins at the org level: approved/blocked plugins, set org-wide defaults, or published to an internal marketplace | Historical / Qualitative | None | https://code.claude.com/docs/en/plugin-marketplaces |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Organization setup and provisioning | Has set up Claude Code for a team or org; knows the provisioning flow (workspace creation, member invitation, license assignment) | Historical / Qualitative | None | https://code.claude.com/docs/en/setup | administration-organization-setup-and-provisioning |
+| Authentication methods | Can describe the supported auth methods (API key, SSO/SAML, OAuth); knows when each is appropriate and how to configure them | Qualitative | None | https://code.claude.com/docs/en/authentication | administration-authentication-methods |
+| Security configuration | Has reviewed or configured security settings: IP allowlisting, session timeouts, audit log retention; can describe the security model | Qualitative | None | https://code.claude.com/docs/en/security | administration-security-configuration |
+| Plugin marketplace administration | Has managed plugins at the org level: approved/blocked plugins, set org-wide defaults, or published to an internal marketplace | Historical / Qualitative | None | https://code.claude.com/docs/en/plugin-marketplaces | administration-plugin-marketplace-administration |
 
 ### [A] Data and compliance (4 nodes, unlocks when ROOT ≥ 1 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Data usage and privacy policies | Can explain what data Claude Code sends to Anthropic (prompts, tool outputs, session metadata); knows what is and isn't retained; can brief a security team on the data flow | Qualitative | None | https://code.claude.com/docs/en/data-usage |
-| Zero data retention (ZDR) configuration | Knows what ZDR mode does (prompts/responses not retained for training or review); has configured it or can explain the setup steps and eligibility requirements | Qualitative | None | https://code.claude.com/docs/en/zero-data-retention |
-| Server-managed settings and policy enforcement | Has configured or observed server-managed settings: settings that administrators push down and users cannot override; knows how to structure a policy file | Qualitative | None | https://code.claude.com/docs/en/server-managed-settings |
-| Audit logging and security monitoring | Has accessed or configured audit logs for Claude Code activity; knows what events are logged (tool calls, model invocations, session starts) and how to export them | Historical / Qualitative | None | https://code.claude.com/docs/en/security |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Data usage and privacy policies | Can explain what data Claude Code sends to Anthropic (prompts, tool outputs, session metadata); knows what is and isn't retained; can brief a security team on the data flow | Qualitative | None | https://code.claude.com/docs/en/data-usage | administration-data-usage-and-privacy-policies |
+| Zero data retention (ZDR) configuration | Knows what ZDR mode does (prompts/responses not retained for training or review); has configured it or can explain the setup steps and eligibility requirements | Qualitative | None | https://code.claude.com/docs/en/zero-data-retention | administration-zero-data-retention-zdr-configuration |
+| Server-managed settings and policy enforcement | Has configured or observed server-managed settings: settings that administrators push down and users cannot override; knows how to structure a policy file | Qualitative | None | https://code.claude.com/docs/en/server-managed-settings | administration-server-managed-settings-and-policy-enforcement |
+| Audit logging and security monitoring | Has accessed or configured audit logs for Claude Code activity; knows what events are logged (tool calls, model invocations, session starts) and how to export them | Historical / Qualitative | None | https://code.claude.com/docs/en/security | administration-audit-logging-and-security-monitoring |
 
 ### [B] Cost and usage management (5 nodes, unlocks when Branch A ≥ 2 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Usage monitoring (per user, per team) | Has accessed the usage dashboard; can read token consumption by user or team; knows how to set up alerts for threshold breaches | Historical / Qualitative | None | https://code.claude.com/docs/en/monitoring-usage |
-| Cost management and budgeting | Has set or reviewed a budget for Claude Code usage; knows the cost model (per-token pricing by model); can project costs for a team | Qualitative | None | https://code.claude.com/docs/en/costs |
-| Token and session limits | Can describe org/plan usage limits, session token budgets, or per-user limits, and how hitting a limit affects Claude's behavior; knows these are enforced by plan/API, not a settings.json `maxTokens` key | Qualitative | None | https://code.claude.com/docs/en/costs |
-| Analytics and reporting | Has used the analytics dashboard or API to generate a usage report; knows which metrics are available (sessions, tokens, tools used, models) | Historical / Qualitative | None | https://code.claude.com/docs/en/analytics |
-| Chargeback and cost allocation | Has set up or can describe cost allocation by team, project, or cost center using tags or org structure; knows how to export cost data | Qualitative | None | https://code.claude.com/docs/en/costs |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Usage monitoring (per user, per team) | Has accessed the usage dashboard; can read token consumption by user or team; knows how to set up alerts for threshold breaches | Historical / Qualitative | None | https://code.claude.com/docs/en/monitoring-usage | administration-usage-monitoring-per-user-per-team |
+| Cost management and budgeting | Has set or reviewed a budget for Claude Code usage; knows the cost model (per-token pricing by model); can project costs for a team | Qualitative | None | https://code.claude.com/docs/en/costs | administration-cost-management-and-budgeting |
+| Token and session limits | Can describe org/plan usage limits, session token budgets, or per-user limits, and how hitting a limit affects Claude's behavior; knows these are enforced by plan/API, not a settings.json `maxTokens` key | Qualitative | None | https://code.claude.com/docs/en/costs | administration-token-and-session-limits |
+| Analytics and reporting | Has used the analytics dashboard or API to generate a usage report; knows which metrics are available (sessions, tokens, tools used, models) | Historical / Qualitative | None | https://code.claude.com/docs/en/analytics | administration-analytics-and-reporting |
+| Chargeback and cost allocation | Has set up or can describe cost allocation by team, project, or cost center using tags or org structure; knows how to export cost data | Qualitative | None | https://code.claude.com/docs/en/costs | administration-chargeback-and-cost-allocation |
 
 ---
 

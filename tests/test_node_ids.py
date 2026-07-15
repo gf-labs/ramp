@@ -339,3 +339,36 @@ def test_cli_ids_emits_json(tmp_path):
     data = json.loads(out)
     assert data["problems"] == []
     assert {r["title"]: r["id"] for r in data["rows"]} == {"Alpha": "demo-alpha", "Beta": "demo-beta"}
+
+
+# --- Task 8: real schemas are id-native ---
+
+TOPICS = Path(__file__).resolve().parent.parent / "topics"
+SUBS = ["getting-started", "build", "configuration", "deployment", "administration"]
+
+
+def test_real_leaf_schemas_lint_clean():
+    for t in SUBS:
+        content = (TOPICS / f"{t}.md").read_text(encoding="utf-8")
+        assert ramp_core.lint_schema_ids(t, content)["problems"] == [], t
+
+
+def test_composite_claude_code_unions_81_ids():
+    ids = ramp_core.load_topic_node_ids("claude-code", TOPICS)
+    assert len(ids) == 81
+    # every title in the composite saved-tree template resolves to an id
+    comp = ramp_core._template_titles((TOPICS / "claude-code.md").read_text(encoding="utf-8"))
+    assert len(comp) == 81
+    missing = [t for t in comp if t not in ids]
+    assert missing == []
+
+
+def test_leaf_ids_are_frozen_at_creation_kebab():
+    # FREEZE LEDGER: at creation every id == its kebab suggestion. When a title is
+    # later reworded, DO NOT change the id (it is frozen) — instead pin the old id
+    # here. A divergence between this expectation and suggest_node_id() is the
+    # feature working, not a bug: update this test to the frozen id, never the id.
+    for t in SUBS:
+        content = (TOPICS / f"{t}.md").read_text(encoding="utf-8")
+        for title, nid in ramp_core.parse_node_ids(content).items():
+            assert nid == ramp_core.suggest_node_id(t, title), f"{t}: {title!r}"

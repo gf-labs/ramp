@@ -18,31 +18,31 @@ This file defines the curriculum for the `configuration` topic. Covers the Confi
 
 ### [ROOT] Settings fundamentals (always unlocked — 4 nodes)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Settings scope hierarchy: global, project, local | Can describe all three settings scopes (`~/.claude/settings.json`, `.claude/settings.json`, `.claude/settings.local.json`), which takes precedence, and what each is for | Qualitative | settings file exists → `[~\|artifact]` | https://code.claude.com/docs/en/settings |
-| Settings file format and key options | Has edited a settings.json; knows the key fields: `permissions` (and its nested `defaultMode`), `hooks`, `mcpServers`, `model`, `env`; can add a field without breaking the file | Artifact / Exercise | settings file with non-empty content → `[✓\|artifact]` | https://code.claude.com/docs/en/settings |
-| Model selection and budget configuration | Has explicitly set `model` in settings.json; can explain the tradeoff between model capability and cost/speed; knows available model IDs and that there is no settings.json token/budget cap (cost limits come from the `--max-budget-usd` headless flag or API-side limits, not `maxTokens`) | Artifact / Qualitative | `model` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/model-config |
-| Server-managed settings (policy enforcement) | Understands that admins can push settings that users cannot override; knows the difference between user-settable and org-enforced config | Qualitative | None | https://code.claude.com/docs/en/settings |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Settings scope hierarchy: global, project, local | Can describe all three settings scopes (`~/.claude/settings.json`, `.claude/settings.json`, `.claude/settings.local.json`), which takes precedence, and what each is for | Qualitative | settings file exists → `[~\|artifact]` | https://code.claude.com/docs/en/settings | configuration-settings-scope-hierarchy-global-project-local |
+| Settings file format and key options | Has edited a settings.json; knows the key fields: `permissions` (and its nested `defaultMode`), `hooks`, `mcpServers`, `model`, `env`; can add a field without breaking the file | Artifact / Exercise | settings file with non-empty content → `[✓\|artifact]` | https://code.claude.com/docs/en/settings | configuration-settings-file-format-and-key-options |
+| Model selection and budget configuration | Has explicitly set `model` in settings.json; can explain the tradeoff between model capability and cost/speed; knows available model IDs and that there is no settings.json token/budget cap (cost limits come from the `--max-budget-usd` headless flag or API-side limits, not `maxTokens`) | Artifact / Qualitative | `model` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/model-config | configuration-model-selection-and-budget-configuration |
+| Server-managed settings (policy enforcement) | Understands that admins can push settings that users cannot override; knows the difference between user-settable and org-enforced config | Qualitative | None | https://code.claude.com/docs/en/settings | configuration-server-managed-settings-policy-enforcement |
 
 ### [A] Permissions and security (5 nodes, unlocks when ROOT ≥ 2 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Permissions: allow/deny rules and glob patterns | Has written at least one allow rule (e.g., `Bash(npm run *)`) or deny rule; can explain glob syntax and precedence; knows `/permissions` to inspect current state | Artifact / Exercise | global permission rules > 0 → `[✓\|artifact]` | https://code.claude.com/docs/en/permissions |
-| Permission precedence and scoping | Can trace how permissions resolve when global, project, and local settings conflict; understands deny overrides allow at the same level | Qualitative | global + project permissions both present → `[~\|historical]` | https://code.claude.com/docs/en/permissions |
-| Sandboxing configuration | Knows what sandboxing does (restricts file system and network access for tool calls); has configured or deliberately left it at default; understands the performance tradeoff | Qualitative | None | https://code.claude.com/docs/en/sandboxing |
-| Fast mode | Has toggled fast mode with `/fast`; can explain what it changes (faster output on Opus, not a smaller model) and when to use it; knows the only related settings key is `fastModePerSessionOptIn` — there is no `fastMode` toggle key | Exercise / Qualitative | `fastModePerSessionOptIn` in settings → `[~\|artifact]` | https://code.claude.com/docs/en/fast-mode |
-| Plan mode as default | Has set `permissions.defaultMode: plan` in settings (the documented location — `defaultMode` lives under the `permissions` object); understands what plan mode prevents (no file writes, no bash execution) and when it's the right default | Artifact | `defaultMode: plan` set, under `permissions` or top-level → `[✓\|artifact]` | https://code.claude.com/docs/en/settings |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Permissions: allow/deny rules and glob patterns | Has written at least one allow rule (e.g., `Bash(npm run *)`) or deny rule; can explain glob syntax and precedence; knows `/permissions` to inspect current state | Artifact / Exercise | global permission rules > 0 → `[✓\|artifact]` | https://code.claude.com/docs/en/permissions | configuration-permissions-allow-deny-rules-and-glob-patterns |
+| Permission precedence and scoping | Can trace how permissions resolve when global, project, and local settings conflict; understands deny overrides allow at the same level | Qualitative | global + project permissions both present → `[~\|historical]` | https://code.claude.com/docs/en/permissions | configuration-permission-precedence-and-scoping |
+| Sandboxing configuration | Knows what sandboxing does (restricts file system and network access for tool calls); has configured or deliberately left it at default; understands the performance tradeoff | Qualitative | None | https://code.claude.com/docs/en/sandboxing | configuration-sandboxing-configuration |
+| Fast mode | Has toggled fast mode with `/fast`; can explain what it changes (faster output on Opus, not a smaller model) and when to use it; knows the only related settings key is `fastModePerSessionOptIn` — there is no `fastMode` toggle key | Exercise / Qualitative | `fastModePerSessionOptIn` in settings → `[~\|artifact]` | https://code.claude.com/docs/en/fast-mode | configuration-fast-mode |
+| Plan mode as default | Has set `permissions.defaultMode: plan` in settings (the documented location — `defaultMode` lives under the `permissions` object); understands what plan mode prevents (no file writes, no bash execution) and when it's the right default | Artifact | `defaultMode: plan` set, under `permissions` or top-level → `[✓\|artifact]` | https://code.claude.com/docs/en/settings | configuration-plan-mode-as-default |
 
 ### [B] Interface customization (4 nodes, unlocks when Branch A ≥ 2 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Terminal configuration | Has customized terminal behavior (color, width, or rendering settings); or knows the relevant config keys and why they matter for different terminal emulators | Qualitative | None | https://code.claude.com/docs/en/terminal-config |
-| Status line customization | Has configured the Claude Code status line (shows token count, model, session info); knows which information it surfaces and how to toggle it | Exercise / Qualitative | None | https://code.claude.com/docs/en/statusline |
-| Keybindings customization | Has modified `~/.claude/keybindings.json`; knows the default bindings (Shift+Tab for plan, Esc for cancel, Esc+Esc for rewind) and has changed at least one | Artifact | `~/.claude/keybindings.json` exists with content → `[✓\|artifact]` | https://code.claude.com/docs/en/keybindings |
-| Interactive mode features | Has used: plan mode (Shift+Tab), rewind/checkpointing (Esc+Esc), session naming (`/rename`), and the session history picker; can describe what each does | Exercise / Historical | sessions > 5 → `[~\|historical]` | https://code.claude.com/docs/en/terminal-config |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Terminal configuration | Has customized terminal behavior (color, width, or rendering settings); or knows the relevant config keys and why they matter for different terminal emulators | Qualitative | None | https://code.claude.com/docs/en/terminal-config | configuration-terminal-configuration |
+| Status line customization | Has configured the Claude Code status line (shows token count, model, session info); knows which information it surfaces and how to toggle it | Exercise / Qualitative | None | https://code.claude.com/docs/en/statusline | configuration-status-line-customization |
+| Keybindings customization | Has modified `~/.claude/keybindings.json`; knows the default bindings (Shift+Tab for plan, Esc for cancel, Esc+Esc for rewind) and has changed at least one | Artifact | `~/.claude/keybindings.json` exists with content → `[✓\|artifact]` | https://code.claude.com/docs/en/keybindings | configuration-keybindings-customization |
+| Interactive mode features | Has used: plan mode (Shift+Tab), rewind/checkpointing (Esc+Esc), session naming (`/rename`), and the session history picker; can describe what each does | Exercise / Historical | sessions > 5 → `[~\|historical]` | https://code.claude.com/docs/en/terminal-config | configuration-interactive-mode-features |
 
 ---
 
