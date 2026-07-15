@@ -130,3 +130,36 @@ def test_load_topic_node_ids_unions_sources_first_wins(tmp_path):
     assert ids["OnlyA"] == "subA-only-a"
     assert ids["OnlyB"] == "subB-only-b"
     assert ids["Shared"] == "subA-shared"  # first declaration (subA) wins
+
+
+# --- Task 4: stamp_ids ---
+
+def test_stamp_ids_fills_absent_as_final_field():
+    tree = (
+        "## [Build · ROOT] x\n"
+        "- [ ] Alpha\n"
+        "- [✓|exercise] Beta — ev | next: 2026-01-01 [L1]\n"
+    )
+    out = ramp_core.stamp_ids(tree, {"Alpha": "b-alpha", "Beta": "b-beta"})
+    assert "- [ ] Alpha | id: b-alpha" in out
+    assert "- [✓|exercise] Beta — ev | next: 2026-01-01 [L1] | id: b-beta" in out
+
+
+def test_stamp_ids_leaves_existing_and_no_match_and_is_idempotent():
+    tree = (
+        "## [Build · ROOT] x\n"
+        "- [ ] Alpha | id: frozen-alpha\n"   # already id'd: frozen
+        "- [ ] Unknown\n"                     # not in the map: untouched
+    )
+    mapping = {"Alpha": "b-alpha", "Beta": "b-beta"}
+    once = ramp_core.stamp_ids(tree, mapping)
+    assert "- [ ] Alpha | id: frozen-alpha" in once   # not re-derived
+    assert "- [ ] Unknown\n" in once                  # no id appended
+    assert ramp_core.stamp_ids(once, mapping) == once  # idempotent
+
+
+def test_stamp_ids_result_round_trips_through_node_name():
+    out = ramp_core.stamp_ids("## [Build · ROOT] x\n- [ ] Alpha node\n", {"Alpha node": "b-alpha-node"})
+    line = [ln for ln in out.splitlines() if ln.startswith("- [")][0]
+    assert ramp_core.node_name(line) == "Alpha node"   # Task 1 keeps the name clean
+    assert ramp_core.node_id(line) == "b-alpha-node"

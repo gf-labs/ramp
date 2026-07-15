@@ -817,6 +817,24 @@ def load_topic_node_ids(topic: str, schema_dir) -> dict:
     return ids
 
 
+def stamp_ids(content: str, title_to_id: dict) -> str:
+    """Append `| id: <slug>` (as the final field) to every node line that lacks
+    one and whose title is in `title_to_id`. Idempotent; leaves id-bearing and
+    no-match lines untouched. Frozen: an existing id is never re-derived."""
+    if not title_to_id:
+        return content
+    lines = content.splitlines()
+    for i, line in enumerate(lines):
+        if not line.strip().startswith("- ["):
+            continue
+        if node_id(line) is not None:
+            continue  # frozen
+        name = node_name(line)
+        if name and name in title_to_id:
+            lines[i] = f"{line.rstrip()} | id: {title_to_id[name]}"
+    return _preserve_trailing_newline(content, lines)
+
+
 def run_detection(topic: str, schema_dir=None) -> dict:
     """Run every probe the active topic declares (own + sourced), returning
     {name: value}. Insertion order follows first-declaration order."""
