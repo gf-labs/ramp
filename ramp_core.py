@@ -125,7 +125,17 @@ def parse_review_field(line: str):
     return (date.fromisoformat(m.group(1)), int(m.group(2)))
 
 
-_NODE_NAME_RE = re.compile(r"-\s*\[[^\]]*\]\s*(.+?)(?:\s*—|\s*\|\s*next:|$)")
+# A trailing identity field: "| id: <slug>". Always the final field on a line.
+_ID_RE = re.compile(r"\|\s*id:\s*(\S+)")
+
+
+def node_id(line: str):
+    """The frozen `| id: <slug>` on a graph line, or None."""
+    m = _ID_RE.search(line)
+    return m.group(1) if m else None
+
+
+_NODE_NAME_RE = re.compile(r"-\s*\[[^\]]*\]\s*(.+?)(?:\s*—|\s*\|\s*next:|\s*\|\s*id:|$)")
 
 
 def node_name(line: str):
@@ -356,7 +366,7 @@ def _node_evidence(line: str):
     m = _STATUS_RE.match(line.strip())
     if not m:
         return None
-    after = line.strip()[m.end():].split("| next:")[0]
+    after = line.strip()[m.end():].split("| next:")[0].split("| id:")[0]
     if "—" not in after:
         return None
     return after.split("—", 1)[1].strip() or None
