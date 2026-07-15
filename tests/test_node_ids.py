@@ -197,3 +197,72 @@ def test_preserve_id_beats_a_stale_name_collision():
     incoming = "## [Build · A] x\n- [ ] Decoy | id: b-target\n"  # title says Decoy, id says target
     out, preserved = ramp_core.preserve_demonstrated(existing, incoming)
     assert preserved == ["Target"]                  # id wins over the name collision
+
+
+# --- Task 6: save_graph wiring + graph_nodes id + validate dup-id ---
+
+def _schema_with_ids(schema_dir, topic, rows):
+    body = f"---\ntopic: {topic}\n---\n\n## Node definitions\n\n"
+    body += "| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |\n"
+    body += "|--|--|--|--|--|--|\n"
+    for title, nid in rows:
+        body += f"| {title} | c | Q | None | u | {nid} |\n"
+    (schema_dir / (topic + ".md")).write_text(body)
+
+
+def test_save_graph_end_to_end_reword_preserves_status(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    schemas = tmp_path / "schemas"
+    schemas.mkdir()
+    graphs = tmp_path / ".claude" / "ramp" / "graphs"
+    graphs.mkdir(parents=True)
+    # on disk: earned, id-native (as archive-and-fresh guarantees)
+    (graphs / "demo.md").write_text(
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 10\nupdated: 2026-07-01\n---\n"
+        "## [Build · ROOT] x\n- [✓|exercise] Old title — r, 2026-07-01: proof | next: 2026-07-03 [L1] | id: demo-node\n"
+    )
+    # schema reworded the title (same id); incoming regenerates the new title, no id
+    _schema_with_ids(schemas, "demo", [("New title", "demo-node")])
+    ramp_core.save_graph(
+        "demo",
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+        "## [Build · ROOT] x\n- [ ] New title\n",
+        schema_dir=schemas,
+    )
+    saved = (graphs / "demo.md").read_text()
+    assert "[✓|exercise] Old title" in saved     # earned status preserved across the reword
+    assert "id: demo-node" in saved
+
+
+def test_save_graph_no_schema_degrades_to_today(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    empty = tmp_path / "empty-schemas"
+    empty.mkdir()
+    out = ramp_core.save_graph(
+        "demo",
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+        "## [Build · ROOT] x\n- [✓|exercise] a — r, 2026-07-02: n\n",
+        schema_dir=empty,
+    )
+    saved = (tmp_path / ".claude" / "ramp" / "graphs" / "demo.md").read_text()
+    assert "| id:" not in saved                  # nothing stamped
+    assert "xp: 10" in saved and out.startswith("saved · demo")
+
+
+def test_graph_nodes_emits_id():
+    content = (
+        "## [Build · ROOT] Agents\n"
+        "- [✓|exercise] First — r, d: n | next: 2026-06-23 [L2] | id: b-first\n"
+        "- [ ] Second | id: b-second\n"
+    )
+    nodes = ramp_core.graph_nodes(content)
+    assert nodes[0]["id"] == "b-first" and nodes[0]["name"] == "First"
+    assert nodes[1]["id"] == "b-second" and nodes[1]["name"] == "Second"
+
+
+def test_validate_tree_flags_duplicate_id():
+    tree = (
+        "---\nxp: 0\n---\n## [Build · A] x\n"
+        "- [ ] One | id: dup\n- [ ] Two | id: dup\n"
+    )
+    assert any("duplicate id" in p.lower() for p in ramp_core.validate_tree(tree))

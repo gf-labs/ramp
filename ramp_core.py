@@ -153,6 +153,7 @@ def validate_tree(tree: str) -> list:
     """
     problems = []
     seen = {}
+    seen_ids = {}
     declared_xp = None
     in_front = False
     front_seen = False
@@ -183,6 +184,12 @@ def validate_tree(tree: str) -> list:
                 problems.append(f"line {lineno}: duplicate node name: {name!r}")
             else:
                 seen[name] = lineno
+            nid = node_id(line)
+            if nid is not None:
+                if nid in seen_ids:
+                    problems.append(f"line {lineno}: duplicate id: {nid!r}")
+                else:
+                    seen_ids[nid] = lineno
             if stripped.startswith("- [✓"):
                 rev = _REVIEW_RE.search(stripped)
                 if rev is None:
@@ -432,6 +439,7 @@ def graph_nodes(content: str) -> list:
             "next_date": parsed[0].isoformat() if parsed else None,
             "level": parsed[1] if parsed else None,
             "evidence": _node_evidence(line),
+            "id": node_id(line),
             "target": bool(marker) and marker.group(1).strip() == "★",
         })
     return nodes
@@ -948,20 +956,22 @@ def _atomic_write(path, content: str) -> None:
         raise
 
 
-def save_graph(topic: str, content: str, graph_dir=None) -> str:
+def save_graph(topic: str, content: str, graph_dir=None, schema_dir=None) -> str:
     """Save a full tree for `topic` — the single validated write composition.
 
-    Gate on frontmatter (REJECTED, no write) -> preserve_demonstrated against
-    the on-disk file (never-downgrade) -> fill_missing_review_dates (L1-seed
-    MISSING next: fields only) -> validate_tree (flag, don't fabricate) ->
-    apply_frontmatter (xp:/updated: recomputed in code) -> file_lock + atomic
-    write. Returns 'saved · {topic} · {level} · {xp} XP → {path}' plus any
-    notes and a '⚠ problems' suffix. `graph_dir` overrides the personal home
-    (the MCP server passes its GRAPH_DIR through; tests isolate via it)."""
+    Stamp ids from the schema (best-effort) -> gate on frontmatter (REJECTED, no
+    write) -> preserve_demonstrated against the on-disk file (never-downgrade,
+    id-keyed) -> fill_missing_review_dates -> validate_tree -> apply_frontmatter
+    -> file_lock + atomic write. `graph_dir`/`schema_dir` override the personal
+    home / schema search (the MCP server passes GRAPH_DIR; tests isolate via
+    them). Returns 'saved · ...' plus notes and a '⚠ problems' suffix."""
     graph_dir = _graph_dir() if graph_dir is None else Path(graph_dir)
+    schema_dir = _schema_dir() if schema_dir is None else Path(schema_dir)
     path = graph_dir / f"{topic}.md"
     if not parse_frontmatter(content):
         return "REJECTED: content has no YAML frontmatter — refusing to write"
+
+    content = stamp_ids(content, load_topic_node_ids(topic, schema_dir))
 
     today = date.today()
     notes = []
