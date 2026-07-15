@@ -762,6 +762,61 @@ def load_topic_probes(topic: str, schema_dir):
     return probes
 
 
+def parse_node_ids(content: str) -> dict:
+    """A schema's `## Node definitions` table -> {title: id}.
+
+    Locates the `id` column by its header cell (case-insensitive), then reads
+    each data row's first cell (title) and id cell. `{}` when no id column is
+    present. Scoped to the `## Node definitions` section like _derived_node_count
+    (the saved-tree template is excluded); escaped table pipes are restored like
+    parse_probes."""
+    out = {}
+    in_defs = False
+    id_index = None
+    for line in content.splitlines():
+        if line.startswith("## "):
+            in_defs = line.strip().lower().startswith("## node definitions")
+            id_index = None  # each per-tier table re-declares its header
+            continue
+        if not in_defs:
+            continue
+        s = line.strip()
+        if not s.startswith("|"):
+            continue
+        raw = s.strip("|").replace("\\|", "\x00")  # protect escaped pipes
+        cells = [c.replace("\x00", "|").strip() for c in raw.split("|")]
+        first = cells[0] if cells else ""
+        if not first or set(first) <= {"-", ":"}:
+            continue  # blank or |---| separator
+        if first.lower() == "node":  # header row: (re)locate the id column
+            id_index = next((i for i, c in enumerate(cells) if c.lower() == "id"), None)
+            continue
+        if id_index is not None and id_index < len(cells) and cells[id_index]:
+            out[first] = cells[id_index]
+    return out
+
+
+def load_topic_node_ids(topic: str, schema_dir) -> dict:
+    """Union the topic's own `parse_node_ids` with its `sources:` sub-schemas'.
+    First declaration of a title wins (compute_xp's dedup rule). Mirrors
+    load_topic_probes. Returns {title: id}."""
+    schema_dir = Path(schema_dir)
+
+    def read(name):
+        try:
+            return (schema_dir / (name + ".md")).read_text(encoding="utf-8")
+        except OSError:
+            return ""
+
+    fm = parse_frontmatter(read(topic))
+    names = [topic] + (_parse_sources(fm["sources"]) if "sources" in fm else [])
+    ids = {}
+    for n in names:
+        for title, nid in parse_node_ids(read(n)).items():
+            ids.setdefault(title, nid)  # first wins
+    return ids
+
+
 def run_detection(topic: str, schema_dir=None) -> dict:
     """Run every probe the active topic declares (own + sourced), returning
     {name: value}. Insertion order follows first-declaration order."""

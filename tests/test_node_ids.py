@@ -63,3 +63,70 @@ def test_set_review_field_without_id_unchanged_behavior():
     # regression: a line with no id behaves exactly as before
     line = "- [✓|exercise] Foo — ev | next: 2026-01-01 [L1]"
     assert ramp_core.set_review_field(line, "2026-06-25", 2).endswith("| next: 2026-06-25 [L2]")
+
+
+# --- Task 3: parse_node_ids + load_topic_node_ids ---
+
+_NODEDEFS = """---
+topic: demo
+---
+
+## Node definitions
+
+### [ROOT] Branch one
+
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|--------------------|-----------|-----|
+| Alpha node | crit | Qualitative | some \\| piped signal | http://x | demo-alpha-node |
+| Beta node | crit | Qualitative | None | http://x | demo-beta-node |
+
+## Saved tree file template
+
+```markdown
+## [ROOT] Branch one
+- [STATUS|TYPE] Alpha node
+- [STATUS|TYPE] Beta node
+```
+"""
+
+
+def test_parse_node_ids_reads_id_column_by_header_position():
+    ids = ramp_core.parse_node_ids(_NODEDEFS)
+    assert ids == {"Alpha node": "demo-alpha-node", "Beta node": "demo-beta-node"}
+
+
+def test_parse_node_ids_missing_column_is_empty():
+    no_id = _NODEDEFS.replace(" source_url | id |", " source_url |").replace(
+        " http://x | demo-alpha-node |", " http://x |").replace(
+        " http://x | demo-beta-node |", " http://x |")
+    assert ramp_core.parse_node_ids(no_id) == {}
+
+
+def test_parse_node_ids_scoped_to_node_definitions():
+    # the saved-tree template's bullet lines are not node-definition rows
+    ids = ramp_core.parse_node_ids(_NODEDEFS)
+    assert "- [STATUS" not in "".join(ids.keys())
+    assert len(ids) == 2
+
+
+def _write_schema(d, name, frontmatter, rows):
+    body = "---\n" + frontmatter + "---\n\n## Node definitions\n\n"
+    body += "| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |\n"
+    body += "|--|--|--|--|--|--|\n"
+    for title, nid in rows:
+        body += f"| {title} | c | Q | None | u | {nid} |\n"
+    (d / (name + ".md")).write_text(body)
+
+
+def test_load_topic_node_ids_unions_sources_first_wins(tmp_path):
+    d = tmp_path / "schemas"
+    d.mkdir()
+    (d / "combo.md").write_text(
+        "---\ntopic: combo\nsources: [subA, subB]\n---\n\n## Node definitions\n"
+    )  # composite: no rows of its own
+    _write_schema(d, "subA", "topic: subA\n", [("Shared", "subA-shared"), ("OnlyA", "subA-only-a")])
+    _write_schema(d, "subB", "topic: subB\n", [("Shared", "subB-shared"), ("OnlyB", "subB-only-b")])
+    ids = ramp_core.load_topic_node_ids("combo", d)
+    assert ids["OnlyA"] == "subA-only-a"
+    assert ids["OnlyB"] == "subB-only-b"
+    assert ids["Shared"] == "subA-shared"  # first declaration (subA) wins
