@@ -65,7 +65,7 @@ This topic covers **building with the Claude API** — making completion request
 | system prompt patterns in code | A: "System prompts" → `[~\|artifact]` |
 | message history accumulation patterns | A: "Multi-turn conversations" → `[~\|artifact]` |
 | streaming/stream patterns in code | A: "Streaming responses" → `[~\|artifact]` |
-| error handling for API calls | A: "Handling errors and rate limits" → `[~\|artifact]` |
+| error handling for API calls | A: "Handling API errors and rate limits" → `[~\|artifact]` |
 | tool definition objects in code | B: "Defining tools" → `[~\|artifact]` |
 | agentic loop patterns in code | B: "Agentic loops" → `[~\|artifact]` |
 | cache_control patterns in code | C: "Prompt caching" → `[✓\|artifact]` |
@@ -98,7 +98,7 @@ This topic covers **building with the Claude API** — making completion request
 | Specific API call description + what was returned | ROOT: "Basic completion" → `[✓\|reported]` |
 | Vague "yes I've used the API" | ROOT: "Authentication" + "Basic completion" → `[~\|reported]` |
 | Model choice + rationale | ROOT: "Model selection (which model for which use case)" → `[✓\|reported]` |
-| Token/cost specifics (numbers, limits) | ROOT: "Tokens and context" → `[✓\|reported]` |
+| Token/cost specifics (numbers, limits) | ROOT: "Understanding tokens, context windows, and costs" → `[✓\|reported]` |
 | System prompt with specific behavior described | A: "System prompts" → `[✓\|reported]` |
 | Tool definition or tool_use block described | B: "Defining tools" + "Parsing tool_use" → `[~\|reported]` |
 | Full agentic loop described | B: "Agentic loops" → `[✓\|reported]` |

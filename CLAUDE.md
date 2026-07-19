@@ -53,17 +53,21 @@ topics/best-practices.md     # Best practices topic schema (15 nodes)
 topics/mcp-development.md    # MCP development topic schema (29 nodes after v0.16.0)
 topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
 topics/claude-code-internals.md # Empirically-verified Claude Code internals (5 nodes — undocumented behaviors)
+topics/git.md                # Git version control topic schema (27 nodes — standalone, Pro Git-sourced; first breadth topic)
+topics/bash.md               # Bash scripting topic schema (29 nodes — standalone, GNU Bash Reference Manual-sourced)
+topics/python.md             # Python language topic schema (31 nodes — standalone, Python Tutorial + Language Reference-sourced)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + SessionStart)
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
 scripts/setup-mcp.py         # Provisions .venv + registers MCP server (opt-in — run manually, not on SessionStart)
 mcp/server.py                # knowledge-graph MCP server (read/write graphs; swappable backend)
 mcp/start.sh                 # MCP launch wrapper — .venv python; avoids macOS symlink trap
-ramp_core.py                 # stdlib-only kernel — write side (XP · SR dates · validate · lock) + read side (catalog · summary · node_count · graph_nodes) + detect side (schema ## Probes → run_detection); imported by skill-observer + mcp/server; CLI-backed for list/help/tree/detect
-tests/                       # stdlib pytest suite (ramp_core, xp, detection, normalization, symlinks, setup-mcp, file-size-warn) + server tests under .venv — importlib-loaded
+ramp_core.py                 # stdlib-only kernel — write side (XP · SR dates · validate · lock) + read side (catalog · summary · node_count · graph_nodes) + detect side (schema ## Probes → run_detection) + lint side (schema conformance — problems vs advisories); imported by skill-observer + mcp/server; CLI-backed for list/help/tree/detect/lint
+tests/                       # stdlib pytest suite (ramp_core, xp, detection, schema-lint, normalization, symlinks, setup-mcp, file-size-warn) + server tests under .venv — importlib-loaded
 requirements.txt             # MCP server deps — only to run mcp/server.py, not to test
 requirements-dev.txt         # pytest (test suite)
 docs/tree-format.md          # Annotated v3 knowledge graph format example
 docs/docs-map.md             # Maps all doc pages to topics and nodes
+docs/topic-authoring.md      # Normative topic-authoring contract — skill definition, schema anatomy, probe/reference grammar, validation gate (lint-checked)
 BACKLOG.md                   # Pointer to TaskWarrior backlog (task project:business.ramp)
 .mcp.json.example            # MCP server config template (copy → .mcp.json, fill in paths)
 README.md                    # Install instructions, modes, company deployment guide
@@ -161,6 +165,9 @@ Topic schemas live in `topics/` and are symlinked into `~/.claude/ramp/schemas/`
 `mcp-development` (29 nodes) — building MCP servers from fundamentals to production
 `anthropic-api` (18 nodes) — Claude API from basic completions to tool use loops
 `claude-code-internals` (5 nodes) — empirically-verified Claude Code behaviors not in official docs
+`git` (27 nodes) — version control from the snapshot model through branching, recovery, and internals (Pro Git-sourced; first breadth topic beyond Claude Code)
+`bash` (29 nodes) — shell scripting from the language model through control flow, functions, robustness (strict mode, quoting, traps, ShellCheck), redirection and pipelines, and expansions (GNU Bash Reference Manual-sourced)
+`python` (31 nodes) — the language from the object model through control flow and iteration, functions and scope, the workhorse containers, classes and the object protocol, and robustness (exceptions, context managers, generators, decorators) (Python Tutorial + Language Reference-sourced)
 
 ## Knowledge graph file
 

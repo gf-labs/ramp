@@ -64,7 +64,7 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 | git history exists OR sessions > 0 | ROOT: "Installation and first run" → `[✓\|historical]` |
 | sessions > 5 | A: "Common workflow patterns" → `[~\|historical]` |
 | sessions > 10 | A: "When to interrupt vs. let it run" → `[~\|historical]` |
-| sessions > 10 | A: "Iterative refinement" → `[~\|historical]` |
+| sessions > 10 | B: "Iterative refinement and course corrections" → `[~\|historical]` |
 | CLAUDE.md line count > 20 | B: "CLAUDE.md as living project memory" → `[✓\|artifact]` |
 | headless invocations > 0 | ROOT: "Core feature surface" → `[~\|historical]` |
 | max_commit_files ≥ 3 | A: "Reading and verifying Claude's output" → `[~\|historical]` |
@@ -102,7 +102,7 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 | Mentions reviewing diff or running tests after Claude's changes | A: "Reading and verifying" → `[✓\|reported]` |
 | Mentions context-rich prompts or acceptance criteria | A: "Writing effective prompts" → `[✓\|reported]` |
 | Describes CLAUDE.md contents specifically | B: "CLAUDE.md as living project memory" → `[✓\|reported]` |
-| Names specific pitfalls (over-trust, vague prompts, no plan mode) | B: "Recognizing common pitfalls" → `[✓\|reported]` |
+| Names specific pitfalls (over-trust, vague prompts, no plan mode) | B: "Recognizing and avoiding common pitfalls" → `[✓\|reported]` |
 
 ---
 

@@ -66,7 +66,7 @@ This schema captures **Claude Code behaviors that are undocumented but consequen
 | Affirmative on env difference but without fresh-subshell detail | ROOT: "!bash vs Bash tool env var inheritance" → `[~\|reported]` |
 | Exact stdin JSON field names (hook_event_name, tool_name, tool_input) | ROOT: "Hook stdin contract" → `[✓\|reported]` |
 | Correct exit codes (0/2 semantics) without field names | ROOT: "Hook stdin contract" → `[~\|reported]` |
-| Explains scope: Bash tool yes, !bash no, hooks no | ROOT: "settings.json['env'] injection scope" → `[✓\|reported]` |
+| Explains scope: Bash tool yes, !bash no, hooks no | ROOT: "settings.json" → `[✓\|reported]` |
 | "--plugin-dir" + hooks.json not registered | A: "--plugin-dir hook registration limitation" → `[✓\|reported]` |
 
 ---
