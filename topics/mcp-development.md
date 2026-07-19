@@ -81,7 +81,7 @@ This topic covers **building MCP servers** — not just using them, but creating
 
 | Collected evidence | Node → status |
 |--------------------|---------------|
-| MCP servers configured in Claude settings | ROOT: "Installing and testing an existing server" → `[~\|artifact]` |
+| MCP servers configured in Claude settings | ROOT: "Installing and testing an existing MCP server" → `[~\|artifact]` |
 | Multiple MCP servers configured | D: "Composing multiple MCP servers" → `[✓\|artifact]` |
 | repo contains MCP-related source files | A: "Project structure" + "Defining a tool" → `[~\|artifact]` |
 | repo contains `isError` in MCP tool handlers | A: "isError flag pattern" → `[~\|artifact]` |

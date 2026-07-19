@@ -111,7 +111,7 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | agent_sessions > 20 | ROOT: "Agent teams: orchestration patterns" → `[~\|historical]` |
 | custom_agents > 0 OR custom_agents_home > 0 | ROOT: "Custom subagent definitions" → `[✓\|artifact]` |
 | worktrees > 1 | ROOT: "Worktrees for parallel development" → `[✓\|historical]` |
-| slash_commands ≥ 1 | A: "Skills: creation and syntax" → `[✓\|artifact]` |
+| slash_commands ≥ 1 | A: "Skills (slash commands): creation and syntax" → `[✓\|artifact]` |
 | skill_bash_injection > 0 | A: "Skill mechanics: $ARGUMENTS, !bash, @file" → `[✓\|artifact]` |
 | command files with both `!` and `@` usage | A: "Skill and command composition" → `[✓\|artifact]` |
 | `enabledPlugins` in settings | A: "Plugin discovery and installation" → `[✓\|artifact]` |
@@ -129,7 +129,7 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | `.mcp.json` exists at repo root | C: "MCP project config (.mcp.json)" → `[✓\|artifact]` |
 | skill files with `context: fork` | A: "context: fork for skill isolation" → `[✓\|artifact]` |
 | skill files with `argument-hint:` | A: "argument-hint frontmatter" → `[✓\|artifact]` |
-| `.claude/rules/` directory with YAML files | A: ".claude/rules/ with paths: glob patterns" → `[~\|artifact]` |
+| `.claude/rules/` directory with YAML files | A: ".claude/rules/ with YAML paths: glob patterns" → `[~\|artifact]` |
 | `managed_settings.json` in repo | D: "Skills distribution via plugins and managed_settings.json" → `[✓\|artifact]` |
 
 ---
@@ -161,7 +161,7 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | Specific description of parallel subagents with task detail | ROOT: "Subagent basics" → `[✓\|reported]`; ROOT: "Agent teams" → `[~\|reported]` |
 | Specific description of foreground vs. background behavior | ROOT: "Foreground vs. background" → `[✓\|reported]` |
 | Description of worktree usage with two branches | ROOT: "Worktrees" → `[✓\|reported]` (if specific) or `[~\|reported]` (if vague) |
-| Description of a slash command with syntax detail | A: "Skills: creation and syntax" → `[✓\|reported]` |
+| Description of a slash command with syntax detail | A: "Skills (slash commands): creation and syntax" → `[✓\|reported]` |
 | Description of !bash, @file, or $ARGUMENTS in a skill | A: "Skill mechanics" → `[✓\|reported]` |
 | Description of plugin install or usage | A: "Plugin discovery" → `[✓\|reported]` |
 | Description of hook firing with specific tool or pattern | B: "PostToolUse hooks" or "PreToolUse hooks" → `[✓\|reported]` |
