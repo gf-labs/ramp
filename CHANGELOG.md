@@ -44,6 +44,37 @@ moves out of chat scrollback into two inspectable homes.
   round-trip the suffix; an `ids <topic>` CLI verb suggests slugs and lints
   present/unique/parity. Landed for the 5 `claude-code` sub-schemas (81 nodes);
   standalones follow in the topic-authoring wave.
+- New standalone topic: `git` — 27 nodes across 6 branches (foundations → branching →
+  remotes → rewriting and recovery → advanced tooling → internals), sourced from the Pro
+  Git book, id-native with schema-declared `## Probes` (7 read-only probes built on
+  existing primitives — no engine change). First of the narrow-and-deep topic-authoring
+  wave; its URL→node map is recorded in `docs/docs-map.md`.
+- New standalone topic: `bash` — 29 nodes across 6 branches (foundations → control flow →
+  functions and parameters → robustness and safety → expansions and I/O → advanced),
+  sourced from the GNU Bash Reference Manual, id-native with schema-declared `## Probes`
+  (5 read-only probes on existing primitives — no engine change). Scoped to writing
+  correct, robust scripts; its URL→node map is recorded in `docs/docs-map.md`.
+- `docs/topic-authoring.md` — the normative topic-authoring contract: the root skill
+  definition ("the smallest durable capability a practitioner can independently
+  demonstrate, verifiable against an explicit criterion") with its four acceptance
+  tests, per-section schema anatomy, the closed probe-primitive table, the
+  detection-reference grammar with the direct-witness seeding rule, and the validation
+  gate every new topic must pass. What any producer — human author or future generator
+  — must satisfy.
+- Kernel `lint <topic>` CLI verb — mechanical schema conformance against the authoring
+  contract, reporting **problems** (the schema lies or breaks: count/parity mismatches,
+  dangling node references, unknown or dead probes, missing engine-consumed sections,
+  bracket codes leaking into the render template; exit 1) separately from **advisories**
+  (below current standard but degrades gracefully: missing `## Probes`, missing `goal:`,
+  per-node coverage gaps; exit 0). New topics ship 0/0; legacy schemas carry advisories
+  as the quantified retrofit backlog. Composites are linted through every sub-schema.
+- New standalone topic: `python` — 31 nodes across 6 branches (objects and names →
+  control flow and iteration → functions and scope → workhorse containers → classes and
+  the object protocol → robustness and structure), sourced from the official Python
+  Tutorial and Language Reference, id-native with schema-declared `## Probes` (7
+  read-only probes on existing primitives — no engine change). Scoped to core-language
+  fluency; its URL→node map is recorded in `docs/docs-map.md`. First topic authored
+  against — and validated by — the new contract and lint.
 
 ### Changed
 - `/ramp:up` delivers exactly **one task at a time** to `.ramp/worksheet.md` (no
@@ -67,6 +98,12 @@ moves out of chat scrollback into two inspectable homes.
   and the tier label derives strictly from the active topic's tree.
 
 ### Fixed
+- Ten stale node references across six shipped schemas — title-drift danglers in
+  detection/answer tables (`anthropic-api`, `build`, `mcp-development`,
+  `getting-started`), one branch mispoint (`getting-started`), and two
+  quote-collision references (`bash`, `claude-code-internals`) — all caught by the
+  new lint's first corpus run and fixed; the corpus tests now pin every leaf schema
+  problem-free.
 - `/ramp:up`'s MCP scan read `settings.json`, where Claude Code never registers MCP
   servers — it now reads the real registries (project `.mcp.json`; `~/.claude.json`
   project + user scope), so configured servers are detected instead of silently

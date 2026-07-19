@@ -931,6 +931,331 @@ def _node_def_titles(content: str) -> list:
     return titles
 
 
+# ---------------------------------------------------------------------------
+# Schema lint — the mechanical half of docs/topic-authoring.md. Two tiers:
+# problems (the schema lies or breaks — new topics AND the shipped corpus must
+# have zero) and advisories (below the current authoring standard but degrades
+# gracefully — legacy schemas carry these as the quantified retrofit backlog).
+# ---------------------------------------------------------------------------
+
+_PRIMITIVE_MIN_ARGS = {
+    "file-exists": 1, "file-lines": 1, "glob-count": 1, "dir-count": 1,
+    "json-has-key": 2, "json-value": 2, "grep-count": 2, "git-log-grep": 1,
+    "git-worktree-count": 0, "git-max-commit-files": 0,
+}
+
+_LINT_SECTIONS = (
+    "node definitions", "detection signals", "gap questions",
+    "unlock thresholds", "tier definitions",
+    "tree render template", "saved tree file template",
+)
+
+_TYPE_TOKENS = {"artifact", "exercise", "qualitative", "historical"}
+
+_NODE_REF_RE = re.compile(r'\b(ROOT|[A-E]):\s*"([^"]+)"')
+# a ref-shaped cell whose branch label is case-folded (`Root`) or spaced
+# (`ROOT :`) — a superset of _NODE_REF_RE. Any loose match the strict grammar
+# rejects is a malformed reference that would otherwise escape validation.
+_LOOSE_REF_RE = re.compile(r'\b(root|[a-e])\s*:\s*"([^"]+)"', re.IGNORECASE)
+_BRANCH_HEADER_RE = re.compile(r"^###\s+\[(ROOT|[A-E])\]")
+_SAVED_HEADER_RE = re.compile(r"^##\s+\[(?:[^\]]*·\s*)?(ROOT|[A-E])\]")  # mirrors _HEADER_RE
+
+
+def _section_map(content: str) -> dict:
+    """{lowercased '## ' heading text: [lines]} — same section rule as
+    _template_titles: a '## [' line (a branch header inside the saved-tree
+    template) does not end the current section."""
+    out, current = {}, None
+    for line in content.splitlines():
+        st = line.strip()
+        if st.startswith("## ") and not st.startswith("## ["):
+            current = st[3:].strip().lower()
+            out.setdefault(current, [])
+            continue
+        if current is not None:
+            out[current].append(line)
+    return out
+
+
+def _lint_branch_rows(content: str) -> dict:
+    """{branch: [{title, criterion, type}]} from `## Node definitions`,
+    tracking `### [X]` subheaders and each table's own header row for column
+    positions (same cell/escape rules as parse_node_ids)."""
+    out = {}
+    in_defs, branch, cols = False, None, {}
+    for line in content.splitlines():
+        st = line.strip()
+        if line.startswith("## "):
+            in_defs = st.lower().startswith("## node definitions")
+            branch, cols = None, {}
+            continue
+        if not in_defs:
+            continue
+        m = _BRANCH_HEADER_RE.match(st)
+        if m:
+            branch, cols = m.group(1), {}
+            out.setdefault(branch, [])
+            continue
+        if not st.startswith("|"):
+            continue
+        raw = st.strip("|").replace("\\|", "\x00")
+        cells = [c.replace("\x00", "|").strip() for c in raw.split("|")]
+        first = cells[0] if cells else ""
+        if not first or set(first) <= {"-", ":"}:
+            continue
+        if first.lower() == "node":
+            cols = {c.lower(): i for i, c in enumerate(cells)}
+            continue
+        if branch is None:
+            continue
+
+        def _cell(name):
+            i = cols.get(name)
+            return cells[i] if i is not None and i < len(cells) else ""
+
+        out[branch].append({
+            "title": first,
+            "criterion": _cell("mastery criterion"),
+            "type": _cell("type"),
+        })
+    return out
+
+
+def _gap_branch_counts(content: str) -> dict:
+    """{branch: row count} for the `## Gap questions` main table (rows before
+    the first `###` subheading)."""
+    counts, in_gap, in_table = {}, False, True
+    for line in content.splitlines():
+        st = line.strip()
+        if st.startswith("## ") and not st.startswith("## ["):
+            in_gap = st.lower().startswith("## gap questions")
+            in_table = True
+            continue
+        if not in_gap:
+            continue
+        if st.startswith("### "):
+            in_table = False
+            continue
+        if not in_table or not st.startswith("|"):
+            continue
+        m = re.match(r"\|\s*\[(ROOT|[A-E])\]", st)
+        if m:
+            counts[m.group(1)] = counts.get(m.group(1), 0) + 1
+    return counts
+
+
+def _answer_map_lines(content: str) -> list:
+    """Lines of the `### Answer → node mapping` subsection inside
+    `## Gap questions` (matched by the `### answer` prefix, robust to the
+    arrow variant)."""
+    out, in_gap, in_answers = [], False, False
+    for line in content.splitlines():
+        st = line.strip()
+        if st.startswith("## ") and not st.startswith("## ["):
+            in_gap = st.lower().startswith("## gap questions")
+            in_answers = False
+            continue
+        if not in_gap:
+            continue
+        if st.startswith("### "):
+            in_answers = st.lower().startswith("### answer")
+            continue
+        if in_answers:
+            out.append(line)
+    return out
+
+
+def lint_schema(topic: str, content: str, schema_dir=None) -> dict:
+    """Lint one topic schema against the authoring standard
+    (docs/topic-authoring.md §12). Returns {"problems": [...],
+    "advisories": [...], "nodes": N}. Problems = the schema lies or breaks;
+    advisories = below the current standard but degrades gracefully. A
+    composite (`sources:` in frontmatter) is linted as: own frontmatter plus
+    node_count-equals-sum, then every source sub-schema in full, with each
+    sub's findings prefixed by its name."""
+    problems, advisories = [], []
+    fm = parse_frontmatter(content)
+
+    for key in ("topic", "node_count", "version", "source_url", "description"):
+        if key not in fm:
+            problems.append(f"frontmatter: missing {key!r}")
+    if "topic" in fm and fm["topic"] != topic:
+        problems.append(f"frontmatter: topic {fm['topic']!r} != {topic!r}")
+    if "goal" not in fm:
+        advisories.append("frontmatter: missing 'goal'")
+
+    # --- composite: frontmatter + aggregated sources; no anatomy of its own
+    if "sources" in fm:
+        total = 0
+        for sub in _parse_sources(fm["sources"]):
+            try:
+                sub_content = (Path(schema_dir) / f"{sub}.md").read_text(encoding="utf-8")
+            except (OSError, TypeError):
+                problems.append(f"{sub}: source schema unreadable")
+                continue
+            r = lint_schema(sub, sub_content, schema_dir)
+            problems.extend(f"{sub}: {p}" for p in r["problems"])
+            advisories.extend(f"{sub}: {a}" for a in r["advisories"])
+            total += r["nodes"]
+        if "node_count" in fm:
+            try:
+                nc = int(fm["node_count"])
+            except (ValueError, TypeError):
+                problems.append(
+                    f"frontmatter: node_count {fm['node_count']!r} is not an integer")
+            else:
+                if nc != total:
+                    problems.append(
+                        f"frontmatter: node_count {fm['node_count']} != sum of sources ({total})")
+        return {"problems": problems, "advisories": advisories, "nodes": total}
+
+    # --- leaf anatomy: required sections
+    secs = _section_map(content)
+    for title in _LINT_SECTIONS:
+        if title not in secs:
+            problems.append(f"missing section: ## {title}")
+    if "probes" not in secs:
+        advisories.append("missing section: ## Probes")
+    sub3 = [l.strip().lower() for l in content.splitlines() if l.strip().startswith("### ")]
+    if not any(s.startswith("### qualitative rubric") for s in sub3):
+        advisories.append("missing subsection: ### Qualitative rubric")
+    if not any(s.startswith("### answer") for s in sub3):
+        advisories.append("missing subsection: ### Answer → node mapping")
+
+    # --- node_count parity (present-but-unparseable is itself a problem;
+    #     a truly missing node_count is already reported above)
+    derived = _derived_node_count(content)
+    if "node_count" in fm:
+        try:
+            nc = int(fm["node_count"])
+        except (ValueError, TypeError):
+            problems.append(
+                f"frontmatter: node_count {fm['node_count']!r} is not an integer")
+        else:
+            if nc != derived:
+                problems.append(
+                    f"frontmatter: node_count {fm['node_count']} != {derived} node rows")
+
+    # --- per-row checks
+    rows = _lint_branch_rows(content)
+    branches = [b for b in ("ROOT", "A", "B", "C", "D", "E") if b in rows]
+    for b in branches:
+        for r in rows[b]:
+            if not r["criterion"]:
+                problems.append(f"node {r['title']!r}: empty Mastery criterion")
+            toks = [t.strip() for t in re.split(r"[/+]", r["type"]) if t.strip()]
+            if not toks:
+                problems.append(f"node {r['title']!r}: empty Type")
+            for t in toks:
+                if t.lower() not in _TYPE_TOKENS:
+                    problems.append(f"node {r['title']!r}: unknown Type {t!r}")
+
+    # --- ids: full per-row lint when the id column exists; legacy advisory
+    #     when the schema predates node-ids (parity still enforced either way)
+    if parse_node_ids(content):
+        problems.extend(lint_schema_ids(topic, content)["problems"])
+    else:
+        advisories.append("no id column (pre-node-ids legacy)")
+        defs_set, tpl_set = set(_node_def_titles(content)), set(_template_titles(content))
+        for t in sorted(defs_set - tpl_set):
+            problems.append(f"parity: {t!r} in Node definitions but not the saved-tree template")
+        for t in sorted(tpl_set - defs_set):
+            problems.append(f"parity: {t!r} in the saved-tree template but not Node definitions")
+
+    # --- probes: closed primitive set, parseable args, no dead probes
+    if "probes" in secs:
+        seen = set()
+        for name, primitive, args in parse_probes(content):
+            if name in seen:
+                problems.append(f"probe {name!r}: duplicate name")
+            seen.add(name)
+            if primitive not in _PRIMITIVE_MIN_ARGS:
+                problems.append(f"probe {name!r}: unknown primitive {primitive!r}")
+                continue
+            try:
+                toks = shlex.split(args) if args else []
+            except ValueError as exc:
+                problems.append(f"probe {name!r}: unparseable args ({exc})")
+                continue
+            if len(toks) < _PRIMITIVE_MIN_ARGS[primitive]:
+                problems.append(
+                    f"probe {name!r}: {primitive} needs "
+                    f"≥{_PRIMITIVE_MIN_ARGS[primitive]} arg(s) — dead probe")
+
+    # --- node references: detection signals + answer mapping must resolve
+    titles = {b: [r["title"] for r in rows[b]] for b in rows}
+
+    def _check_refs(pairs, where):
+        for b, ref in pairs:
+            in_branch = titles.get(b, [])
+            if not in_branch:
+                problems.append(f'{where}: {b}: "{ref}" references a branch with no nodes')
+            elif not any(ref.casefold() in t.casefold() for t in in_branch):
+                problems.append(f'{where}: {b}: "{ref}" matches no node')
+
+    # refs are harvested from raw table cells — restore escaped pipes (\|)
+    # once here, so both the dangling check and the coverage loop compare
+    # against titles the same way (titles come back already restored)
+    det_refs = [(b, r.replace("\\|", "|")) for b, r in
+                _NODE_REF_RE.findall("\n".join(secs.get("detection signals", [])))]
+    ans_refs = [(b, r.replace("\\|", "|")) for b, r in
+                _NODE_REF_RE.findall("\n".join(_answer_map_lines(content)))]
+    _check_refs(det_refs, "detection signal")
+    _check_refs(ans_refs, "answer mapping")
+
+    # --- malformed references: a branch label the strict grammar rejects
+    #     (wrong case `Root`, stray space `ROOT :`) is never harvested above,
+    #     so a typo would silently pass the dangling-ref check. Flag every
+    #     ref-shaped cell _LOOSE_REF_RE accepts but _NODE_REF_RE (same start) does not.
+    for _txt, _where in (("\n".join(secs.get("detection signals", [])), "detection signal"),
+                         ("\n".join(_answer_map_lines(content)), "answer mapping")):
+        _ok = {m.start() for m in _NODE_REF_RE.finditer(_txt)}
+        for m in _LOOSE_REF_RE.finditer(_txt):
+            if m.start() not in _ok:
+                problems.append(
+                    f"{_where}: malformed node reference {m.group(0).strip()!r} "
+                    f"— branch label must be exactly ROOT or A–E followed by `:`")
+
+    # --- per-node coverage (forward-normative: advisories)
+    gaps = _gap_branch_counts(content)
+    for b in branches:
+        if gaps.get(b, 0) != len(rows[b]):
+            advisories.append(
+                f"gap questions: branch {b} has {gaps.get(b, 0)} row(s) "
+                f"for {len(rows[b])} node(s)")
+    for b in branches:
+        for t in titles[b]:
+            if not any(rb == b and ref.casefold() in t.casefold()
+                       for rb, ref in ans_refs):
+                advisories.append(f"answer mapping: no row for {b}: {t!r}")
+
+    # --- unlock thresholds: every non-ROOT branch declared, no phantoms
+    unlock_text = "\n".join(secs.get("unlock thresholds", []))
+    declared = set(re.findall(r"Branch\s+([A-E])\s+unlocks", unlock_text))
+    for b in branches:
+        if b != "ROOT" and b not in declared:
+            problems.append(f"unlock thresholds: no line for Branch {b}")
+    for b in sorted(declared - set(branches)):
+        problems.append(f"unlock thresholds: Branch {b} is not in Node definitions")
+
+    # --- templates: render stays code-free, saved template keeps the codes
+    render_text = "\n".join(secs.get("tree render template", []))
+    if re.search(r"\[(ROOT|[A-E])\]", render_text):
+        problems.append(
+            "tree render template: bracket tier codes leak into user-facing output")
+    saved_branches = set()
+    for line in secs.get("saved tree file template", []):
+        m = _SAVED_HEADER_RE.match(line.strip())
+        if m:
+            saved_branches.add(m.group(1))
+    for b in branches:
+        if b not in saved_branches:
+            problems.append(f"saved-tree template: missing `## [{b}]` branch header")
+
+    return {"problems": problems, "advisories": advisories,
+            "nodes": sum(len(v) for v in rows.values())}
+
+
 def run_detection(topic: str, schema_dir=None) -> dict:
     """Run every probe the active topic declares (own + sourced), returning
     {name: value}. Insertion order follows first-declaration order."""
@@ -1160,6 +1485,8 @@ def _main(argv) -> int:
     p_detect.add_argument("topic")
     p_ids = sub.add_parser("ids")
     p_ids.add_argument("topic")
+    p_lint = sub.add_parser("lint")
+    p_lint.add_argument("topic")
     args = parser.parse_args(argv)
 
     if args.cmd == "catalog":
@@ -1187,6 +1514,18 @@ def _main(argv) -> int:
         content = schema_path.read_text(encoding="utf-8") if schema_path.exists() else ""
         print(json.dumps(lint_schema_ids(args.topic, content)))
         return 0
+
+    if args.cmd == "lint":
+        schema_dir = _schema_dir()
+        schema_path = schema_dir / f"{args.topic}.md"
+        if not schema_path.exists():
+            print(json.dumps({"problems": [f"schema not found: {args.topic}"],
+                              "advisories": [], "nodes": 0}))
+            return 1
+        result = lint_schema(
+            args.topic, schema_path.read_text(encoding="utf-8"), schema_dir)
+        print(json.dumps(result))
+        return 1 if result["problems"] else 0
 
     # args.cmd in ("summary", "nodes", "due") — all read a single topic graph; a
     # missing graph yields the empty shape ({} for summary, [] for nodes/due).
