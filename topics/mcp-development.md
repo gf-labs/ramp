@@ -121,16 +121,35 @@ criterion's "used tools from both in one session", so teach-back verifies it.
 
 | Branch | Gap | Ask this |
 |--------|-----|----------|
-| [ROOT] | No MCP server usage evidence | "Have you installed any MCP servers in Claude Code? If so, which one and what did you use it for?" |
-| [ROOT] | No build-vs-adopt decision evidence | "When would you build a custom MCP server rather than adopting an existing community server like the GitHub or filesystem server?" |
-| [ROOT] | No transport knowledge | "Do you know when you'd use stdio transport vs. HTTP for an MCP server? If so, give me one scenario for each." |
-| [A] | No MCP implementation evidence | "Have you written any part of an MCP server — even a tool skeleton? If so, what language and what did the tool do?" |
-| [A] | No error handling evidence | "When a tool call fails partway through — say a database query returns permission denied — how should your MCP server communicate that to the agent? What fields go in the response?" |
-| [B] | No advanced schema evidence | "Have you defined an MCP tool with nested inputs — like an object parameter with required fields? If so, what was the schema?" |
-| [B] | No resources evidence | "What's the difference between an MCP resource and an MCP tool? Give an example of something that should be a resource rather than a tool." |
-| [C] | No distribution evidence | "Is your MCP server installable by someone else — via npm, pip, or a binary? If so, how do they install it?" |
-| [E] | No sampling evidence | "What is MCP sampling, and why would an MCP server use it instead of making its own API call to a language model?" |
-| [E] | No roots evidence | "How does the roots system in MCP control what files a server can access? Who declares the roots, and who enforces them?" |
+| [ROOT] | What MCP is | "Explain the three things an MCP server can expose — tools, resources, prompts. What's the difference, and why does MCP exist instead of just inlining tool definitions?" |
+| [ROOT] | Build-vs-adopt | "When would you build a custom MCP server rather than adopting an existing community server like the GitHub or filesystem server?" |
+| [ROOT] | Transport choice | "Do you know when you'd use stdio transport vs. HTTP for an MCP server? If so, give me one scenario for each." |
+| [ROOT] | Installing a server | "Have you installed any MCP servers in Claude Code? If so, which one and what did you use it for?" |
+| [ROOT] | Reading output | "When an MCP tool returns a result, where does it go — injected into Claude's context, rendered in the UI, or both? How do you know what Claude actually 'sees'?" |
+| [A] | Project structure | "Have you written any part of an MCP server — even a tool skeleton? If so, what language and SDK, and how do you run it?" |
+| [A] | Defining a tool | "Walk me through declaring one MCP tool — what three things does it need, and which one does Claude use to decide *when* to call it?" |
+| [A] | Handling calls | "Your tool handler receives the input and runs. What shape does it return so Claude gets a usable result — and what keeps the server from crashing on a valid call?" |
+| [A] | Error handling | "When a tool call fails partway through — say a database query returns permission denied — how should your MCP server communicate that to the agent? What fields go in the response?" |
+| [A] | isError flag | "When do you set `isError: true` in a tool response versus returning a protocol-level error? What does `isError` let the agent do that a crash wouldn't?" |
+| [A] | Structured errors | "Beyond a plain message, what would you put in a tool's error payload so a coordinator can decide whether to retry or escalate?" |
+| [A] | Tool scoping | "How many tools can an agent reliably choose between, and how do you scope tool access by agent role? Why does a big tool list hurt?" |
+| [A] | Local testing | "How do you test an MCP server before shipping it — have you used mcp-inspector or run it against a live Claude session? What did you check?" |
+| [B] | Complex schemas | "Have you defined an MCP tool with nested inputs — like an object parameter with required fields, or an enum? If so, what was the schema?" |
+| [B] | Streaming | "Have you had a tool return a streaming response — multiple content chunks? When is that worth the extra complexity over a single return?" |
+| [B] | Resources | "What's the difference between an MCP resource and an MCP tool? Give an example of something that should be a resource rather than a tool." |
+| [B] | Prompts | "Have you defined an MCP prompt — a parameterized template Claude can invoke? How's that different from a system prompt?" |
+| [B] | Secrets | "If your MCP server needs an API key, how do you handle it without hardcoding? Where does the secret come from?" |
+| [C] | Packaging | "Is your MCP server installable by someone else — via npm, pip, or a binary? If so, how do they install it?" |
+| [C] | Description quality | "How do you write tool descriptions specific enough that Claude picks the right tool for an ambiguous query? Have you tested it with different phrasings?" |
+| [C] | CI testing | "Do you have CI that starts the server, calls its tools, and asserts on the outputs? What does it check?" |
+| [D] | Composing servers | "Have you run two or more MCP servers at once and used tools from both in a single session? What were they?" |
+| [D] | Internal API wrapper | "Have you wrapped an internal or private API in an MCP server so teammates can query it through Claude without knowing the endpoints?" |
+| [D] | Hooks + MCP | "Have you combined a Claude Code hook with an MCP tool in one workflow? How do the two interact?" |
+| [E] | Sampling | "What is MCP sampling, and why would an MCP server use it instead of making its own API call to a language model?" |
+| [E] | Notifications | "For a long-running tool, how does the server give the client real-time feedback? What's the difference between progress notifications and logging notifications?" |
+| [E] | Roots | "How does the roots system in MCP control what files a server can access? Who declares the roots, and who enforces them?" |
+| [E] | Transport tradeoffs | "Beyond local-vs-remote, what makes you pick StreamableHTTP over stdio? What operational cost does HTTP add?" |
+| [E] | Scaling | "What's the difference between a stateless and a stateful MCP server for scaling? When does statefulness force you into sticky sessions or external storage?" |
 
 ### Qualitative rubric for answers
 
@@ -142,13 +161,35 @@ criterion's "used tools from both in one session", so teach-back verifies it.
 
 | Answer contains | Node → status |
 |-----------------|---------------|
-| Specific MCP server name + use case | ROOT: "Installing and testing" → `[✓\|reported]` |
-| Vague "yes, I've installed MCP servers" | ROOT: "Installing and testing" → `[~\|reported]` |
+| Explains tools vs. resources vs. prompts + why MCP over inline tools | ROOT: "What MCP is and why it exists" → `[✓\|reported]` |
+| Specific build-vs-adopt tradeoff with an example | ROOT: "Community vs custom server selection" → `[✓\|reported]` |
 | Specific stdio vs. HTTP tradeoff | ROOT: "stdio vs. HTTP transport" → `[✓\|reported]` |
-| Vague awareness of transports | ROOT: "stdio vs. HTTP transport" → `[~\|reported]` |
-| Describes a tool definition (name, schema, handler) | A: "Project structure" + "Defining a tool" + "Handling calls" → `[~\|reported]` |
-| Specific error handling or schema detail | A: "Error handling" or "Complex schemas" → `[✓\|reported]` |
-| Distribution mechanism described | C: "Packaging" → `[✓\|reported]` |
+| Specific MCP server name + use case (vague "yes I've installed one" → `[~]`) | ROOT: "Installing and testing" → `[✓\|reported]` |
+| Distinguishes context-injected tool output from UI-rendered output | ROOT: "Reading MCP server output" → `[✓\|reported]` |
+| Project skeleton described (entry point, deps, run command, SDK) | A: "Project structure" → `[~\|reported]` |
+| Names the tool's name/description/input_schema and which drives call selection | A: "Defining a tool with name, description, and input schema" → `[✓\|reported]` |
+| Describes returning a content array with a text item, no crash on valid input | A: "Handling tool calls and returning results" → `[✓\|reported]` |
+| Specific error-response fields described (isError / structured payload) | A: "Error handling and exit codes" → `[✓\|reported]` |
+| Explains `isError: true` (tool ran but failed) vs. protocol error, and what it enables | A: "isError flag pattern for tool failures" → `[✓\|reported]` |
+| Names errorCategory + isRetryable and why a coordinator needs them | A: "Structured error responses" → `[✓\|reported]` |
+| States the ~4-5 tool limit and scopes access by agent role | A: "Tool distribution: scoped access per agent role" → `[✓\|reported]` |
+| Describes testing via mcp-inspector or a live Claude call | A: "Testing locally with claude and mcp-inspector" → `[✓\|reported]` |
+| Nested-object or enum input schema described | B: "Tools with complex input schemas" → `[✓\|reported]` |
+| Streaming (multi-chunk) response described with the complexity tradeoff | B: "Streaming responses from tools" → `[✓\|reported]` |
+| Distinguishes a resource (Claude reads) from a tool (Claude calls) with an example | B: "Resources (file/data exposure)" → `[✓\|reported]` |
+| Parameterized MCP prompt described vs. a system prompt | B: "Prompts (reusable prompt templates)" → `[✓\|reported]` |
+| Secret handled via env var or user-configured mechanism, not hardcoded | B: "Authentication and secrets management" → `[✓\|reported]` |
+| Distribution mechanism described (npm/pip/binary, one-command install) | C: "Packaging for distribution" → `[✓\|reported]` |
+| Tool descriptions tuned + tested across phrasings for correct selection | C: "Writing a compelling server description" → `[✓\|reported]` |
+| CI that starts the server, calls tools, and asserts outputs described | C: "CI testing of MCP tool behavior" → `[✓\|reported]` |
+| ≥2 servers configured and tools from both used in one session | D: "Composing multiple MCP servers" → `[✓\|reported]` |
+| Server wrapping an internal or private API described | D: "MCP server for internal APIs" → `[✓\|reported]` |
+| Hook + MCP tool combined in one workflow, interaction explained | D: "Claude Code hooks + MCP" → `[✓\|reported]` |
+| Explains sampling: server requests a completion via the client + the security boundary | E: "Sampling" → `[✓\|reported]` |
+| Progress vs. logging notifications distinguished with a UX rationale | E: "Progress and logging notifications" → `[✓\|reported]` |
+| Explains roots: client declares allowed paths, server must respect them | E: "Roots-based file access" → `[✓\|reported]` |
+| StreamableHTTP-vs-stdio tradeoff with the operational cost of HTTP | E: "Transport selection: stdio vs StreamableHTTP tradeoffs" → `[✓\|reported]` |
+| Stateless vs. stateful scaling tradeoff (sticky sessions / external state) | E: "Production scaling: stateless vs stateful configurations" → `[✓\|reported]` |
 
 ---
 
