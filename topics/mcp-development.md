@@ -4,6 +4,7 @@ node_count: 29
 version: 1
 source_url: https://modelcontextprotocol.io/
 description: Building MCP (Model Context Protocol) servers — expose tools, resources, and prompts that Claude can call. Covers fundamentals through production deployment.
+goal: ramp them up on building MCP servers — the tools/resources/prompts model and transport choices, then defining tools with input schemas, structured error handling, local testing, packaging, and production distribution
 ---
 
 # MCP Development Knowledge Graph Schema
@@ -18,62 +19,86 @@ This topic covers **building MCP servers** — not just using them, but creating
 
 ### [ROOT] MCP fundamentals (always unlocked — 5 nodes)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|----|
-| What MCP is and why it exists | Can explain the difference between tools (Claude calls, returns result), resources (Claude reads, like files), and prompts (reusable templates); knows why MCP exists vs. inline tool definitions | Qualitative | None (ask via gap question) | https://modelcontextprotocol.io/introduction |
-| Community vs custom server selection | Can make the build-vs-adopt decision: when to use an existing community server (filesystem, GitHub, web search, database) vs. build a purpose-built one; knows the tradeoffs — community servers save time but may be over-scoped or under-maintained; custom servers allow precise tool naming, input schemas, and access control | Qualitative | None | https://modelcontextprotocol.io/introduction |
-| stdio vs. HTTP transport | Knows when to use stdio (local, single-user, low latency) vs. HTTP/SSE (remote, multi-user, persistent); can explain the tradeoff | Qualitative | None (ask via gap question) | https://modelcontextprotocol.io/docs/concepts/transports |
-| Installing and testing an existing MCP server | Has installed ≥1 MCP server in Claude Code settings; made a tool call through it; can describe what the server returned | Artifact / Exercise | MCP servers configured in settings → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/mcp |
-| Reading MCP server output in Claude sessions | Understands how Claude renders tool results; knows the difference between tool output injected into context vs. rendered in UI | Qualitative | None (ask via gap question) | https://modelcontextprotocol.io/docs/concepts/tools |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|----|-----|
+| What MCP is and why it exists | Can explain the difference between tools (Claude calls, returns result), resources (Claude reads, like files), and prompts (reusable templates); knows why MCP exists vs. inline tool definitions | Qualitative | None (ask via gap question) | https://modelcontextprotocol.io/introduction | mcp-development-what-mcp-is-and-why-it-exists |
+| Community vs custom server selection | Can make the build-vs-adopt decision: when to use an existing community server (filesystem, GitHub, web search, database) vs. build a purpose-built one; knows the tradeoffs — community servers save time but may be over-scoped or under-maintained; custom servers allow precise tool naming, input schemas, and access control | Qualitative | None | https://modelcontextprotocol.io/introduction | mcp-development-community-vs-custom-server-selection |
+| stdio vs. HTTP transport | Knows when to use stdio (local, single-user, low latency) vs. HTTP/SSE (remote, multi-user, persistent); can explain the tradeoff | Qualitative | None (ask via gap question) | https://modelcontextprotocol.io/docs/concepts/transports | mcp-development-stdio-vs-http-transport |
+| Installing and testing an existing MCP server | Has installed ≥1 MCP server in Claude Code settings; made a tool call through it; can describe what the server returned | Artifact / Exercise | MCP servers configured in settings → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/mcp | mcp-development-installing-and-testing-an-existing-mcp-server |
+| Reading MCP server output in Claude sessions | Understands how Claude renders tool results; knows the difference between tool output injected into context vs. rendered in UI | Qualitative | None (ask via gap question) | https://modelcontextprotocol.io/docs/concepts/tools | mcp-development-reading-mcp-server-output-in-claude-sessions |
 
 ### [A] Building a basic MCP server (unlocks when ROOT ≥ 2 `[✓]` — 8 nodes)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|----|
-| Project structure for an MCP server | Has a working project skeleton: entry point, dependency declaration, and a way to run it; knows what `mcp` package or SDK to use for their language | Artifact | repo contains MCP-related source files (mcp, modelcontextprotocol imports) → `[~\|artifact]` | https://modelcontextprotocol.io/quickstart/server |
-| Defining a tool with name, description, and input schema | Has declared ≥1 tool with a name, a clear description Claude will use to decide when to call it, and a JSON Schema for inputs | Artifact | repo contains MCP tool definition patterns → `[~\|artifact]` | https://modelcontextprotocol.io/docs/concepts/tools |
-| Handling tool calls and returning results | Tool handler receives input, executes logic, returns a `content` array with at least a `text` item; server does not crash on valid inputs | Artifact / Exercise | None | https://modelcontextprotocol.io/docs/concepts/tools |
-| Error handling and exit codes | Server returns proper MCP error responses (not unhandled exceptions); knows how MCP errors differ from tool result errors; understands the `isError` flag for communicating tool-level failures vs. protocol-level errors | Artifact | None | https://modelcontextprotocol.io/docs/concepts/tools |
-| isError flag pattern for tool failures | Can explain when to set `isError: true` in a tool response (the tool ran but failed — e.g., resource not found, permission denied) vs. returning a normal error response (the protocol itself failed); knows that `isError: true` allows the agent to decide how to handle the failure rather than treating it as a crash | Qualitative / Artifact | None | https://modelcontextprotocol.io/docs/concepts/tools |
-| Structured error responses: errorCategory, isRetryable | Has included `errorCategory` (e.g., `"network"`, `"permission"`, `"not_found"`) and `isRetryable` (boolean) in tool error payloads alongside a human-readable description; knows why structured errors let a coordinator make intelligent retry/escalation decisions | Qualitative / Artifact | None | https://modelcontextprotocol.io/docs/concepts/tools |
-| Tool distribution: scoped access per agent role | Knows the 4-5 tool limit for reliable agent behavior; has scoped tool access per agent role (e.g., read-only tools for analyzer agents, write tools only for executor agents); understands that large tool lists increase tool selection errors | Qualitative | custom agent definitions with allowedTools > 0 → `[~\|artifact]` | https://modelcontextprotocol.io/docs/concepts/tools |
-| Testing locally with claude and mcp-inspector | Has run the server locally and verified Claude calls it; has used `mcp-inspector` or equivalent to inspect tool schema and test calls | Exercise | None | https://modelcontextprotocol.io/docs/tools/inspector |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|----|-----|
+| Project structure for an MCP server | Has a working project skeleton: entry point, dependency declaration, and a way to run it; knows what `mcp` package or SDK to use for their language | Artifact | repo contains MCP-related source files (mcp, modelcontextprotocol imports) → `[~\|artifact]` | https://modelcontextprotocol.io/quickstart/server | mcp-development-project-structure-for-an-mcp-server |
+| Defining a tool with name, description, and input schema | Has declared ≥1 tool with a name, a clear description Claude will use to decide when to call it, and a JSON Schema for inputs | Artifact | repo contains MCP tool definition patterns → `[~\|artifact]` | https://modelcontextprotocol.io/docs/concepts/tools | mcp-development-defining-a-tool-with-name-description-and-input-schema |
+| Handling tool calls and returning results | Tool handler receives input, executes logic, returns a `content` array with at least a `text` item; server does not crash on valid inputs | Artifact / Exercise | None | https://modelcontextprotocol.io/docs/concepts/tools | mcp-development-handling-tool-calls-and-returning-results |
+| Error handling and exit codes | Server returns proper MCP error responses (not unhandled exceptions); knows how MCP errors differ from tool result errors; understands the `isError` flag for communicating tool-level failures vs. protocol-level errors | Artifact | None | https://modelcontextprotocol.io/docs/concepts/tools | mcp-development-error-handling-and-exit-codes |
+| isError flag pattern for tool failures | Can explain when to set `isError: true` in a tool response (the tool ran but failed — e.g., resource not found, permission denied) vs. returning a normal error response (the protocol itself failed); knows that `isError: true` allows the agent to decide how to handle the failure rather than treating it as a crash | Qualitative / Artifact | None | https://modelcontextprotocol.io/docs/concepts/tools | mcp-development-iserror-flag-pattern-for-tool-failures |
+| Structured error responses: errorCategory, isRetryable | Has included `errorCategory` (e.g., `"network"`, `"permission"`, `"not_found"`) and `isRetryable` (boolean) in tool error payloads alongside a human-readable description; knows why structured errors let a coordinator make intelligent retry/escalation decisions | Qualitative / Artifact | None | https://modelcontextprotocol.io/docs/concepts/tools | mcp-development-structured-error-responses-errorcategory-isretryable |
+| Tool distribution: scoped access per agent role | Knows the 4-5 tool limit for reliable agent behavior; has scoped tool access per agent role (e.g., read-only tools for analyzer agents, write tools only for executor agents); understands that large tool lists increase tool selection errors | Qualitative | custom agent definitions with allowedTools > 0 → `[~\|artifact]` | https://modelcontextprotocol.io/docs/concepts/tools | mcp-development-tool-distribution-scoped-access-per-agent-role |
+| Testing locally with claude and mcp-inspector | Has run the server locally and verified Claude calls it; has used `mcp-inspector` or equivalent to inspect tool schema and test calls | Exercise | None | https://modelcontextprotocol.io/docs/tools/inspector | mcp-development-testing-locally-with-claude-and-mcp-inspector |
 
 ### [B] Advanced tools (unlocks when Branch A ≥ 3 `[✓]` — 5 nodes)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|----|
-| Tools with complex input schemas | Has defined a tool with nested objects, arrays, or enum constraints in its JSON Schema; Claude correctly passes structured arguments | Artifact | None | https://modelcontextprotocol.io/docs/concepts/tools |
-| Streaming responses from tools | Server returns a streaming response (multiple content chunks); knows when streaming is worth the complexity vs. a single return | Artifact / Qualitative | None | https://modelcontextprotocol.io/docs/concepts/tools |
-| Resources (file/data exposure) | Has implemented ≥1 MCP resource (URI-based data Claude can read, list, or subscribe to); understands resources as structured content catalogs — URI-based dataset enumeration that Claude can browse; knows the key distinction: resources expose data (Claude reads), tools execute actions (Claude calls with arguments) | Artifact | None | https://modelcontextprotocol.io/docs/concepts/resources |
-| Prompts (reusable prompt templates) | Has defined ≥1 MCP prompt (a parameterized prompt template Claude can invoke); understands the use case vs. system prompts | Artifact | None | https://modelcontextprotocol.io/docs/concepts/prompts |
-| Authentication and secrets management | Has handled API keys or auth tokens in a server without hardcoding them; uses env vars or a secrets mechanism the user configures | Artifact / Qualitative | None | https://modelcontextprotocol.io/docs/guides/authentication |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|----|-----|
+| Tools with complex input schemas | Has defined a tool with nested objects, arrays, or enum constraints in its JSON Schema; Claude correctly passes structured arguments | Artifact | None | https://modelcontextprotocol.io/docs/concepts/tools | mcp-development-tools-with-complex-input-schemas |
+| Streaming responses from tools | Server returns a streaming response (multiple content chunks); knows when streaming is worth the complexity vs. a single return | Artifact / Qualitative | None | https://modelcontextprotocol.io/docs/concepts/tools | mcp-development-streaming-responses-from-tools |
+| Resources (file/data exposure) | Has implemented ≥1 MCP resource (URI-based data Claude can read, list, or subscribe to); understands resources as structured content catalogs — URI-based dataset enumeration that Claude can browse; knows the key distinction: resources expose data (Claude reads), tools execute actions (Claude calls with arguments) | Artifact | None | https://modelcontextprotocol.io/docs/concepts/resources | mcp-development-resources-file-data-exposure |
+| Prompts (reusable prompt templates) | Has defined ≥1 MCP prompt (a parameterized prompt template Claude can invoke); understands the use case vs. system prompts | Artifact | None | https://modelcontextprotocol.io/docs/concepts/prompts | mcp-development-prompts-reusable-prompt-templates |
+| Authentication and secrets management | Has handled API keys or auth tokens in a server without hardcoding them; uses env vars or a secrets mechanism the user configures | Artifact / Qualitative | None | https://modelcontextprotocol.io/docs/guides/authentication | mcp-development-authentication-and-secrets-management |
 
 ### [C] Production and distribution (unlocks when Branch B ≥ 3 `[✓]` — 3 nodes)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|----|
-| Packaging for distribution | Has packaged a server for distribution via npm, PyPI, or as a binary; another user can install it in one command | Artifact | package.json or pyproject.toml with MCP server entry → `[~\|artifact]` | https://modelcontextprotocol.io/quickstart/server |
-| Writing a compelling server description | Server's tool descriptions are specific enough that Claude picks the right tool for ambiguous queries without prompting; tested with multiple query phrasings | Exercise / Qualitative | None | https://modelcontextprotocol.io/docs/concepts/tools |
-| CI testing of MCP tool behavior | Has a CI job that starts the server, calls tools programmatically, and asserts on outputs | Artifact | .github/workflows with MCP test patterns → `[~\|artifact]` | https://modelcontextprotocol.io/docs/tools/inspector |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|----|-----|
+| Packaging for distribution | Has packaged a server for distribution via npm, PyPI, or as a binary; another user can install it in one command | Artifact | package.json or pyproject.toml with MCP server entry → `[~\|artifact]` | https://modelcontextprotocol.io/quickstart/server | mcp-development-packaging-for-distribution |
+| Writing a compelling server description | Server's tool descriptions are specific enough that Claude picks the right tool for ambiguous queries without prompting; tested with multiple query phrasings | Exercise / Qualitative | None | https://modelcontextprotocol.io/docs/concepts/tools | mcp-development-writing-a-compelling-server-description |
+| CI testing of MCP tool behavior | Has a CI job that starts the server, calls tools programmatically, and asserts on outputs | Artifact | .github/workflows with MCP test patterns → `[~\|artifact]` | https://modelcontextprotocol.io/docs/tools/inspector | mcp-development-ci-testing-of-mcp-tool-behavior |
 
 ### [D] Integration patterns (unlocks when Branch C ≥ 2 `[✓]` — 3 nodes)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|----|
-| Composing multiple MCP servers | Understands that Claude can use multiple MCP servers simultaneously; has configured ≥2 servers and used tools from both in one session | Artifact / Exercise | multiple MCP servers in settings → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/mcp |
-| MCP server for internal APIs | Has built an MCP server that wraps an internal or private API; teammates can use Claude to query the API without knowing its endpoints | Artifact | None | https://modelcontextprotocol.io/quickstart/server |
-| Claude Code hooks + MCP | Has combined a Claude Code hook (PreToolUse/PostToolUse) with an MCP tool in the same workflow; can explain the interaction | Artifact | hooks + MCP servers both configured → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/hooks |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|----|-----|
+| Composing multiple MCP servers | Understands that Claude can use multiple MCP servers simultaneously; has configured ≥2 servers and used tools from both in one session | Artifact / Exercise | multiple MCP servers in settings → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/mcp | mcp-development-composing-multiple-mcp-servers |
+| MCP server for internal APIs | Has built an MCP server that wraps an internal or private API; teammates can use Claude to query the API without knowing its endpoints | Artifact | None | https://modelcontextprotocol.io/quickstart/server | mcp-development-mcp-server-for-internal-apis |
+| Claude Code hooks + MCP | Has combined a Claude Code hook (PreToolUse/PostToolUse) with an MCP tool in the same workflow; can explain the interaction | Artifact | hooks + MCP servers both configured → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/hooks | mcp-development-claude-code-hooks-mcp |
 
 ### [E] Advanced MCP topics (unlocks when Branch D ≥ 2 `[✓]` — 5 nodes)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|----|
-| Sampling: servers requesting LLM completions via the client | Can explain the sampling primitive: an MCP server can request an LLM completion from the client (not from a separate API call); knows the use case — server-side reasoning without the server needing its own LLM credentials; understands the security boundary (client controls sampling, server cannot bypass it) | Qualitative | None | https://modelcontextprotocol.io/docs/concepts/sampling |
-| Progress and logging notifications: real-time feedback to clients | Has implemented or can describe progress notifications (incremental status updates to the client while a long tool call runs) and logging notifications (structured log messages from server to client); knows why these matter for UX in long-running tools | Qualitative / Artifact | None | https://modelcontextprotocol.io/docs/concepts/notifications |
-| Roots-based file access: permission and security boundary system | Can explain roots: the client declares which file system paths (roots) the server is allowed to access; the server must respect these boundaries; knows this is the primary mechanism for preventing an MCP server from reading arbitrary files on the user's system | Qualitative | None | https://modelcontextprotocol.io/docs/concepts/roots |
-| Transport selection: stdio vs StreamableHTTP tradeoffs | Can make the transport decision: stdio for local single-user servers (no network overhead, process-lifetime scope); StreamableHTTP for remote multi-user servers (survives process restarts, supports server-sent events, scales horizontally); knows that HTTP transport has higher operational complexity | Qualitative | None | https://modelcontextprotocol.io/docs/concepts/transports |
-| Production scaling: stateless vs stateful configurations | Can explain the stateless vs. stateful tradeoff: stateless servers (no in-memory session state) can be horizontally scaled and restarted freely; stateful servers (e.g., with in-memory caches or long-lived connections) require sticky sessions or external state storage; knows when each is appropriate | Qualitative | None | https://modelcontextprotocol.io/docs/concepts/transports |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|----|-----|
+| Sampling: servers requesting LLM completions via the client | Can explain the sampling primitive: an MCP server can request an LLM completion from the client (not from a separate API call); knows the use case — server-side reasoning without the server needing its own LLM credentials; understands the security boundary (client controls sampling, server cannot bypass it) | Qualitative | None | https://modelcontextprotocol.io/docs/concepts/sampling | mcp-development-sampling-servers-requesting-llm-completions-via-the-client |
+| Progress and logging notifications: real-time feedback to clients | Has implemented or can describe progress notifications (incremental status updates to the client while a long tool call runs) and logging notifications (structured log messages from server to client); knows why these matter for UX in long-running tools | Qualitative / Artifact | None | https://modelcontextprotocol.io/docs/concepts/notifications | mcp-development-progress-and-logging-notifications-real-time-feedback-to-clients |
+| Roots-based file access: permission and security boundary system | Can explain roots: the client declares which file system paths (roots) the server is allowed to access; the server must respect these boundaries; knows this is the primary mechanism for preventing an MCP server from reading arbitrary files on the user's system | Qualitative | None | https://modelcontextprotocol.io/docs/concepts/roots | mcp-development-roots-based-file-access-permission-and-security-boundary-system |
+| Transport selection: stdio vs StreamableHTTP tradeoffs | Can make the transport decision: stdio for local single-user servers (no network overhead, process-lifetime scope); StreamableHTTP for remote multi-user servers (survives process restarts, supports server-sent events, scales horizontally); knows that HTTP transport has higher operational complexity | Qualitative | None | https://modelcontextprotocol.io/docs/concepts/transports | mcp-development-transport-selection-stdio-vs-streamablehttp-tradeoffs |
+| Production scaling: stateless vs stateful configurations | Can explain the stateless vs. stateful tradeoff: stateless servers (no in-memory session state) can be horizontally scaled and restarted freely; stateful servers (e.g., with in-memory caches or long-lived connections) require sticky sessions or external state storage; knows when each is appropriate | Qualitative | None | https://modelcontextprotocol.io/docs/concepts/transports | mcp-development-production-scaling-stateless-vs-stateful-configurations |
+
+---
+
+## Probes
+
+| name | primitive | args |
+|------|-----------|------|
+| mcp_user             | json-has-key | ~/.claude.json mcpServers |
+| mcp_project          | json-has-key | .mcp.json mcpServers |
+| mcp_source_imports   | grep-count   | "from mcp\|import mcp\|modelcontextprotocol" mcp/ src/ |
+| mcp_iserror          | grep-count   | "isError" mcp/ src/ |
+| agent_allowedtools   | grep-count   | "allowedTools\|allowed-tools" .claude/agents/ |
+| mcp_package_manifest | grep-count   | "mcp\|modelcontextprotocol" package.json pyproject.toml |
+| mcp_ci               | grep-count   | "mcp\|modelcontextprotocol" .github/workflows/ |
+| hooks_project        | json-has-key | .claude/settings.json hooks |
+| hooks_global         | json-has-key | ~/.claude/settings.json hooks |
+
+**Notes.** Source probes are scoped to `mcp/` and `src/` on purpose (precision
+bias): greping the repo root would match an *installed* `mcp` package under
+`.venv/` and false-positive "has built a server" on someone who only installed
+one. The closed primitive set cannot count JSON object keys, so "multiple MCP
+servers" is approximated by cross-scope presence (`mcp_user` **and**
+`mcp_project`) and seeds `[~|artifact]` — config presence does not witness the
+criterion's "used tools from both in one session", so teach-back verifies it.
 
 ---
 
@@ -81,14 +106,14 @@ This topic covers **building MCP servers** — not just using them, but creating
 
 | Collected evidence | Node → status |
 |--------------------|---------------|
-| MCP servers configured in Claude settings | ROOT: "Installing and testing an existing MCP server" → `[~\|artifact]` |
-| Multiple MCP servers configured | D: "Composing multiple MCP servers" → `[✓\|artifact]` |
-| repo contains MCP-related source files | A: "Project structure" + "Defining a tool" → `[~\|artifact]` |
-| repo contains `isError` in MCP tool handlers | A: "isError flag pattern" → `[~\|artifact]` |
-| custom agent definitions with allowedTools | A: "Tool distribution: scoped access per agent role" → `[~\|artifact]` |
-| package.json or pyproject.toml with MCP patterns | C: "Packaging for distribution" → `[~\|artifact]` |
-| .github/workflows with MCP test patterns | C: "CI testing" → `[~\|artifact]` |
-| hooks + MCP servers both configured | D: "Claude Code hooks + MCP" → `[~\|artifact]` |
+| mcp_user or mcp_project is true | ROOT: "Installing and testing an existing MCP server" → `[~\|artifact]` |
+| mcp_user and mcp_project both true (≥2 server configs) | D: "Composing multiple MCP servers" → `[~\|artifact]` |
+| mcp_source_imports > 0 | A: "Project structure" + "Defining a tool" → `[~\|artifact]` |
+| mcp_iserror > 0 | A: "isError flag pattern" → `[~\|artifact]` |
+| agent_allowedtools > 0 | A: "Tool distribution: scoped access per agent role" → `[~\|artifact]` |
+| mcp_package_manifest > 0 | C: "Packaging for distribution" → `[~\|artifact]` |
+| mcp_ci > 0 | C: "CI testing" → `[~\|artifact]` |
+| (hooks_global or hooks_project) and (mcp_user or mcp_project) | D: "Claude Code hooks + MCP" → `[~\|artifact]` |
 
 ---
 

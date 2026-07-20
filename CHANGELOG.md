@@ -75,6 +75,15 @@ moves out of chat scrollback into two inspectable homes.
   read-only probes on existing primitives — no engine change). Scoped to core-language
   fluency; its URL→node map is recorded in `docs/docs-map.md`. First topic authored
   against — and validated by — the new contract and lint.
+- Standalone-schema detection retrofit: the four pre-standard standalones
+  (`best-practices`, `mcp-development`, `anthropic-api`, `claude-code-internals`) are
+  brought up to the authoring contract — frozen `id` columns, a `goal:` role line, and
+  schema-declared `## Probes` wired to their detection signals (built entirely on
+  existing primitives — no engine change). Probes are precision-biased (source-scoped
+  greps that avoid false-positiving on an installed SDK under `.venv/`) and honor the
+  direct-witness seeding rule (config presence a developer authored seeds `[✓|artifact]`;
+  merely-consistent artifacts seed `[~|artifact]`). Clears every structural lint
+  advisory on the four; per-node gap-question coverage remains as tracked backlog.
 
 ### Changed
 - `/ramp:up` delivers exactly **one task at a time** to `.ramp/worksheet.md` (no
