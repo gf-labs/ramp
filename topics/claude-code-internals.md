@@ -65,9 +65,11 @@ the rest. Both fire in this repo (`scripts/skill-observer.py`, `scripts/setup-mc
 
 | Branch | Gap | Ask this |
 |--------|-----|----------|
-| [ROOT] | No env signal | "You need an env var available inside a PostToolUse hook handler and also inside a `!bash` command in a skill. You've set it in `settings.json['env']`. Where does it actually show up, and where doesn't it?" |
+| [ROOT] | Env inheritance | "Two ways to run a shell command from Claude Code: the Bash tool, and a `!bash` line inside a skill or command. One inherits the vars you set in `settings.json['env']`, the other runs blind to them. Which is which — and what's the underlying mechanism that makes them differ?" |
+| [ROOT] | Injection scope | "You need an env var available inside a PostToolUse hook handler and also inside a `!bash` command in a skill. You've set it in `settings.json['env']`. Where does it actually show up, and where doesn't it?" |
 | [ROOT] | Hook stdin | "Walk me through the exact shape of JSON your hook handler reads from stdin, and what exit code you'd use to block a tool call vs. let it through." |
 | [A] | Plugin dev | "You're developing a plugin locally with `--plugin-dir`. Your plugin's `hooks.json` defines a PostToolUse hook. Does the hook fire? Why or why not?" |
+| [A] | Hook idempotency | "Your SessionStart hook registers an MCP server, and it runs on every single session start. How do you write it so it doesn't pile up duplicate registrations or repeat expensive setup work each time?" |
 
 ### Qualitative rubric
 
@@ -85,6 +87,8 @@ the rest. Both fire in this repo (`scripts/skill-observer.py`, `scripts/setup-mc
 | Correct exit codes (0/2 semantics) without field names | ROOT: "Hook stdin contract" → `[~\|reported]` |
 | Explains scope: Bash tool yes, !bash no, hooks no | ROOT: "settings.json" → `[✓\|reported]` |
 | "--plugin-dir" + hooks.json not registered | A: "--plugin-dir hook registration limitation" → `[✓\|reported]` |
+| Check-state-before-register described (read `~/.claude.json` → inspect `mcpServers`, only add if absent; `claude mcp add -s user`) | A: "SessionStart hook idempotency pattern" → `[✓\|reported]` |
+| Knows the hook should be safe to re-run but can't name the check-state-first mechanism | A: "SessionStart hook idempotency pattern" → `[~\|reported]` |
 
 ---
 

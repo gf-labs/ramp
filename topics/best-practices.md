@@ -110,11 +110,19 @@ inherited from a cloned repo, so they seed `[~|artifact]` and rely on teach-back
 | Branch | Gap | Ask this |
 |--------|-----|------------|
 | [ROOT] | No scope evidence | "Do you have a global `~/.claude/CLAUDE.md`? If so, what have you put in it that's different from your project CLAUDE.md?" |
+| [ROOT] | Scoping judgment | "Give me one concrete thing you deliberately put in *global* scope and one you kept *project-local* — and why each belongs where it is, not the other way around." |
+| [ROOT] | Auto-memory | "Have you run `/memory`? What does auto-memory capture on its own, and have you ever gone in and pruned or corrected what it saved?" |
 | [A] | No build commands in CLAUDE.md | "Does your CLAUDE.md include the commands to build, test, and run the project? If not, what would a new engineer need to know that isn't there?" |
+| [A] | Architecture docs | "Does your CLAUDE.md explain the codebase's shape — module responsibilities, key data flows, where to look first — or does it just restate file names? Quote me one line from it." |
+| [A] | Team conventions | "Does your CLAUDE.md say who owns which system and where to ask questions, so Claude can cite it when advising on a PR? What's actually in there?" |
 | [A] | No security exclusions | "Have you told Claude to stay away from any paths — like `.env` files or secrets directories? If so, where did you put that instruction?" |
+| [A] | Onboarding section | "Does your CLAUDE.md carry a team-facing `## Onboarding` section with first-week guidance? What would a new hire read there on day one?" |
 | [B] | No permission rules | "Have you written a permissions glob rule — like `Bash(npm run *)` — so Claude can run specific commands without asking every time? If so, what did you allow?" |
 | [B] | No hook evidence | "Have you set up a hook that fires before or after Claude uses a tool? If so, what exit code does it return and what does it check?" |
+| [B] | MCP selection | "Which MCP server did you pick for this project, and why that one specifically — what does it let Claude do here that it couldn't otherwise? (Not 'I installed a bunch.')" |
+| [B] | Settings discipline | "How do you decide whether a setting belongs in your global settings vs. the project's? Give me one rule you keep global and one you keep repo-specific." |
 | [C] | No compact evidence | "Do you have a personal rule for when to run `/compact`? For example, do you do it at the start of a new task, or when you feel the responses getting worse?" |
+| [C] | Session naming | "Do you `/rename` sessions when meaningful work starts? Could you find a session from last week by name right now — and do you clear out the dead ones?" |
 | [C] | No rewind evidence | "Have you used `Esc+Esc` to undo something Claude did? If so, can you describe what happened and why rewind was the right choice over starting over?" |
 
 ### Qualitative rubric for answers
@@ -131,11 +139,18 @@ Same rubric as claude-code topic:
 | Specific explanation of what goes in global vs. project scope | ROOT: "Global vs. project vs. local scope" → `[✓\|reported]` |
 | Vague awareness of multiple scopes | ROOT: "Global vs. project vs. local scope" → `[~\|reported]` |
 | Specific example of choosing one scope over another | ROOT: "What belongs where" → `[✓\|reported]` |
+| Has run `/memory` and describes curating or pruning the auto-memory file | ROOT: "Auto-memory system" → `[✓\|reported]` |
 | Confirms CLAUDE.md has build commands | A: "Build and run commands" → `[✓\|reported]` |
+| Quotes an architecture/data-flow line from their CLAUDE.md (not a filename restatement) | A: "Architecture and structure documentation" → `[✓\|reported]` |
+| Names ownership, contacts, or review/deploy process content in their CLAUDE.md | A: "Team conventions and contacts" → `[✓\|reported]` |
 | Describes security exclusion with specific path or rule | A: "Security-sensitive path exclusions" → `[✓\|reported]` |
+| Describes a team-facing `## Onboarding` section with concrete first-week guidance | A: "Onboarding section for team tools" → `[✓\|reported]` |
 | Specific glob rule or deny rule described | B: "Scoped allowed-tools rules" → `[✓\|reported]` |
 | Exit code or hook output behavior described | B: "Hook design" → `[✓\|reported]` |
+| Names a specific MCP server and a project-specific reason for choosing it | B: "MCP server selection and scope" → `[✓\|reported]` |
+| States a deliberate global-vs-project split with an example rule on each side | B: "Project vs. global settings discipline" → `[✓\|reported]` |
 | Personal /compact heuristic described | C: "Compact timing" → `[✓\|reported]` |
+| Describes renaming sessions at the start and retrieving or deleting them by name | C: "Session naming and project hygiene" → `[✓\|reported]` |
 | Specific rewind scenario described | C: "Rewind vs. restart judgment" → `[✓\|reported]` |
 
 ---
