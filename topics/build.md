@@ -4,6 +4,7 @@ node_count: 32
 version: 1
 source_url: https://code.claude.com/docs/en/sub-agents
 description: Building with Claude Code — subagents, agent teams, plugins, skills, hooks, headless mode, MCP, and output styles.
+goal: ramp them up on building with Claude Code — subagents and agent-team orchestration, authoring skills and plugins, the hooks system, headless and MCP integration, and the distribution and iterative-refinement patterns that compose them
 ---
 
 # Build Knowledge Graph Schema
@@ -139,14 +140,37 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | Branch | Gap | Ask this |
 |--------|-----|----------|
 | [ROOT] | No subagent evidence | "Have you used a task where Claude spawned multiple subagents in parallel? Walk me through what the task was and how you could tell subagents were involved." |
+| [ROOT] | Foreground vs. background | "What's the difference between a foreground and a background subagent? When would you reach for each?" |
+| [ROOT] | Agent teams | "Have you run multiple agents in parallel on separate concerns? Describe the orchestrator/worker split." |
+| [ROOT] | Custom subagents | "Have you defined a custom subagent in `.claude/agents/`? What's its system prompt and tool restrictions, and when do you invoke it?" |
 | [ROOT] | No worktree evidence | "Have you ever run two Claude sessions simultaneously on separate git branches? If so, what were you doing in each?" |
 | [A] | No skill evidence | "Have you written any custom slash commands? Walk me through one — what does it do, what syntax does it use, and what does invoking it feel like vs. typing the same prompt?" |
+| [A] | Skill mechanics | "Have you used `$ARGUMENTS`, `!bash`, or `@file` in a skill? What does each one inject into the prompt?" |
+| [A] | Skill composition | "Have you composed skills — one skill calling another, passing `$ARGUMENTS` through, or invoking a subagent? What did you chain?" |
+| [A] | Output styles | "Have you changed how Claude formats its responses with an output style — concise, verbose, structured? How did you set it?" |
 | [A] | No plugin evidence | "Have you installed any plugins? How did you discover them and what did the plugin add to your workflow?" |
-| [B] | No hook evidence | "Have you configured any hooks — automation that fires before or after Claude uses a tool? Walk me through what the hook does and when it fires." |
-| [B] | No handler evidence | "Have you written the actual hook handler script — the Python or shell code that reads stdin JSON and responds? Walk me through how your handler works." |
+| [A] | Plugin manifest | "Have you written or read a `plugin.json`? What does it declare — name, version, commands, hooks — and how is the plugin directory laid out?" |
+| [A] | context: fork | "What does `context: fork` do in a skill's frontmatter, and when is running a skill in an isolated context the right call?" |
+| [A] | argument-hint | "What does `argument-hint:` do in a skill's frontmatter? Does it collect input, or just display something?" |
+| [A] | .claude/rules/ paths | "How do `paths:` globs in a `.claude/rules/` file work? When does a rule get injected into context?" |
 | [A] | Execution context | "You have a skill command and a PostToolUse hook, both of which need an env var you've set in `settings.json['env']`. Will both reliably receive it? What's the difference between how `!bash` and the Bash tool inherit environment?" |
+| [B] | PreToolUse hooks | "Have you configured a PreToolUse hook to validate or block a tool call? What exit code blocks it, and what did you gate?" |
+| [B] | PostToolUse hooks | "Have you configured a hook that fires after Claude uses a tool — say auto-linting after edits? Walk me through what it does and how its output reaches Claude." |
+| [B] | Stop / Notification | "Have you set up a Stop or Notification hook? When does each fire, and what did you get notified about?" |
+| [B] | No handler evidence | "Have you written the actual hook handler script — the Python or shell code that reads stdin JSON and responds? Walk me through how your handler works." |
+| [B] | Scoped hooks | "Have you defined a `hooks:` block inside a command or agent file rather than global settings? How does that scope which sessions it fires in?" |
+| [B] | Hooks guide | "Name two hook design patterns you'd use, and the main gotcha about where a hook's stdout goes on exit 0." |
 | [C] | No headless evidence | "Have you run `claude -p` or `claude --print` outside of an interactive session? What was the use case?" |
+| [C] | Piped input / CI | "Have you piped content into `claude -p` or used it in a CI step? What's the stdin/stdout contract?" |
+| [C] | Structured output | "Have you used `--output-format json` or `--json-schema` for a headless run? What pipeline pattern does that enable?" |
+| [C] | Tool selection | "For an unfamiliar codebase, which built-in tool do you reach for — Grep, Glob, Read, Edit, Bash — and in what order? Why not just Bash for everything?" |
 | [C] | No MCP evidence | "Do you have any MCP servers configured? What do they expose to Claude and how do you invoke them?" |
+| [C] | MCP project config | "Have you used a `.mcp.json` at repo root? How's that different from personal `settings.json` mcpServers?" |
+| [C] | Troubleshooting | "Have you used `/doctor`? How do you diagnose a stuck tool call, a permission error, or context overflow?" |
+| [D] | Skills distribution | "How would you distribute skills org-wide? What role does `managed_settings.json` play for enterprise admins?" |
+| [D] | Delegation targets | "How do you wire a SKILL.md as the target of a custom subagent? What constraints carry over to that invocation?" |
+| [E] | Iterative refinement | "Describe the sequential subagent pattern for test-driven iteration — who writes, who tests, and why it can't be parallelized." |
+| [E] | Interview pattern | "What's the interview pattern for an ambiguous analysis task, and why do structured questions beat an open-ended 'analyze X'?" |
 
 ### Qualitative rubric
 
@@ -158,19 +182,38 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 
 | Answer contains | Node → status |
 |-----------------|---------------|
-| Specific description of parallel subagents with task detail | ROOT: "Subagent basics" → `[✓\|reported]`; ROOT: "Agent teams" → `[~\|reported]` |
+| Specific description of parallel subagents with task detail | ROOT: "Subagent basics" → `[✓\|reported]` |
 | Specific description of foreground vs. background behavior | ROOT: "Foreground vs. background" → `[✓\|reported]` |
-| Description of worktree usage with two branches | ROOT: "Worktrees" → `[✓\|reported]` (if specific) or `[~\|reported]` (if vague) |
+| Describes an orchestrator/worker parallel pattern across agents | ROOT: "Agent teams" → `[✓\|reported]` |
+| Describes a custom `.claude/agents/` definition (system prompt, tool limits, when to invoke) | ROOT: "Custom subagent definitions" → `[✓\|reported]` |
+| Description of worktree usage with two branches | ROOT: "Worktrees" → `[✓\|reported]` |
 | Description of a slash command with syntax detail | A: "Skills (slash commands): creation and syntax" → `[✓\|reported]` |
 | Description of !bash, @file, or $ARGUMENTS in a skill | A: "Skill mechanics" → `[✓\|reported]` |
+| Describes composing skills (one calling another, passing $ARGUMENTS, invoking a subagent) | A: "Skill and command composition" → `[✓\|reported]` |
+| Describes changing response format via an output style | A: "Output styles: controlling response format" → `[✓\|reported]` |
 | Description of plugin install or usage | A: "Plugin discovery" → `[✓\|reported]` |
-| Description of hook firing with specific tool or pattern | B: "PostToolUse hooks" or "PreToolUse hooks" → `[✓\|reported]` |
+| Describes a plugin.json manifest (name/version/commands/hooks, directory layout) | A: "Plugin manifest (plugin.json)" → `[✓\|reported]` |
+| Explains `context: fork` isolation and a case where it's the right choice | A: "context: fork for skill isolation" → `[✓\|reported]` |
+| Explains argument-hint is a passive display hint that does not collect input | A: "argument-hint frontmatter" → `[✓\|reported]` |
+| Explains `paths:` globs gate when a `.claude/rules/` rule loads | A: ".claude/rules/ with YAML paths" → `[✓\|reported]` |
+| Correct explanation of !bash vs Bash tool env inheritance with the gotcha (vague → `[~]`) | A: "Skill command execution contexts" → `[✓\|reported]` |
+| Describes a PreToolUse hook gating/blocking a call with the exit-code protocol | B: "PreToolUse hooks" → `[✓\|reported]` |
+| Description of a post-edit hook firing with specific tool or pattern | B: "PostToolUse hooks" → `[✓\|reported]` |
+| Describes a Stop or Notification hook and when each fires | B: "Stop and Notification hooks" → `[✓\|reported]` |
 | Description of hook handler with stdin JSON parsing | B: "Hook handler scripts" → `[✓\|reported]` |
+| Describes a `hooks:` block scoped in a command or agent file | B: "Scoped hooks" → `[✓\|reported]` |
+| Names ≥2 hook design patterns and the exit-0-stdout-is-logged gotcha | B: "Hooks guide: design patterns" → `[✓\|reported]` |
 | Description of `claude -p` use case | C: "Headless mode" → `[✓\|reported]` |
+| Describes piping into claude or a CI step with the stdin/stdout contract | C: "Piped input and CI integration" → `[✓\|reported]` |
+| Describes `--output-format json`/`--json-schema` and the jq pipeline pattern | C: "--output-format json and --json-schema" → `[✓\|reported]` |
+| Names the right built-in tool per operation (Grep/Glob/Read/Edit/Bash) with the Glob→Read→Grep pattern | C: "Built-in tool selection for codebase tasks" → `[✓\|reported]` |
 | Description of MCP server and its tools | C: "MCP: configure and use servers" → `[✓\|reported]` |
 | Description of .mcp.json at project root | C: "MCP project config" → `[✓\|reported]` |
-| Correct explanation of !bash vs Bash tool env inheritance with the gotcha | A: "Skill command execution contexts" → `[✓\|reported]` |
-| Affirmative but without the env-var gotcha detail | A: "Skill command execution contexts" → `[~\|reported]` |
+| Describes using `/doctor` and diagnosing a stuck call, permission error, or context overflow | C: "Troubleshooting: diagnose and recover" → `[✓\|reported]` |
+| Explains org-wide skill distribution via plugins + managed_settings.json | D: "Skills distribution via plugins and managed_settings.json" → `[✓\|reported]` |
+| Describes wiring a SKILL.md as a custom subagent delegation target | D: "Skills as custom subagent delegation targets" → `[✓\|reported]` |
+| Describes the sequential subagent test-driven iteration loop and why it's not parallelizable | E: "Iterative refinement: sequential subagent pattern for test-driven iteration" → `[✓\|reported]` |
+| Describes the interview pattern (structured questions) and why it beats open-ended analysis | E: "Interview pattern: structured questions for ambiguous analysis tasks" → `[✓\|reported]` |
 
 ---
 

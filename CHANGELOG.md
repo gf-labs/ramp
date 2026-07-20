@@ -83,7 +83,16 @@ moves out of chat scrollback into two inspectable homes.
   greps that avoid false-positiving on an installed SDK under `.venv/`) and honor the
   direct-witness seeding rule (config presence a developer authored seeds `[✓|artifact]`;
   merely-consistent artifacts seed `[~|artifact]`). Clears every structural lint
-  advisory on the four; per-node gap-question coverage remains as tracked backlog.
+  advisory on the four.
+- Full per-node assessment coverage across every legacy schema: each node now carries a
+  teach-back **gap question** (gap rows == nodes per branch) and a branch-prefixed
+  **answer-mapping** `[✓]`-vs-`[~]` rubric, so no node is un-gradeable when an
+  environment probe misses. The five `claude-code` sub-schemas
+  (`getting-started`, `build`, `configuration`, `deployment`, `administration`) also
+  gained their missing `goal:` role line. Multi-title shorthand refs (which only
+  registered their first quoted title under the lint's ref grammar) were replaced with
+  one explicit ref per node. **The entire 13-topic corpus now lints 0 problems / 0
+  advisories** — the authoring-contract retrofit is complete.
 
 ### Changed
 - `/ramp:up` delivers exactly **one task at a time** to `.ramp/worksheet.md` (no
