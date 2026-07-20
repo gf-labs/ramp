@@ -4,6 +4,7 @@ node_count: 13
 version: 1
 source_url: https://code.claude.com/docs/en/settings
 description: Claude Code configuration — settings hierarchy, permissions, sandboxing, model selection, terminal, keybindings, and interface customization.
+goal: ramp them up on configuring Claude Code — the settings scope hierarchy and file format, model and policy-enforced settings, then permissions (allow/deny precedence, sandboxing, plan mode) and interface customization (terminal, status line, keybindings)
 ---
 
 # Configuration Knowledge Graph Schema
@@ -82,11 +83,16 @@ This file defines the curriculum for the `configuration` topic. Covers the Confi
 | Branch | Gap | Ask this |
 |--------|-----|----------|
 | [ROOT] | No settings hierarchy evidence | "Walk me through the three settings files Claude Code uses and what each one is for. Where would you put a setting that only applies to one repo vs. one that applies everywhere?" |
+| [ROOT] | Settings file format | "Have you edited a settings.json by hand? What are the main keys you'd touch — permissions, hooks, mcpServers, model, env — and how do you add one without breaking the JSON?" |
 | [ROOT] | No model config evidence | "Have you ever set `model` in your settings to pin a default model? What were you trying to achieve and what tradeoff (capability vs. cost/speed) did you navigate?" |
 | [ROOT] | No server-managed evidence | "Do you know what server-managed settings are and why an organization would use them? What can they enforce that users can't override?" |
 | [A] | No permissions evidence | "Have you written a custom allow or deny rule for Claude? Walk me through what rule you wrote, where you put it, and what problem it solved." |
+| [A] | Permission precedence | "When global, project, and local settings all have permission rules and they conflict, how does Claude decide? What wins — and does deny beat allow?" |
 | [A] | No sandboxing evidence | "Do you know what sandboxing does in Claude Code? Have you configured it, and if so, what did you change and why?" |
 | [A] | No fast mode evidence | "Have you used fast mode? When would you reach for it vs. leaving it off?" |
+| [A] | Plan mode default | "Have you set plan mode as your default via `permissions.defaultMode`? What does plan mode stop Claude from doing, and when is that the right default?" |
+| [B] | Terminal config | "Have you tuned any terminal behavior for Claude Code — color, width, rendering? Or do you know which keys matter for different terminal emulators?" |
+| [B] | Status line | "Have you configured the Claude Code status line? What does it surface, and how do you toggle what it shows?" |
 | [B] | No keybindings evidence | "Have you modified your Claude Code keybindings? What did you change and why?" |
 | [B] | No interactive mode evidence | "Walk me through the interactive mode features you use regularly: plan mode, rewind, session naming. Which do you reach for most?" |
 
@@ -101,11 +107,16 @@ This file defines the curriculum for the `configuration` topic. Covers the Confi
 | Answer contains | Node → status |
 |-----------------|---------------|
 | Names global, project, and local scopes with correct file paths | ROOT: "Settings scope hierarchy" → `[✓\|reported]` |
+| Names key settings fields (permissions/hooks/mcpServers/model/env) and edits without breaking JSON | ROOT: "Settings file format and key options" → `[✓\|reported]` |
 | Specific model ID set via `model` with rationale | ROOT: "Model selection and budget configuration" → `[✓\|reported]` |
 | Description of server-managed settings enforcement | ROOT: "Server-managed settings" → `[✓\|reported]` |
 | Specific glob rule (e.g., `Bash(npm run *)`) | A: "Permissions: allow/deny rules" → `[✓\|reported]` |
+| Traces global/project/local resolution and knows deny overrides allow at a level | A: "Permission precedence and scoping" → `[✓\|reported]` |
+| Describes what sandboxing restricts (filesystem/network) and the performance tradeoff | A: "Sandboxing configuration" → `[✓\|reported]` |
 | Description of `permissions.defaultMode: plan` | A: "Plan mode as default" → `[✓\|reported]` |
 | Description of fast mode use case | A: "Fast mode" → `[✓\|reported]` |
+| Specific terminal setting changed or the relevant keys named | B: "Terminal configuration" → `[✓\|reported]` |
+| Describes what the status line surfaces and how to toggle it | B: "Status line customization" → `[✓\|reported]` |
 | Description of keybinding change | B: "Keybindings customization" → `[✓\|reported]` |
 | Description of plan mode, rewind, or session naming with specifics | B: "Interactive mode features" → `[✓\|reported]` |
 

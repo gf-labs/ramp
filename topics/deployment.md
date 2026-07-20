@@ -4,6 +4,7 @@ node_count: 11
 version: 1
 source_url: https://code.claude.com/docs/en/third-party-integrations
 description: Deploying Claude Code in enterprise environments — cloud providers (Bedrock, Vertex, Foundry), network configuration, LLM gateways, and dev containers.
+goal: ramp them up on deploying Claude Code in the enterprise — routing through cloud providers (Bedrock, Vertex, Azure Foundry), then network config (proxies, gateways, dev containers, auth), and choosing and operating a deployment model in CI/CD
 ---
 
 # Deployment Knowledge Graph Schema
@@ -72,10 +73,16 @@ This file defines the curriculum for the `deployment` topic. Covers the Deployme
 | Branch | Gap | Ask this |
 |--------|-----|----------|
 | [ROOT] | No cloud provider evidence | "Does your org route Claude Code through a cloud provider like Bedrock or Vertex? If so, which one, and why did the org choose that path?" |
+| [ROOT] | Bedrock setup | "Have you pointed Claude Code at AWS Bedrock as the model backend? Which env vars and region did you set?" |
+| [ROOT] | Vertex setup | "Have you run Claude Code through Google Vertex AI? What project and region env vars did that require?" |
+| [ROOT] | Azure Foundry setup | "Have you configured Claude Code against Azure AI Foundry? What endpoint and env vars did it need?" |
 | [A] | No network config evidence | "Have you had to configure a proxy or custom certificate to get Claude Code working in a corporate network? Walk me through what you changed." |
 | [A] | No gateway evidence | "Is there an LLM gateway between your Claude Code and Anthropic's API? What does it do and how did you configure `ANTHROPIC_BASE_URL`?" |
 | [A] | No devcontainer evidence | "Have you used Claude Code inside a dev container? What was in the `devcontainer.json` to make it work?" |
+| [A] | Enterprise auth | "For an enterprise cloud deployment, how does auth actually work — IAM roles, service accounts, managed identity? How's that different from a plain API key?" |
 | [B] | No deployment model evidence | "Walk me through how you'd choose between Anthropic API directly vs. Bedrock vs. Vertex for an enterprise deployment. What are the key decision factors?" |
+| [B] | Env var management | "How do you manage Claude Code's env vars across local dev, CI, and prod — dotenv, a secret manager, shell profile? Which vars are required vs. optional?" |
+| [B] | Headless in CI | "Have you wired `claude -p` or the SDK into a CI pipeline? How do you authenticate non-interactively and handle rate limits?" |
 
 ### Qualitative rubric
 
@@ -94,7 +101,9 @@ This file defines the curriculum for the `deployment` topic. Covers the Deployme
 | Proxy env var or cert file path | A: "Network configuration" → `[✓\|reported]` |
 | `ANTHROPIC_BASE_URL` pointing to gateway | A: "LLM gateway patterns" → `[✓\|reported]` |
 | devcontainer.json config detail | A: "Dev container configuration" → `[✓\|reported]` |
+| Describes provider auth flow (IAM role / service account / managed identity) vs. API-key auth | A: "Authentication for enterprise deployments" → `[✓\|reported]` |
 | Comparison of providers with specific tradeoffs | B: "Choosing a deployment model" → `[✓\|reported]` |
+| Describes an env-var strategy across dev/CI/prod and which vars are required | B: "Environment variable management for Claude Code" → `[✓\|reported]` |
 | CI pipeline with `claude -p` or SDK | B: "Headless Claude in CI/CD pipelines" → `[✓\|reported]` |
 
 ---

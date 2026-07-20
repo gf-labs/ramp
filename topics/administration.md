@@ -4,6 +4,7 @@ node_count: 13
 version: 1
 source_url: https://code.claude.com/docs/en/setup
 description: Claude Code administration — org setup, authentication, security, data policies, monitoring, costs, analytics, and plugin marketplace management.
+goal: ramp them up on administering Claude Code for an org — provisioning, authentication and security setup, plugin-marketplace governance, then data and compliance (data-usage, ZDR, policy enforcement, audit logs) and cost and usage management (monitoring, budgets, analytics, chargeback)
 ---
 
 # Administration Knowledge Graph Schema
@@ -72,12 +73,16 @@ This file defines the curriculum for the `administration` topic. Covers the Admi
 | [ROOT] | No setup evidence | "Have you set up Claude Code for a team or org? Walk me through the provisioning steps you went through — workspace, licenses, members." |
 | [ROOT] | No auth evidence | "What authentication method does your org use for Claude Code — API key, SSO/SAML, or OAuth? How is it configured?" |
 | [ROOT] | No security evidence | "What security controls have you configured or reviewed for Claude Code? IP allowlisting, session timeouts, audit logs?" |
+| [ROOT] | Plugin marketplace | "Have you managed plugins at the org level — approving or blocking plugins, org-wide defaults, or an internal marketplace? What did you set up?" |
 | [A] | No data usage evidence | "What data does Claude Code send to Anthropic during a session? Walk me through the data flow as if briefing a security team." |
 | [A] | No ZDR evidence | "Has your org enabled zero data retention? What does it prevent Anthropic from doing with your data and what are the eligibility requirements?" |
 | [A] | No server-managed evidence | "Have you used server-managed settings to push Claude Code configuration to users? What did you enforce and why?" |
+| [A] | Audit logging | "Have you accessed or configured audit logs for Claude Code? What events get logged, and how do you export them?" |
 | [B] | No usage monitoring evidence | "Have you looked at usage data for your team — who's using Claude Code, how much, which models? How did you access that?" |
 | [B] | No cost evidence | "How do you track and control Claude Code costs for your org? Token limits, budgets, per-user caps?" |
 | [B] | No analytics evidence | "Have you pulled analytics data from Claude Code — sessions, tokens, model distribution? What did you do with it?" |
+| [B] | Token/session limits | "What usage limits apply to your org — plan caps, session token budgets, per-user limits? What happens when someone hits one?" |
+| [B] | Chargeback | "Have you set up cost allocation or chargeback by team, project, or cost center — tags, org structure? How do you export the cost data?" |
 
 ### Qualitative rubric
 
@@ -92,11 +97,15 @@ This file defines the curriculum for the `administration` topic. Covers the Admi
 | Specific provisioning steps (workspace, license, member invite) | ROOT: "Organization setup and provisioning" → `[✓\|reported]` |
 | Specific auth method (SSO, SAML, OAuth) with config details | ROOT: "Authentication methods" → `[✓\|reported]` |
 | Specific security control (IP allowlist, timeout, audit log) | ROOT: "Security configuration" → `[✓\|reported]` |
+| Describes org-level plugin management (approve/block, defaults, internal marketplace) | ROOT: "Plugin marketplace administration" → `[✓\|reported]` |
 | Description of data retention model with specifics | A: "Data usage and privacy policies" → `[✓\|reported]` |
 | ZDR eligibility or config details | A: "Zero data retention" → `[✓\|reported]` |
 | Server-managed policy config details | A: "Server-managed settings" → `[✓\|reported]` |
-| Dashboard usage or API export description | B: "Usage monitoring" → `[✓\|reported]` or "Analytics and reporting" → `[✓\|reported]` |
-| Token limit or budget configuration detail | B: "Cost management" → `[✓\|reported]` or "Token and session limits" → `[✓\|reported]` |
+| Names logged events (tool calls, model invocations, session starts) and how to export them | A: "Audit logging and security monitoring" → `[✓\|reported]` |
+| Dashboard usage described (token consumption by user/team, threshold alerts) | B: "Usage monitoring" → `[✓\|reported]` |
+| Budget or cost-model detail (per-token pricing, cost projection) | B: "Cost management" → `[✓\|reported]` |
+| Describes plan/API-enforced usage limits and their effect on Claude's behavior | B: "Token and session limits" → `[✓\|reported]` |
+| Analytics dashboard or API report described with specific metrics | B: "Analytics and reporting" → `[✓\|reported]` |
 | Cost allocation or chargeback setup | B: "Chargeback and cost allocation" → `[✓\|reported]` |
 
 ---
