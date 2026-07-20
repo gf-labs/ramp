@@ -107,11 +107,23 @@ is left to teach-back.
 | Branch | Gap | Ask this |
 |--------|-----|----------|
 | [ROOT] | No API usage evidence | "Have you made a Claude API call directly — not through Claude Code, but via the SDK or HTTP? If so, what were you building?" |
+| [ROOT] | Key management | "Where does your API key live — env var, config file, or hardcoded? And what environment variable does the SDK look for by default?" |
 | [ROOT] | No model selection evidence | "Have you chosen between Haiku, Sonnet, and Opus for a specific use case? If so, what was the task and why did you pick that model?" |
 | [ROOT] | No token/cost awareness | "Do you know the context window size for the Claude model you're using, and roughly what it costs per 1M tokens?" |
 | [A] | No system prompt evidence | "Have you written a system prompt that changed how Claude responds — like giving it a persona or constraining its output format?" |
+| [A] | Multi-turn | "The API is stateless — it doesn't remember your last message. So how do you build a multi-turn conversation? What do you send on each request?" |
+| [A] | Streaming | "Have you consumed a streaming response? What events do you process incrementally, and what do you give up in exchange for the lower latency?" |
+| [A] | Stop / max tokens | "Have you used `stop_sequences` or set `max_tokens` explicitly? What happens to the response when it hits the max-token limit?" |
+| [A] | Error handling | "How does your code handle a `RateLimitError` or a timeout from the API — do you retry, back off, or fail? Walk me through it." |
 | [B] | No tool use evidence | "Have you implemented tool use (function calling) with the API — where Claude returns a tool call and you execute it? If so, what did the tool do?" |
-| [C] | No production pattern evidence | "Have you implemented prompt caching or the Batch API to reduce costs or improve throughput in a production workload?" |
+| [B] | Parsing tool_use | "When Claude decides to call a tool, how do you know from the response? What field tells you, and how do you pull out the tool name and its input?" |
+| [B] | Returning tool_result | "After you run the tool, how do you feed the result back so the conversation continues? What has to match between the request and your result block?" |
+| [B] | Agentic loop | "Have you built a loop that keeps calling tools until the task is done? What condition ends the loop?" |
+| [B] | Parallel tool use | "Claude can ask for several tools at once in a single response. How do you handle that — run them how, and return the results in what shape before continuing?" |
+| [C] | No production pattern evidence | "Have you implemented prompt caching to reduce costs in a production workload? What did you cache, and did you measure the savings?" |
+| [C] | Batching | "Have you used the Batch API for async workloads? When is batch the right call over real-time requests?" |
+| [C] | Evaluating outputs | "Do you have a way to score Claude's outputs programmatically — test cases with expected results and a scoring function — so you can iterate on prompts?" |
+| [C] | Safety | "How do you handle a refusal in production — do you catch an error, check `stop_reason`, or something else? What does Claude decline by default?" |
 
 ### Qualitative rubric for answers
 
@@ -124,13 +136,22 @@ is left to teach-back.
 | Answer contains | Node → status |
 |-----------------|---------------|
 | Specific API call description + what was returned | ROOT: "Basic completion" → `[✓\|reported]` |
-| Vague "yes I've used the API" | ROOT: "Authentication" + "Basic completion" → `[~\|reported]` |
+| Vague "yes I've used the API" | ROOT: "Authentication" → `[~\|reported]` |
 | Model choice + rationale | ROOT: "Model selection (which model for which use case)" → `[✓\|reported]` |
 | Token/cost specifics (numbers, limits) | ROOT: "Understanding tokens, context windows, and costs" → `[✓\|reported]` |
 | System prompt with specific behavior described | A: "System prompts" → `[✓\|reported]` |
-| Tool definition or tool_use block described | B: "Defining tools" + "Parsing tool_use" → `[~\|reported]` |
+| Sending the full message history each request described (stateless API) | A: "Multi-turn conversations" → `[✓\|reported]` |
+| Processing stream events incrementally + the latency/complexity tradeoff | A: "Streaming responses" → `[✓\|reported]` |
+| Using stop_sequences or max_tokens and what happens at the limit | A: "Stop sequences and max tokens" → `[✓\|reported]` |
+| Catching RateLimitError or timeout with retry or backoff described | A: "Handling API errors and rate limits" → `[✓\|reported]` |
+| Tool definition described (name, description, input_schema) | B: "Defining tools" → `[~\|reported]` |
+| Identifies stop_reason "tool_use" and extracts the block name and input | B: "Parsing tool_use blocks from responses" → `[✓\|reported]` |
+| Returns a tool_result block with matching tool_use_id so the conversation continues | B: "Executing tools and returning tool_result blocks" → `[✓\|reported]` |
 | Full agentic loop described | B: "Agentic loops" → `[✓\|reported]` |
-| Prompt caching or batch API described | C: respective node → `[✓\|reported]` |
+| Handling multiple tool_use blocks in one turn, returned together | B: "Parallel tool use" → `[✓\|reported]` |
+| cache_control ephemeral described with measured cost reduction | C: "Prompt caching" → `[✓\|reported]` |
+| Batch API described with the latency-vs-cost tradeoff | C: "Batching requests for throughput" → `[✓\|reported]` |
+| Structured eval described: test cases + scoring function to iterate on prompts | C: "Evaluating outputs programmatically" → `[✓\|reported]` |
 | Safety/refusal handling described | C: "Safety and content policy" → `[✓\|reported]` |
 
 ---
