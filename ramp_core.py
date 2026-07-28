@@ -7,13 +7,13 @@ BOTH scripts/skill-observer.py (system python3 hook) and mcp/server.py (.venv
 MCP server) so the two can never disagree. STDLIB-ONLY — the hook runs under a
 python3 with no .venv, so no third-party imports, ever.
 """
-import os
-import re
-import sys
 import glob as _glob
 import json as _json
+import os
+import re
 import shlex
 import subprocess
+import sys
 from contextlib import contextmanager
 from datetime import date, timedelta
 from pathlib import Path
@@ -698,9 +698,11 @@ def run_probe(primitive: str, arg_str: str):
         exclude, pos, i = None, [], 0
         while i < len(toks):
             if toks[i] == "--exclude" and i + 1 < len(toks):
-                exclude = toks[i + 1]; i += 2
+                exclude = toks[i + 1]
+                i += 2
             else:
-                pos.append(toks[i]); i += 1
+                pos.append(toks[i])
+                i += 1
         return _probe_glob_count(pos[0], exclude) if pos else 0
     if primitive == "dir-count":
         return _probe_dir_count(toks[0]) if toks else 0
@@ -714,13 +716,17 @@ def run_probe(primitive: str, arg_str: str):
         diff_filter, path, pos, i = None, None, [], 0
         while i < len(toks):
             if toks[i].startswith("--diff-filter="):
-                diff_filter = toks[i].split("=", 1)[1]; i += 1
+                diff_filter = toks[i].split("=", 1)[1]
+                i += 1
             elif toks[i] == "--diff-filter" and i + 1 < len(toks):
-                diff_filter = toks[i + 1]; i += 2
+                diff_filter = toks[i + 1]
+                i += 2
             elif toks[i] == "--path" and i + 1 < len(toks):
-                path = toks[i + 1]; i += 2
+                path = toks[i + 1]
+                i += 2
             else:
-                pos.append(toks[i]); i += 1
+                pos.append(toks[i])
+                i += 1
         return _probe_git_log_grep(pos[0], diff_filter, path) if pos else 0
     if primitive == "git-worktree-count":
         return _probe_git_worktree_count()
@@ -977,6 +983,12 @@ def _section_map(content: str) -> dict:
     return out
 
 
+def _row_cell(cols, cells, name):
+    """Value of the named column in a parsed table row, or "" if absent."""
+    i = cols.get(name)
+    return cells[i] if i is not None and i < len(cells) else ""
+
+
 def _lint_branch_rows(content: str) -> dict:
     """{branch: [{title, criterion, type}]} from `## Node definitions`,
     tracking `### [X]` subheaders and each table's own header row for column
@@ -1009,14 +1021,10 @@ def _lint_branch_rows(content: str) -> dict:
         if branch is None:
             continue
 
-        def _cell(name):
-            i = cols.get(name)
-            return cells[i] if i is not None and i < len(cells) else ""
-
         out[branch].append({
             "title": first,
-            "criterion": _cell("mastery criterion"),
-            "type": _cell("type"),
+            "criterion": _row_cell(cols, cells, "mastery criterion"),
+            "type": _row_cell(cols, cells, "type"),
         })
     return out
 
@@ -1116,7 +1124,7 @@ def lint_schema(topic: str, content: str, schema_dir=None) -> dict:
             problems.append(f"missing section: ## {title}")
     if "probes" not in secs:
         advisories.append("missing section: ## Probes")
-    sub3 = [l.strip().lower() for l in content.splitlines() if l.strip().startswith("### ")]
+    sub3 = [ln.strip().lower() for ln in content.splitlines() if ln.strip().startswith("### ")]
     if not any(s.startswith("### qualitative rubric") for s in sub3):
         advisories.append("missing subsection: ### Qualitative rubric")
     if not any(s.startswith("### answer") for s in sub3):

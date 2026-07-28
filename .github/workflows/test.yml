@@ -1,10 +1,11 @@
 name: test
 
-# The suite is the merge gate (git policy: branch protection on main requires
-# CI-green). The 3.8 leg exists to PROVE the documented floor — README says
-# Python 3.8+, so a PEP-585 annotation or 3.9+ stdlib call must fail here,
-# not on a user's machine. 3.8 runs on ubuntu-22.04: the 24.04 images no
-# longer provide it.
+# Lint + test merge gate (git policy: branch protection on main requires
+# CI-green). `ruff check .` runs once (config in pyproject.toml [tool.ruff],
+# target py38 to match the floor); the pytest matrix runs per Python version.
+# The 3.8 leg exists to PROVE the documented floor — README says Python 3.8+,
+# so a PEP-585 annotation or 3.9+ stdlib call must fail here, not on a user's
+# machine. 3.8 runs on ubuntu-22.04: the 24.04 images no longer provide it.
 
 on:
   push:
@@ -16,6 +17,24 @@ permissions:
   contents: read
 
 jobs:
+  # Lint runs once on a current Python — config lives in pyproject.toml
+  # [tool.ruff] (target py38). A lint regression fails the gate before pytest.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      # Actions pinned to commit SHAs; Dependabot keeps them current (.github/dependabot.yml).
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.13"
+      # Pinned to a minor series on purpose: ruff adds new rules to already-
+      # selected prefixes (E/F/W/I/UP/B) on minor releases, so an unpinned
+      # floor turns CI red on unrelated PRs. Bump this deliberately.
+      - name: Install ruff
+        run: python3 -m pip install 'ruff~=0.15.0'
+      - name: Lint
+        run: ruff check .
+
   test:
     strategy:
       matrix:

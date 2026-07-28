@@ -52,7 +52,7 @@ except ImportError:  # pragma: no cover - non-POSIX fallback
 # hook (system python3) and mcp/server.py (.venv) import it so they never disagree.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import ramp_core
-from ramp_core import compute_xp  # re-exported so observer.compute_xp still resolves
+from ramp_core import compute_xp  # noqa: F401  # re-exported so observer.compute_xp still resolves
 
 # All current detection rules are Claude Code–specific, so always writes to claude-code topic.
 # Future topic-specific observers can be separate scripts with their own detection rules

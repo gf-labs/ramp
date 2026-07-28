@@ -146,7 +146,7 @@ def test_preserve_demonstrated_blocks_downgrade():
 
 
 def test_file_lock_is_a_contextmanager(tmp_path):
-    with ramp_core.file_lock(tmp_path / ".x.lock") as fd:
+    with ramp_core.file_lock(tmp_path / ".x.lock"):
         pass  # acquiring + releasing must not raise
 
 
