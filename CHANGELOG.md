@@ -3,9 +3,23 @@
 All notable changes to `ramp` are documented here. This project follows
 [Semantic Versioning](https://semver.org).
 
-## [Unreleased]
+## [1.3.1] — 2026-07-28
+
+**Delivery plumbing only — no change to the plugin's behaviour.** A patch rather than a
+minor because nothing here reaches a user of `ramp`: it is the CD half of the release
+policy plus dependency hygiene.
+
+### Added
+- `.github/workflows/release.yml` — CD half of the git-policy checklist. On a `v*` tag it
+  re-runs the lint+test bar, asserts the manifest matches the tag, and cuts a GitHub
+  Release from the matching `CHANGELOG.md` section, hard-failing when that section is
+  missing rather than shipping placeholder notes.
 
 ### Fixed
+- Action pins refreshed to `actions/checkout@v7.0.1` and `actions/setup-python@v7.0.0`,
+  including the `release.yml` pin Dependabot could not see — that file exists only on
+  `develop`, and the bot reads the default branch, so it had no PR to raise. Verified
+  against the 3.8 floor on `ubuntu-22.04`, not just the current leg.
 - Dependabot now targets `develop` (`target-branch`), not the default branch. It had been
   opening action bumps against `main`, where Git Flow permits release and hotfix merges
   only — merging one would leave an untagged commit on `main`, put `main` ahead of

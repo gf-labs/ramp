@@ -3,7 +3,7 @@
 <p align="center"><em>Adaptive, repo-grounded learning mode for Claude Code — it measures what you can <strong>do</strong>, not what you've clicked through.</em></p>
 
 <p align="center">
-  <a href="https://github.com/gf-labs/ramp"><img src="https://img.shields.io/badge/version-1.3.0-3b82f6?style=flat-square" alt="version"></a>
+  <a href="https://github.com/gf-labs/ramp"><img src="https://img.shields.io/badge/version-1.3.1-3b82f6?style=flat-square" alt="version"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="license"></a>
   <a href="https://github.com/gf-labs/ramp/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/gf-labs/ramp/test.yml?branch=develop&style=flat-square&label=tests" alt="tests"></a>
   <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Code plugin">
