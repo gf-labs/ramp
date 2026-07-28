@@ -33,10 +33,23 @@ jobs:
               sys.exit(f"CHANGELOG.md has no '## [{manifest}]' section — "
                        "move [Unreleased] to a versioned header before releasing")
           if os.environ["EVENT"] == "push":
+              want = f"v{manifest}"
               tag = subprocess.run(["git", "describe", "--tags", "--abbrev=0"],
                                    capture_output=True, text=True).stdout.strip()
-              if tag != f"v{manifest}":
-                  sys.exit(f"main: nearest tag {tag or '(none)'} != v{manifest} — "
+              if tag != want:
+                  # Distinguish "never tagged" from "tagged but unreachable from
+                  # main" — the latter is the squash-merge trap: `git describe`
+                  # walks first-parent history, so squashing release/* into main
+                  # orphans the tag on a branch main can't reach. Releases must
+                  # merge (policy), never squash.
+                  exists = subprocess.run(["git", "tag", "--list", want],
+                                          capture_output=True, text=True).stdout.strip()
+                  if exists:
+                      sys.exit(f"main: {want} exists but is not reachable from HEAD "
+                               f"(nearest is {tag or '(none)'}) — release/* was likely "
+                               "SQUASH-merged, which orphans the tag. Re-merge with a "
+                               "merge commit, or move the tag onto main's tip.")
+                  sys.exit(f"main: nearest tag {tag or '(none)'} != {want} — "
                            "annotated-tag the release tip before merging")
           print(f"release-gate OK: v{manifest}")
           EOF
