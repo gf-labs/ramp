@@ -3,6 +3,8 @@
 All notable changes to `ramp` are documented here. This project follows
 [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
 ## [1.3.1] — 2026-07-28
 
 **Delivery plumbing only — no change to the plugin's behaviour.** A patch rather than a
