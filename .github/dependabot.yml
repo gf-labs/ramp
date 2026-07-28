@@ -5,3 +5,14 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # Without this, Dependabot opens against the default branch (main), and
+    # under Git Flow main takes release/hotfix merges only. A bump merged
+    # straight to main leaves an untagged commit there (main's tree stops
+    # matching the release tag), puts main ahead of develop, and is invisible
+    # to the release-gate manifest<->tag check, which compares versions — a
+    # workflow SHA bump does not move the manifest.
+    #
+    # Dependabot reads this file from the DEFAULT branch only, so the setting
+    # takes effect once a release carries it to main; until then bumps still
+    # open against main and need retargeting by hand.
+    target-branch: "develop"

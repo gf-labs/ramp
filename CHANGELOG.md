@@ -5,6 +5,14 @@ All notable changes to `ramp` are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- Dependabot now targets `develop` (`target-branch`), not the default branch. It had been
+  opening action bumps against `main`, where Git Flow permits release and hotfix merges
+  only — merging one would leave an untagged commit on `main`, put `main` ahead of
+  `develop`, and slip past the release gate, which compares manifest to tag and so cannot
+  see a workflow SHA change. (Dependabot reads its config from the default branch, so this
+  takes effect once a release carries it to `main`.)
+
 ## [1.3.0] — 2026-07-28
 
 **Honest contracts, discoverability tail, and the legible workspace.** Fixes that make
