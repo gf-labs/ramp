@@ -1,0 +1,76 @@
+name: release
+
+# Fires when a version tag is pushed: gate on a green lint+test run, assert the
+# manifest matches the tag, then cut a GitHub Release from the matching
+# CHANGELOG.md section. No build/publish — distribution is "clone main".
+#
+# This is the tag-side half of the release invariant. release-gate.yml covers
+# the branch side (manifest <-> CHANGELOG on PRs into main; manifest <-> nearest
+# reachable tag on pushes to main). Together they mean a release cannot ship
+# with a version, a changelog entry, and a tag that disagree.
+on:
+  push:
+    tags:
+      - "v*"
+
+# Single-job workflow; only it needs write, and only to create the Release.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      # Actions pinned to commit SHAs; Dependabot keeps them current (.github/dependabot.yml).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      # Gate the release on the same bar as test.yml. test.yml runs on branch
+      # pushes/PRs, never on tags, so re-run it here — a tag pushed onto a broken
+      # tree must not cut a release. Only the current Python is exercised here;
+      # the 3.8 floor leg stays in test.yml, which gates the merge that got here.
+      - name: Install lint + test deps
+        run: python3 -m pip install -r requirements-lint.txt -r requirements-dev.txt
+      - name: Lint
+        run: ruff check .
+      - name: Test
+        run: python3 -m pytest tests/ -q
+      - name: Assert manifest matches the pushed tag
+        # Inline rather than a vendored script: release-gate.yml already does its
+        # manifest check inline, so this keeps the two gates in one idiom.
+        run: |
+          python3 - "$GITHUB_REF_NAME" <<'PY'
+          import json, sys
+          manifest = json.load(open(".claude-plugin/plugin.json"))["version"]
+          tag = sys.argv[1]
+          if tag != f"v{manifest}":
+              sys.exit(f"::error::tag {tag} != v{manifest} "
+                       "(.claude-plugin/plugin.json) — bump the manifest on the "
+                       "release branch before tagging its tip.")
+          print(f"OK: manifest {manifest} == tag {tag}")
+          PY
+      - name: Extract release notes from CHANGELOG
+        # Hard-fail when the tag has no matching CHANGELOG section — an empty
+        # section would otherwise cut a Release with blank/placeholder notes.
+        run: |
+          python3 - "$GITHUB_REF_NAME" > RELEASE_NOTES.md <<'PY'
+          import re, sys
+          from pathlib import Path
+          ver = sys.argv[1].lstrip("v")
+          blocks = re.split(r"(?m)^## ", Path("CHANGELOG.md").read_text(encoding="utf-8"))
+          note = next((b for b in blocks if b.lstrip().startswith(f"[{ver}]")
+                       or b.lstrip().startswith(ver)), "")
+          if not note.strip():
+              sys.exit(f"::error::No CHANGELOG.md section for {ver} — "
+                       f"add a '## [{ver}]' entry before tagging.")
+          sys.stdout.write("## " + note)
+          PY
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          case "$GITHUB_REF_NAME" in *-alpha*|*-beta*|*-rc*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" \
+            --notes-file RELEASE_NOTES.md $prerelease

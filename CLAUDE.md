@@ -41,6 +41,7 @@ commands/wrap.md             # End-of-session knowledge harvest — node upgrade
 hooks/hooks.json             # Plugin hook config (PostToolUse + SessionStart)
 .github/workflows/test.yml   # CI — ruff lint + pytest matrix (3.8 floor + current) on develop/main + PRs
 .github/workflows/release-gate.yml # CI — manifest ↔ CHANGELOG ↔ tag consistency for → main
+.github/workflows/release.yml # CD — on a v* tag: lint+test gate, manifest↔tag assert, GitHub Release from the CHANGELOG section
 .github/dependabot.yml       # Weekly SHA-pin bumps for GitHub Actions
 .claude/settings.json        # Project hook config (file-size-warn + skill-observer)
 topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 81 nodes total)
@@ -64,7 +65,8 @@ mcp/start.sh                 # MCP launch wrapper — .venv python; avoids macOS
 ramp_core.py                 # stdlib-only kernel — write side (XP · SR dates · validate · lock) + read side (catalog · summary · node_count · graph_nodes) + detect side (schema ## Probes → run_detection) + lint side (schema conformance — problems vs advisories); imported by skill-observer + mcp/server; CLI-backed for list/help/tree/detect/lint
 tests/                       # stdlib pytest suite (ramp_core, xp, detection, schema-lint, normalization, symlinks, setup-mcp, file-size-warn) + server tests under .venv — importlib-loaded
 requirements.txt             # MCP server deps — only to run mcp/server.py, not to test
-requirements-dev.txt         # pytest (test suite)
+requirements-dev.txt         # pytest (test suite) — installed by the matrix, incl. the 3.8 leg
+requirements-lint.txt        # ruff pin — shared by test.yml's lint job and release.yml, kept out of the 3.8 leg
 pyproject.toml               # Tooling config — ruff lint rules (target py38; no packaging, kernel is stdlib-only)
 docs/tree-format.md          # Annotated v3 knowledge graph format example
 docs/docs-map.md             # Maps all doc pages to topics and nodes
