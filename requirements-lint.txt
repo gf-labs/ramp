@@ -1,0 +1,16 @@
+# Lint toolchain, kept separate from requirements-dev.txt on purpose.
+#
+# requirements-dev.txt is installed by the pytest matrix, which includes a
+# Python 3.8 leg (it proves the floor the README advertises). ruff is a Rust
+# binary that installs anywhere, but there is no reason to pull it into the 3.8
+# job -- so the lint job and release.yml install this file instead, and the pin
+# still lives in exactly one place.
+#
+#   python3 -m pip install -r requirements-lint.txt
+#   ruff check .
+
+# Pinned to a minor series on purpose: ruff adds new rules to already-selected
+# prefixes (E/F/W/I/UP/B) on minor releases, so an unpinned floor turns CI red
+# on unrelated PRs -- and would fail release.yml *after* the tag is pushed.
+# Bump this deliberately. (Config lives in pyproject.toml [tool.ruff].)
+ruff~=0.15.0
