@@ -5,6 +5,7 @@ version: 2
 sources: [getting-started, build, configuration, deployment, administration]
 source_url: https://code.claude.com/docs/en/overview
 description: Complete Claude Code curriculum — aggregates all sub-topics (getting-started, build, configuration, deployment, administration) into one comprehensive learning path.
+goal: ramp them up on Claude Code as an organizational tool — how this team navigates codebases, writes PRs, runs tests, catches regressions, and automates repetitive work
 ---
 
 # Claude Code — Meta Topic
@@ -37,18 +38,18 @@ When `/ramp:up` loads this topic, it concatenates all five sourced schemas. The 
 
 ## Tree file behavior
 
-Running `/ramp:up` (claude-code topic) saves to `~/.claude/knowledge-graphs/claude-code.md` — a comprehensive tree containing all nodes from all sub-topics. Each sub-topic also has its own tree file for focused use.
+Running `/ramp:up` (claude-code topic) saves to `~/.claude/ramp/graphs/claude-code.md` — a comprehensive tree containing all nodes from all sub-topics. Each sub-topic also has its own tree file for focused use.
 
 ## Merge priority for composite trees
 
 When loading tree files for a composite session:
-1. Load `~/.claude/knowledge-graphs/claude-code.md` as the personal tree
+1. Load `~/.claude/ramp/graphs/claude-code.md` as the personal tree
 2. Cross-reference nodes against all sourced sub-topic trees for any `[✓]` evidence
 3. Merge rules: never downgrade `[✓]`; sub-topic `[✓]` upgrades composite `[~]` for same node
 
 ## Saved tree file template
 
-When writing `~/.claude/knowledge-graphs/claude-code.md` from a composite session, use this structure — all nodes from all sub-topics in sequence:
+When writing `~/.claude/ramp/graphs/claude-code.md` from a composite session, use this structure — all nodes from all sub-topics in sequence:
 
 ```markdown
 ---

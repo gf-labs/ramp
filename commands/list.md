@@ -17,7 +17,7 @@ Render the topic catalog above as a grouped, read-only list. This is a viewer: *
 
 The catalog is a JSON array; each entry has: `name`, `description`, `node_count`, `group` (`core`/`sub`/`standalone`), `sources` (for `core`), `started` (bool), and `summary` (`{level, xp, due, counts}` when started, else null).
 
-If the line is `CATALOG_UNAVAILABLE` or empty: the CLI shim could not run (no `$CLAUDE_PLUGIN_ROOT` — e.g. a manual-copy install without `ramp_core.py`). Say "Couldn't read the topic catalog. Run `/ramp:help` for orientation, or `/ramp:up <topic>` to start a topic." and stop.
+If the line is `CATALOG_UNAVAILABLE` or empty: the CLI shim could not run — either `$CLAUDE_PLUGIN_ROOT` isn't set (a manual-copy install without `ramp_core.py`) or `python3` **3.8+** isn't on the `PATH`. Say "Couldn't read the topic catalog — check that `python3` 3.8+ is installed. Run `/ramp:help` for orientation, or `/ramp:up <topic>` to start a topic." and stop.
 
 **Layout:**
 

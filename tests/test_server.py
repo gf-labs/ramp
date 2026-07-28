@@ -113,3 +113,36 @@ def test_advance_review_exact_node_match_not_substring(server, tmp_path):
     target = next(ln for ln in saved if "] Recursion —" in ln)
     assert "[L1]" in basics                # untouched — not the requested node
     assert "[L2]" in target                # the exact match advanced
+
+
+def test_advance_review_repairs_malformed_level_on_pass(server, tmp_path):
+    # Regression: a real dogfood graph carried `| next: 2026-06-01 [B]` — a section
+    # tier letter had leaked into the SR-level slot where `[L<n>]` belongs.
+    # parse_review_field can't read `[B]`, so advance_review must not get stuck: the
+    # `cur_level = parsed[1] if parsed else 1` fallback treats the unparseable level
+    # as L1 and set_review_field rewrites a clean, forward-dated field — the malformed
+    # token is never carried forward.
+    (tmp_path / "t.md").write_text(
+        "---\nxp: 35\nupdated: 2026-06-01\n---\n## [Administration · B] x\n"
+        "- [✓|exercise] Token limits — r, 2026-05-31: n | next: 2026-06-01 [B]\n"
+    )
+    result = server.advance_review("t", "Token limits", "pass")
+    line = next(ln for ln in (tmp_path / "t.md").read_text().splitlines()
+                if "Token limits" in ln)
+    assert "[B]" not in line                # malformed token removed — not stuck
+    assert "[L2]" in line                   # unparseable level -> L1 default -> pass -> L2
+    assert "2026-06-01" not in line         # stale date rewritten forward
+    assert line.count("| next:") == 1       # field replaced, never duplicated
+    assert "L2" in result
+
+
+def test_advance_review_repairs_malformed_level_on_fail(server, tmp_path):
+    (tmp_path / "t.md").write_text(
+        "---\nxp: 35\nupdated: 2026-06-01\n---\n## [Administration · B] x\n"
+        "- [✓|exercise] Token limits — r, 2026-05-31: n | next: 2026-06-01 [B]\n"
+    )
+    server.advance_review("t", "Token limits", "fail")
+    line = next(ln for ln in (tmp_path / "t.md").read_text().splitlines()
+                if "Token limits" in ln)
+    assert "[B]" not in line                # repaired regardless of outcome
+    assert "[L1]" in line                   # fail always resets to L1

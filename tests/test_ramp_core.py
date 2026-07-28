@@ -146,7 +146,7 @@ def test_preserve_demonstrated_blocks_downgrade():
 
 
 def test_file_lock_is_a_contextmanager(tmp_path):
-    with ramp_core.file_lock(tmp_path / ".x.lock") as fd:
+    with ramp_core.file_lock(tmp_path / ".x.lock"):
         pass  # acquiring + releasing must not raise
 
 
@@ -328,7 +328,7 @@ def test_cli_catalog_emits_json(tmp_path):
         "## Node definitions\n- [ ] a\n"
     )
     home = tmp_path / "home"
-    (home / ".claude" / "knowledge-graphs").mkdir(parents=True)
+    (home / ".claude" / "ramp" / "graphs").mkdir(parents=True)
 
     env = dict(os.environ)
     env["HOME"] = str(home)
@@ -345,7 +345,7 @@ def test_cli_catalog_emits_json(tmp_path):
 
 def test_cli_summary_missing_graph_is_empty_object(tmp_path):
     home = tmp_path / "home"
-    (home / ".claude" / "knowledge-graphs").mkdir(parents=True)
+    (home / ".claude" / "ramp" / "graphs").mkdir(parents=True)
     env = dict(os.environ)
     env["HOME"] = str(home)
     env.pop("CLAUDE_PLUGIN_ROOT", None)
@@ -356,7 +356,7 @@ def test_cli_summary_missing_graph_is_empty_object(tmp_path):
 
 def test_cli_summary_existing_graph_emits_summary(tmp_path):
     home = tmp_path / "home"
-    graphs = home / ".claude" / "knowledge-graphs"
+    graphs = home / ".claude" / "ramp" / "graphs"
     graphs.mkdir(parents=True)
     (graphs / "demo.md").write_text(
         "---\nversion: 3\ntopic: demo\nlevel: Builder\nxp: 10\n---\n\n"
@@ -374,6 +374,41 @@ def test_cli_summary_existing_graph_emits_summary(tmp_path):
     assert data["due"] == 1                    # next: 2020-01-01 is long past
     assert data["counts"]["done"] == 1
     assert data["counts"]["todo"] == 1
+
+
+def test_cli_nodes_missing_graph_is_empty_array(tmp_path):
+    home = tmp_path / "home"
+    (home / ".claude" / "ramp" / "graphs").mkdir(parents=True)
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    env.pop("CLAUDE_PLUGIN_ROOT", None)
+    core = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    out = subprocess.check_output(["python3", core, "nodes", "nope"], env=env, text=True, cwd=str(tmp_path))
+    assert json.loads(out) == []
+
+
+def test_cli_nodes_existing_graph_emits_nodes(tmp_path):
+    home = tmp_path / "home"
+    graphs = home / ".claude" / "ramp" / "graphs"
+    graphs.mkdir(parents=True)
+    (graphs / "demo.md").write_text(
+        "---\nversion: 3\ntopic: demo\nlevel: Builder\nxp: 10\n---\n\n"
+        "## [Getting Started · ROOT] Core\n\n"
+        "- [✓|exercise] Node one — repo, 2020-01-01: did it | next: 2020-01-01 [L1]\n"
+        "- [ ] Node two\n"
+    )
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    env.pop("CLAUDE_PLUGIN_ROOT", None)
+    core = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    out = subprocess.check_output(["python3", core, "nodes", "demo"], env=env, text=True, cwd=str(tmp_path))
+    data = json.loads(out)
+    assert [n["name"] for n in data] == ["Node one", "Node two"]
+    assert data[0]["status"] == "done"
+    assert data[0]["branch"] == "ROOT"
+    assert data[0]["next_date"] == "2020-01-01"
+    assert data[0]["evidence"] == "repo, 2020-01-01: did it"
+    assert data[1]["status"] == "todo"
 
 
 def test_all_schemas_declare_consistent_node_count():
@@ -394,3 +429,320 @@ def test_all_schemas_declare_consistent_node_count():
         else:  # leaf: frontmatter must match the derived Node-definitions count
             derived = ramp_core._derived_node_count(content)
             assert declared == derived, f"{name}: node_count {declared} != derived {derived}"
+
+
+# --- graph_nodes (deep per-node read for the tree view) ---
+
+def test_graph_nodes_parses_status_branch_xp_and_schedule():
+    content = (
+        "---\nlevel: Builder\nxp: 0\n---\n"
+        "## [Build · ROOT] Agents\n"
+        "- [✓|exercise] First — r, 2026-06-01: did it | next: 2026-06-23 [L2]\n"
+        "## [Build · A] Skills\n"
+        "- [~|reported] Second\n"
+        "- [ ] Third\n"
+    )
+    nodes = ramp_core.graph_nodes(content)
+    assert len(nodes) == 3
+
+    first = nodes[0]
+    assert first["name"] == "First"
+    assert first["status"] == "done"
+    assert first["type"] == "exercise"
+    assert first["branch"] == "ROOT"
+    assert first["xp"] == 10               # ROOT full
+    assert first["next_date"] == "2026-06-23"
+    assert first["level"] == 2
+
+    second = nodes[1]
+    assert second["status"] == "reported"
+    assert second["branch"] == "A"
+    assert second["xp"] == 7               # A weight 15 // 2
+    assert second["next_date"] is None
+    assert second["level"] is None
+
+    assert nodes[2]["status"] == "todo"
+    assert nodes[2]["xp"] == 0
+
+
+def test_graph_nodes_ignores_non_node_lines():
+    content = "## [Build · ROOT] x\n\nsome prose\n- [✓|artifact] Only one\n"
+    nodes = ramp_core.graph_nodes(content)
+    assert [n["name"] for n in nodes] == ["Only one"]
+
+
+def test_graph_nodes_carries_evidence_and_target():
+    content = (
+        "---\nlevel: Builder\nxp: 0\n---\n"
+        "## [Build · ROOT] Agents\n"
+        "- [✓|exercise] Done one — repo, 2026-06-01: shipped X · refined Y | next: 2026-06-23 [L2]\n"
+        "- [★] Frontier node\n"
+        "- [ ] Plain todo\n"
+    )
+    nodes = ramp_core.graph_nodes(content)
+
+    done = nodes[0]
+    assert done["evidence"] == "repo, 2026-06-01: shipped X · refined Y"
+    assert done["target"] is False
+
+    frontier = nodes[1]
+    assert frontier["status"] == "todo"      # ★ still classifies as todo for XP
+    assert frontier["xp"] == 0
+    assert frontier["target"] is True
+    assert frontier["evidence"] is None
+
+    plain = nodes[2]
+    assert plain["target"] is False
+    assert plain["evidence"] is None
+
+
+def test_graph_nodes_section_distinguishes_same_tier_headers():
+    # the real graph has 5 ROOT sections; the tier letter alone collapses them,
+    # so graph_nodes must carry the full section header for faithful grouping
+    content = (
+        "## [Getting Started · ROOT] Core Foundations\n"
+        "- [ ] A\n"
+        "## [Build · ROOT] Agents and Orchestration\n"
+        "- [ ] B\n"
+    )
+    nodes = ramp_core.graph_nodes(content)
+    assert nodes[0]["branch"] == "ROOT" and nodes[1]["branch"] == "ROOT"
+    assert nodes[0]["section"] == "[Getting Started · ROOT] Core Foundations"
+    assert nodes[1]["section"] == "[Build · ROOT] Agents and Orchestration"
+    assert nodes[0]["section"] != nodes[1]["section"]
+
+
+# --- python version contract ---
+
+def test_python_version_error_below_floor():
+    assert ramp_core.python_version_error((3, 7)) == "ramp needs Python 3.8+ (found 3.7)."
+    assert ramp_core.python_version_error((3, 6, 9)) == "ramp needs Python 3.8+ (found 3.6)."
+    assert ramp_core.python_version_error((2, 7, 18)) == "ramp needs Python 3.8+ (found 2.7)."
+
+
+def test_python_version_error_at_or_above_floor():
+    assert ramp_core.python_version_error((3, 8)) is None
+    assert ramp_core.python_version_error((3, 12, 1)) is None
+    assert ramp_core.python_version_error((4, 0)) is None
+
+
+def test_python_version_floor_is_declared():
+    # the floor the code enforces must match the README badge / Requirements
+    assert ramp_core.MIN_PYTHON == (3, 8)
+
+
+# --- legible home: path move + migration (workspace+legibility slice) ---
+
+def test_graph_dir_is_ramp_home(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    assert ramp_core._graph_dir() == tmp_path / ".claude" / "ramp" / "graphs"
+
+
+def test_migrate_copies_legacy_graphs(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    legacy = tmp_path / ".claude" / "knowledge-graphs"
+    legacy.mkdir(parents=True)
+    (legacy / "claude-code.md").write_text("---\nlevel: Builder\nxp: 0\n---\n")
+    assert ramp_core.migrate_graph_home() is True
+    moved = tmp_path / ".claude" / "ramp" / "graphs" / "claude-code.md"
+    assert moved.exists()
+    assert (legacy / "claude-code.md").exists()      # legacy kept as a one-release backup
+
+
+def test_migrate_never_clobbers_new_home(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    legacy = tmp_path / ".claude" / "knowledge-graphs"
+    new = tmp_path / ".claude" / "ramp" / "graphs"
+    legacy.mkdir(parents=True)
+    new.mkdir(parents=True)
+    (legacy / "t.md").write_text("LEGACY")
+    (new / "t.md").write_text("CURRENT")
+    assert ramp_core.migrate_graph_home() is False   # nothing to copy; new home wins
+    assert (new / "t.md").read_text() == "CURRENT"
+
+
+def test_migrate_noop_without_legacy(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    assert ramp_core.migrate_graph_home() is False
+
+
+def test_migrate_survives_non_utf8_legacy_file(monkeypatch, tmp_path):
+    # byte-for-byte copy: one undecodable legacy file must neither abort the
+    # sweep (files sorting after it still copy) nor be skipped itself
+    monkeypatch.setenv("HOME", str(tmp_path))
+    legacy = tmp_path / ".claude" / "knowledge-graphs"
+    legacy.mkdir(parents=True)
+    (legacy / "a-binary.md").write_bytes(b"\xff\xfenot utf-8\x80")
+    (legacy / "z-good.md").write_text("---\nlevel: Builder\nxp: 0\n---\n")
+    assert ramp_core.migrate_graph_home() is True
+    new = tmp_path / ".claude" / "ramp" / "graphs"
+    assert (new / "a-binary.md").read_bytes() == b"\xff\xfenot utf-8\x80"
+    assert (new / "z-good.md").exists()
+
+
+# --- save_graph: the kernel-owned validated writer (Task C0) ---
+
+
+def test_save_graph_recomputes_xp_and_fills_dates(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    out = ramp_core.save_graph(
+        "demo",
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 999\nupdated: 2020-01-01\n---\n"
+        "## [Build · ROOT] x\n- [✓|exercise] a — r, 2026-07-02: n\n",
+    )
+    saved = (tmp_path / ".claude" / "ramp" / "graphs" / "demo.md").read_text()
+    assert "xp: 10" in saved                  # model-supplied 999 overwritten in code
+    assert "| next: " in saved                # missing next: seeded at L1
+    assert out.startswith("saved · demo")
+
+
+def test_save_graph_rejects_missing_frontmatter(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    assert ramp_core.save_graph("demo", "- [✓] a\n").startswith("REJECTED")
+    assert not (tmp_path / ".claude" / "ramp" / "graphs" / "demo.md").exists()
+
+
+def test_save_graph_never_downgrades_on_disk_done(monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    graphs = tmp_path / ".claude" / "ramp" / "graphs"
+    graphs.mkdir(parents=True)
+    (graphs / "demo.md").write_text(
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 10\nupdated: 2026-07-01\n---\n"
+        "## [Build · ROOT] x\n- [✓|exercise] Kept — r, 2026-07-01: proof | next: 2026-07-03 [L1]\n"
+    )
+    ramp_core.save_graph(
+        "demo",
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+        "## [Build · ROOT] x\n- [ ] Kept\n",
+    )
+    assert "[✓|exercise] Kept" in (graphs / "demo.md").read_text()
+
+
+def test_cli_save_reads_stdin_and_writes(tmp_path):
+    home = tmp_path / "home"
+    (home / ".claude" / "ramp" / "graphs").mkdir(parents=True)
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    core = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    tree = (
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+        "## [Build · ROOT] x\n- [✓|exercise] a — r, 2026-07-02: n\n"
+    )
+    out = subprocess.run(
+        ["python3", core, "save", "demo"], input=tree, env=env, text=True,
+        capture_output=True, cwd=str(tmp_path),
+    )
+    assert out.returncode == 0
+    assert out.stdout.startswith("saved · demo")
+    assert "xp: 10" in (home / ".claude" / "ramp" / "graphs" / "demo.md").read_text()
+
+
+def test_due_nodes_matches_summary_due(core):
+    from datetime import date as _date
+    today = _date(2026, 7, 2)
+    tree = (
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+        "## [Build · A] One\n"
+        "- [✓|exercise] Due node — r, 2026-06-01: n | next: 2026-07-01 [L1]\n"
+        "- [✓|exercise] Today node — r, 2026-06-01: n | next: 2026-07-02 [L2]\n"
+        "- [✓|exercise] Future node — r, 2026-06-01: n | next: 2026-08-01 [L2]\n"
+        "- [✓|exercise] Malformed marker — r, 2026-06-01: n | next: 2026-06-01 [B]\n"
+        "- [✓|exercise] Permanent node — r, 2026-06-01: n | next: permanent [L6]\n"
+        "- [~|reported] Claimed node — r, 2026-06-01: claim\n"
+    )
+    due = core.due_nodes(tree, today)
+    assert [n["name"] for n in due] == ["Due node", "Today node"]
+    # The single-sourcing contract: list length == summary's due count, always.
+    assert len(due) == core.summarize_graph(tree, today)["due"]
+
+
+def test_cli_due_missing_graph_is_empty_array(tmp_path):
+    home = tmp_path / "home"
+    home.mkdir()
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    core_path = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    out = subprocess.run(["python3", core_path, "due", "demo"],
+                         env=env, text=True, capture_output=True, cwd=str(tmp_path))
+    assert out.returncode == 0
+    assert json.loads(out.stdout) == []
+
+
+def test_cli_due_emits_due_nodes(tmp_path):
+    home = tmp_path / "home"
+    graphs = home / ".claude" / "ramp" / "graphs"
+    graphs.mkdir(parents=True)
+    (graphs / "demo.md").write_text(
+        "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+        "## [Build · A] One\n"
+        "- [✓|exercise] Old node — r, 2026-06-01: n | next: 2020-01-01 [L1]\n"
+        "- [✓|exercise] Future node — r, 2026-06-01: n | next: 2999-01-01 [L2]\n",
+        encoding="utf-8",
+    )
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    core_path = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    out = subprocess.run(["python3", core_path, "due", "demo"],
+                         env=env, text=True, capture_output=True, cwd=str(tmp_path))
+    assert out.returncode == 0
+    names = [n["name"] for n in json.loads(out.stdout)]
+    assert names == ["Old node"]
+
+
+_ADV_TREE = (
+    "---\nversion: 3\ntopic: demo\nlevel: Explorer\nxp: 0\nupdated: 2026-07-02\n---\n"
+    "## [Build · A] One\n"
+    "- [✓|exercise] Recursion — r, 2026-06-01: n | next: 2026-07-01 [L1]\n"
+    "- [✓|exercise] Recursion basics — r, 2026-06-01: n | next: 2026-07-01 [L1]\n"
+    "- [✓|exercise] Old timer — r, 2026-06-01: n | next: permanent [L6]\n"
+)
+
+
+def test_advance_review_pass_advances_ladder(core, tmp_path):
+    from datetime import date as _date
+    (tmp_path / "demo.md").write_text(_ADV_TREE, encoding="utf-8")
+    out = core.advance_review("demo", "Recursion", "pass", graph_dir=tmp_path)
+    expected_date = core.next_review_date(2, _date.today())
+    assert out == f"advanced · Recursion · pass → L2, next {expected_date}"
+    saved = (tmp_path / "demo.md").read_text(encoding="utf-8")
+    assert f"Recursion — r, 2026-06-01: n | next: {expected_date} [L2]" in saved
+    # Exact-name match: the sibling node is untouched.
+    assert "Recursion basics — r, 2026-06-01: n | next: 2026-07-01 [L1]" in saved
+
+
+def test_advance_review_fail_resets_to_l1(core, tmp_path):
+    from datetime import date as _date
+    (tmp_path / "demo.md").write_text(_ADV_TREE, encoding="utf-8")
+    out = core.advance_review("demo", "Recursion basics", "fail", graph_dir=tmp_path)
+    tomorrow = core.next_review_date(1, _date.today())
+    assert out == f"advanced · Recursion basics · fail → L1, next {tomorrow}"
+
+
+def test_advance_review_l6_stays_permanent(core, tmp_path):
+    (tmp_path / "demo.md").write_text(_ADV_TREE, encoding="utf-8")
+    out = core.advance_review("demo", "Old timer", "pass", graph_dir=tmp_path)
+    assert out == "advanced · Old timer · pass → L6, next permanent"
+    assert "| next: permanent [L6]" in (tmp_path / "demo.md").read_text(encoding="utf-8")
+
+
+def test_advance_review_errors(core, tmp_path):
+    (tmp_path / "demo.md").write_text(_ADV_TREE, encoding="utf-8")
+    assert core.advance_review("demo", "Recursion", "meh", graph_dir=tmp_path).startswith("Invalid outcome")
+    assert core.advance_review("nope", "Recursion", "pass", graph_dir=tmp_path) == "NO_TREE_FILE: nope"
+    assert core.advance_review("demo", "Ghost", "pass", graph_dir=tmp_path) == "Node not found or not [✓]: 'Ghost'"
+
+
+def test_cli_advance_exit_codes(tmp_path):
+    home = tmp_path / "home"
+    graphs = home / ".claude" / "ramp" / "graphs"
+    graphs.mkdir(parents=True)
+    (graphs / "demo.md").write_text(_ADV_TREE, encoding="utf-8")
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    core_path = str(Path(__file__).resolve().parent.parent / "ramp_core.py")
+    ok = subprocess.run(["python3", core_path, "advance", "demo", "Recursion", "pass"],
+                        env=env, text=True, capture_output=True, cwd=str(tmp_path))
+    assert ok.returncode == 0 and ok.stdout.startswith("advanced · Recursion · pass → L2")
+    bad = subprocess.run(["python3", core_path, "advance", "demo", "Ghost", "pass"],
+                         env=env, text=True, capture_output=True, cwd=str(tmp_path))
+    assert bad.returncode == 2 and "Node not found" in bad.stdout

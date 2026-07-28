@@ -12,7 +12,7 @@ When making prioritization decisions, ask: **what best advances that capability-
 
 ## Project
 
-`ramp` activates a **learning mode** — Claude becomes a co-pilot for ramping developers up on Claude Code as an organizational tool, the codebase, and the team's workflows (commits, PRs, testing, CI). It scans the environment, assesses the user, delivers a personalized knowledge graph and learning path, then stays engaged to work through exercises together. Writes an `ONBOARDING.md` artifact and updates `~/.claude/knowledge-graphs/[topic].md`.
+`ramp` activates a **learning mode** — Claude becomes a co-pilot for ramping developers up on Claude Code as an organizational tool, the codebase, and the team's workflows (commits, PRs, testing, CI). It scans the environment, assesses the user, delivers a personalized knowledge graph and learning path, then stays engaged to work through exercises together. Writes an `ONBOARDING.md` artifact and updates `~/.claude/ramp/graphs/[topic].md`.
 
 Companies deploy it as a project-level command for engineer onboarding. Solo devs use it to level up.
 
@@ -26,6 +26,8 @@ Companies deploy it as a project-level command for engineer onboarding. Solo dev
 
 ```
 commands/up.md               # Adaptive onboarding command — manages knowledge graph
+commands/calibrate.md        # Placement worksheet front door — writes .ramp/calibrate.md; claims seed the graph
+commands/check.md            # Check back the active task — grade the worksheet, persist via save_graph, report the XP delta
 commands/list.md             # Read-only topic catalog (CLI-backed) — what exists, where you've started
 commands/help.md             # 60-second orientation — what ramp is + the command map
 commands/tree.md             # Read-only knowledge graph viewer
@@ -37,31 +39,41 @@ commands/wrap.md             # End-of-session knowledge harvest — node upgrade
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
 .claude-plugin/marketplace.json # Marketplace catalog (source, category, install metadata)
 hooks/hooks.json             # Plugin hook config (PostToolUse + SessionStart)
+.github/workflows/test.yml   # CI — ruff lint + pytest matrix (3.8 floor + current) on develop/main + PRs
+.github/workflows/release-gate.yml # CI — manifest ↔ CHANGELOG ↔ tag consistency for → main
+.github/dependabot.yml       # Weekly SHA-pin bumps for GitHub Actions
 .claude/settings.json        # Project hook config (file-size-warn + skill-observer)
 topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 81 nodes total)
 topics/getting-started.md    # Getting started sub-topic (12 nodes)
-topics/build.md              # Build sub-topic (32 nodes after v0.17.0)
+topics/build.md              # Build sub-topic (32 nodes)
 topics/configuration.md      # Configuration sub-topic (13 nodes)
 topics/deployment.md         # Deployment sub-topic (11 nodes)
 topics/administration.md     # Administration sub-topic (13 nodes)
 topics/best-practices.md     # Best practices topic schema (15 nodes)
-topics/mcp-development.md    # MCP development topic schema (29 nodes after v0.16.0)
+topics/mcp-development.md    # MCP development topic schema (29 nodes)
 topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
 topics/claude-code-internals.md # Empirically-verified Claude Code internals (5 nodes — undocumented behaviors)
+topics/git.md                # Git version control topic schema (27 nodes — standalone, Pro Git-sourced; first breadth topic)
+topics/bash.md               # Bash scripting topic schema (29 nodes — standalone, GNU Bash Reference Manual-sourced)
+topics/python.md             # Python language topic schema (31 nodes — standalone, Python Tutorial + Language Reference-sourced)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + SessionStart)
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
 scripts/setup-mcp.py         # Provisions .venv + registers MCP server (opt-in — run manually, not on SessionStart)
 mcp/server.py                # knowledge-graph MCP server (read/write graphs; swappable backend)
 mcp/start.sh                 # MCP launch wrapper — .venv python; avoids macOS symlink trap
-ramp_core.py                 # stdlib-only kernel — write side (XP · SR dates · validate · lock) + read side (catalog · summary · node_count); imported by skill-observer + mcp/server; CLI-backed for list/help
-tests/                       # stdlib pytest suite (ramp_core, xp, detection, normalization, symlinks) + server tests under .venv — importlib-loaded
+ramp_core.py                 # stdlib-only kernel — write side (XP · SR dates · validate · lock) + read side (catalog · summary · node_count · graph_nodes) + detect side (schema ## Probes → run_detection) + lint side (schema conformance — problems vs advisories); imported by skill-observer + mcp/server; CLI-backed for list/help/tree/detect/lint
+tests/                       # stdlib pytest suite (ramp_core, xp, detection, schema-lint, normalization, symlinks, setup-mcp, file-size-warn) + server tests under .venv — importlib-loaded
 requirements.txt             # MCP server deps — only to run mcp/server.py, not to test
 requirements-dev.txt         # pytest (test suite)
+pyproject.toml               # Tooling config — ruff lint rules (target py38; no packaging, kernel is stdlib-only)
 docs/tree-format.md          # Annotated v3 knowledge graph format example
 docs/docs-map.md             # Maps all doc pages to topics and nodes
+docs/topic-authoring.md      # Normative topic-authoring contract — skill definition, schema anatomy, probe/reference grammar, validation gate (lint-checked)
 BACKLOG.md                   # Pointer to TaskWarrior backlog (task project:business.ramp)
 .mcp.json.example            # MCP server config template (copy → .mcp.json, fill in paths)
 README.md                    # Install instructions, modes, company deployment guide
+LICENSE                      # MIT license
+.gitignore                   # Ignores .venv/, .claude/commands/, docs/superpowers/, .mcp.json, .ramp/
 ```
 
 *This listing is maintained manually — update it when files are added or renamed.*
@@ -98,7 +110,7 @@ Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a struc
 
 **Tree structure (81 nodes across 5 sub-topics — claude-code topic):**
 - **[Getting Started]** Core Foundations, Working Effectively, Best Practices — what Claude Code is, tool loop, memory, workflow patterns (12 nodes)
-- **[Build]** Agents and Orchestration, Skills and Plugins, Hooks System, Headless and MCP — subagents, slash commands, hooks, headless mode (32 nodes after v0.17.0 additions)
+- **[Build]** Agents and Orchestration, Skills and Plugins, Hooks System, Headless and MCP — subagents, slash commands, hooks, headless mode (32 nodes)
 - **[Configuration]** Settings Fundamentals, Permissions and Security, Interface Customization — settings hierarchy, allow/deny rules, keybindings (13 nodes)
 - **[Deployment]** Cloud Provider Integration, Network and Infrastructure, Deployment Patterns — Bedrock, Vertex, Foundry, LLM gateways, CI/CD (11 nodes)
 - **[Administration]** Setup and Authentication, Data and Compliance, Cost and Usage Management — org setup, ZDR, analytics, chargeback (13 nodes)
@@ -112,7 +124,7 @@ Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a struc
 
 **Per-node doc links:** Each node in topic schemas has a `source_url` column. `/ramp:up` surfaces these as `**Reference:** [official docs](url)` in mastery mission exercises.
 
-**XP system:** Each demonstrated `[✓]` node earns XP by branch tier (ROOT=10, A=15, B=20, C=25, D=35, E=50). `[~]` = half XP. Total stored as `xp:` in frontmatter. Displayed as "Level: Builder · 240 XP". `/review` pass awards a per-node XP bonus.
+**XP system:** Each demonstrated `[✓]` node earns XP by branch tier (ROOT=10, A=15, B=20, C=25, D=35, E=50). `[~]` = half XP. Total stored as `xp:` in frontmatter. Displayed as "Level: Builder · 240 XP". A `/review` pass advances the schedule without changing XP; XP rises only when a node first reaches `[✓]` (including a `[~]→[✓]` upgrade earned during review).
 
 **Adaptive pacing:** Phase 3 output scales with tier. Explorer (~20-30 lines, 1 skill), Builder (~50-60 lines, 2 skills), Practitioner/Expert (~80-100+ lines, 3 skills). Returning users with a fresh tree (≤7 days) skip gap questions entirely — straight to Phase 3.
 
@@ -124,18 +136,18 @@ Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a struc
 
 **Inference priority (highest to lowest, used only by `/ramp:up`):**
 1. Environmental signals — CLAUDE.md content, hooks/MCP in settings.json, commands in `.claude/commands/`, history scans
-2. Saved graph file — `~/.claude/knowledge-graphs/[topic].md` persists progress from prior sessions; `[✓]` nodes are never downgraded
-3. Self-reported assessment — fills gaps via targeted gap questions using Feynman framing ("explain X as you'd teach it") — teaching-level answers earn `[✓]`, surface-level answers stay `[~]`
+2. Saved graph file — `~/.claude/ramp/graphs/[topic].md` persists progress from prior sessions; `[✓]` nodes are never downgraded
+3. Self-reported assessment — fills gaps via targeted gap questions using teach-back framing ("explain X as you'd teach it") — teaching-level answers earn `[✓]`, surface-level answers stay `[~]`
 
-**`/ramp:tree`** is a dumb read-only viewer. It reads `~/.claude/knowledge-graphs/[topic].md` and displays it. No inference, no writes.
+**`/ramp:tree`** is a dumb read-only viewer. It reads `~/.claude/ramp/graphs/[topic].md` and displays it. No inference, no writes.
 
-**`/ramp:review`** is a focused spaced repetition command. It reads due `[✓]` nodes, steps through them one at a time, applies the qualitative rubric, updates `| next:` fields, and awards XP for passes.
+**`/ramp:review`** is a focused spaced repetition command. It reads due `[✓]` nodes, steps through them one at a time, applies the qualitative rubric, updates `| next:` fields. Passing advances the schedule; XP is unchanged unless a node is upgraded `[~]→[✓]`.
 
 **Three-layer tree architecture** (maps to Claude Code's native scope model):
 
 | Tree layer | Claude Code scope | Location | Git? | Phase 4 |
 |-----------|------------------|----------|------|---------|
-| **Personal global** | User | `~/.claude/knowledge-graphs/[topic].md` | No | option `a` |
+| **Personal global** | User | `~/.claude/ramp/graphs/[topic].md` | No | option `a` |
 | **Team** | Project | `.claude/knowledge-graphs/[topic].md` | Yes | option `d` |
 | **Local** | Local | `.claude/knowledge-graphs/local/[topic].md` | No (gitignored) | option `e` |
 
@@ -143,7 +155,7 @@ Merge priority: Local → Team → Personal. A local `[✓]` upgrades anything; 
 
 ## Topics
 
-Topic schemas live in `topics/` and are symlinked into `~/.claude/knowledge-graphs/schemas/` by a SessionStart hook (`skill-observer.py`'s `provision_schema_symlinks`); `/ramp:up` resolves the *single requested* topic from there — it does not scan or enumerate the directory. To add a custom topic: create `topics/[name].md` following the format in any existing file.
+Topic schemas live in `topics/` and are symlinked into `~/.claude/ramp/schemas/` by a SessionStart hook (`skill-observer.py`'s `provision_schema_symlinks`); `/ramp:up` resolves the *single requested* topic from there — it does not scan or enumerate the directory. To add a custom topic: create `topics/[name].md` following the format in any existing file.
 
 **Core (meta-topic + sub-topics):**
 `claude-code` (81 nodes) — full Claude Code curriculum, sources all five sub-topics:
@@ -154,10 +166,15 @@ Topic schemas live in `topics/` and are symlinked into `~/.claude/knowledge-grap
 `mcp-development` (29 nodes) — building MCP servers from fundamentals to production
 `anthropic-api` (18 nodes) — Claude API from basic completions to tool use loops
 `claude-code-internals` (5 nodes) — empirically-verified Claude Code behaviors not in official docs
+`git` (27 nodes) — version control from the snapshot model through branching, recovery, and internals (Pro Git-sourced; first breadth topic beyond Claude Code)
+`bash` (29 nodes) — shell scripting from the language model through control flow, functions, robustness (strict mode, quoting, traps, ShellCheck), redirection and pipelines, and expansions (GNU Bash Reference Manual-sourced)
+`python` (31 nodes) — the language from the object model through control flow and iteration, functions and scope, the workhorse containers, classes and the object protocol, and robustness (exceptions, context managers, generators, decorators) (Python Tutorial + Language Reference-sourced)
 
 ## Knowledge graph file
 
-**Location:** `~/.claude/knowledge-graphs/[topic].md` (global, personal — follows the developer across all projects)
+**Location:** `~/.claude/ramp/graphs/[topic].md` (global, personal — follows the developer across all projects; schemas are symlinked beside it at `~/.claude/ramp/schemas/`)
+
+**Per-repo workspace:** `./.ramp/` in the host repo (gitignored, regenerable) — five fixed files: `worksheet.md` · `current.md` · `calibrate.md` · `scan.md` · `lessons.md`. The canonical format contract is `commands/up.md` § *The ./.ramp/ workspace*; other commands reference it, never duplicate it.
 
 **Format:** YAML frontmatter (machine-parseable) + Markdown body (human-readable).
 Full annotated example: `docs/tree-format.md`

@@ -1,0 +1,55 @@
+name: release-gate
+
+# Git policy: manifest ↔ tag must match on main, and a release ships with its
+# CHANGELOG section. On a PR into main this checks the CHANGELOG half (the tag
+# lands on the release-branch tip, possibly after the PR opens); on push to
+# main it checks the full invariant: nearest reachable tag == v<manifest>.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  manifest-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0 # git describe needs tags + history
+      - name: Manifest / CHANGELOG / tag consistency
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          python3 - <<'EOF'
+          import json, os, re, subprocess, sys
+          manifest = json.load(open(".claude-plugin/plugin.json"))["version"]
+          changelog = open("CHANGELOG.md", encoding="utf-8").read()
+          if not re.search(rf"^## \[{re.escape(manifest)}\]", changelog, re.M):
+              sys.exit(f"CHANGELOG.md has no '## [{manifest}]' section — "
+                       "move [Unreleased] to a versioned header before releasing")
+          if os.environ["EVENT"] == "push":
+              want = f"v{manifest}"
+              tag = subprocess.run(["git", "describe", "--tags", "--abbrev=0"],
+                                   capture_output=True, text=True).stdout.strip()
+              if tag != want:
+                  # Distinguish "never tagged" from "tagged but unreachable from
+                  # main" — the latter is the squash-merge trap: `git describe`
+                  # walks first-parent history, so squashing release/* into main
+                  # orphans the tag on a branch main can't reach. Releases must
+                  # merge (policy), never squash.
+                  exists = subprocess.run(["git", "tag", "--list", want],
+                                          capture_output=True, text=True).stdout.strip()
+                  if exists:
+                      sys.exit(f"main: {want} exists but is not reachable from HEAD "
+                               f"(nearest is {tag or '(none)'}) — release/* was likely "
+                               "SQUASH-merged, which orphans the tag. Re-merge with a "
+                               "merge commit, or move the tag onto main's tip.")
+                  sys.exit(f"main: nearest tag {tag or '(none)'} != {want} — "
+                           "annotated-tag the release tip before merging")
+          print(f"release-gate OK: v{manifest}")
+          EOF

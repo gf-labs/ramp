@@ -4,6 +4,7 @@ node_count: 12
 version: 1
 source_url: https://code.claude.com/docs/en/overview
 description: Claude Code fundamentals — what it is, how it works, core workflows, memory system, and best practices for effective use.
+goal: ramp them up on Claude Code fundamentals — what it is and the tool loop, the memory and scope model, effective everyday workflows (interrupting, verifying, prompting), and the best-practice habits that avoid common pitfalls
 ---
 
 # Getting Started Knowledge Graph Schema
@@ -18,30 +19,42 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 
 ### [ROOT] Core foundations (always unlocked — 5 nodes)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| What Claude Code does and when to use it | Can articulate what Claude Code is (an agentic CLI, not a chat UI), the tool loop model, and at least two scenarios where it's the right tool vs. the wrong one | Qualitative | None | https://code.claude.com/docs/en/overview |
-| Installation and first run | Has installed Claude Code, run `claude` at least once, and knows the difference between interactive and headless invocation | Historical / Exercise | git history or sessions exist → `[~\|historical]` | https://code.claude.com/docs/en/quickstart |
-| How Claude Code uses computers (tool loop) | Can explain the tool loop: Claude proposes tool calls → user approves → output fed back → Claude continues; knows which tools exist (Bash, Read, Write, Edit, Glob, Grep, Agent) | Qualitative | None | https://code.claude.com/docs/en/how-claude-code-works |
-| Core feature surface (interactive vs. headless, key tools) | Can describe the main capability surface: interactive mode, headless mode, slash commands, MCP servers, hooks, agents; knows where each fits | Qualitative | headless invocations > 0 → `[~\|historical]` | https://code.claude.com/docs/en/features-overview |
-| Memory types and scope hierarchy | Can name the two memory types — CLAUDE.md (developer-authored, layered global → project → local) and auto-memory / MEMORY.md (Claude-authored) — and explain how they differ in who writes them, persistence, and scope | Exercise / Qualitative | CLAUDE.md exists → `[~\|artifact]` | https://code.claude.com/docs/en/memory |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| What Claude Code does and when to use it | Can articulate what Claude Code is (an agentic CLI, not a chat UI), the tool loop model, and at least two scenarios where it's the right tool vs. the wrong one | Qualitative | None | https://code.claude.com/docs/en/overview | getting-started-what-claude-code-does-and-when-to-use-it |
+| Installation and first run | Has installed Claude Code, run `claude` at least once, and knows the difference between interactive and headless invocation | Historical / Exercise | git history or sessions exist → `[~\|historical]` | https://code.claude.com/docs/en/quickstart | getting-started-installation-and-first-run |
+| How Claude Code uses computers (tool loop) | Can explain the tool loop: Claude proposes tool calls → user approves → output fed back → Claude continues; knows which tools exist (Bash, Read, Write, Edit, Glob, Grep, Agent) | Qualitative | None | https://code.claude.com/docs/en/how-claude-code-works | getting-started-how-claude-code-uses-computers-tool-loop |
+| Core feature surface (interactive vs. headless, key tools) | Can describe the main capability surface: interactive mode, headless mode, slash commands, MCP servers, hooks, agents; knows where each fits | Qualitative | headless invocations > 0 → `[~\|historical]` | https://code.claude.com/docs/en/features-overview | getting-started-core-feature-surface-interactive-vs-headless-key-tools |
+| Memory types and scope hierarchy | Can name the two memory types — CLAUDE.md (developer-authored, layered global → project → local) and auto-memory / MEMORY.md (Claude-authored) — and explain how they differ in who writes them, persistence, and scope | Exercise / Qualitative | CLAUDE.md exists → `[~\|artifact]` | https://code.claude.com/docs/en/memory | getting-started-memory-types-and-scope-hierarchy |
 
 ### [A] Working effectively (4 nodes, unlocks when ROOT ≥ 3 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Common workflow patterns | Has used Claude Code for ≥2 of: code changes, debugging, test writing, commit messages, PR descriptions; can describe what happened | Historical / Exercise | git history exists + sessions > 5 → `[~\|historical]` | https://code.claude.com/docs/en/common-workflows |
-| When to interrupt vs. let it run | Has deliberately stopped Claude mid-task (Ctrl+C or Esc) AND deliberately let it run uninterrupted for a multi-step task; can explain the heuristic for choosing | Exercise / Qualitative | sessions > 10 → `[~\|historical]` | https://code.claude.com/docs/en/how-claude-code-works |
-| Reading and verifying Claude's output | After a non-trivial change, explicitly reviewed the diff, ran a test or linter, and caught or confirmed Claude's work; can describe what "trust but verify" means operationally | Exercise / Historical | max files in recent commit > 0 → `[~\|historical]` | https://code.claude.com/docs/en/best-practices |
-| Writing effective prompts for code tasks | Has crafted a prompt that includes: what to change, why, and a constraint or acceptance criterion; can explain why context-rich prompts outperform vague ones | Qualitative | None | https://code.claude.com/docs/en/best-practices |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Common workflow patterns | Has used Claude Code for ≥2 of: code changes, debugging, test writing, commit messages, PR descriptions; can describe what happened | Historical / Exercise | git history exists + sessions > 5 → `[~\|historical]` | https://code.claude.com/docs/en/common-workflows | getting-started-common-workflow-patterns |
+| When to interrupt vs. let it run | Has deliberately stopped Claude mid-task (Ctrl+C or Esc) AND deliberately let it run uninterrupted for a multi-step task; can explain the heuristic for choosing | Exercise / Qualitative | sessions > 10 → `[~\|historical]` | https://code.claude.com/docs/en/how-claude-code-works | getting-started-when-to-interrupt-vs-let-it-run |
+| Reading and verifying Claude's output | After a non-trivial change, explicitly reviewed the diff, ran a test or linter, and caught or confirmed Claude's work; can describe what "trust but verify" means operationally | Exercise / Historical | max files in recent commit > 0 → `[~\|historical]` | https://code.claude.com/docs/en/best-practices | getting-started-reading-and-verifying-claude-s-output |
+| Writing effective prompts for code tasks | Has crafted a prompt that includes: what to change, why, and a constraint or acceptance criterion; can explain why context-rich prompts outperform vague ones | Qualitative | None | https://code.claude.com/docs/en/best-practices | getting-started-writing-effective-prompts-for-code-tasks |
 
 ### [B] Best practices (3 nodes, unlocks when Branch A ≥ 2 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| CLAUDE.md as living project memory | Has written or meaningfully updated a CLAUDE.md; can describe what belongs there (build commands, conventions, architecture notes) vs. what doesn't | Artifact | CLAUDE.md line count > 20 → `[✓\|artifact]` | https://code.claude.com/docs/en/memory |
-| Iterative refinement and course corrections | Has pushed back on a Claude response mid-task, requested a change, and iterated; understands that Claude responds to correction — it's not one-shot | Exercise / Historical | sessions > 5 → `[~\|historical]` | https://code.claude.com/docs/en/best-practices |
-| Recognizing and avoiding common pitfalls | Can name at least two failure modes: over-trusting output without review, giving too little context, not using plan mode for risky changes | Qualitative | None | https://code.claude.com/docs/en/best-practices |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| CLAUDE.md as living project memory | Has written or meaningfully updated a CLAUDE.md; can describe what belongs there (build commands, conventions, architecture notes) vs. what doesn't | Artifact | CLAUDE.md line count > 20 → `[✓\|artifact]` | https://code.claude.com/docs/en/memory | getting-started-claude-md-as-living-project-memory |
+| Iterative refinement and course corrections | Has pushed back on a Claude response mid-task, requested a change, and iterated; understands that Claude responds to correction — it's not one-shot | Exercise / Historical | sessions > 5 → `[~\|historical]` | https://code.claude.com/docs/en/best-practices | getting-started-iterative-refinement-and-course-corrections |
+| Recognizing and avoiding common pitfalls | Can name at least two failure modes: over-trusting output without review, giving too little context, not using plan mode for risky changes | Qualitative | None | https://code.claude.com/docs/en/best-practices | getting-started-recognizing-and-avoiding-common-pitfalls |
+
+---
+
+## Probes
+
+| name | primitive | args |
+|------|-----------|------|
+| sessions             | glob-count      | ~/.claude/projects/**/*.jsonl --exclude ~/.claude/projects/**/agent-*.jsonl |
+| claude_md_lines      | file-lines      | CLAUDE.md |
+| headless_invocations | grep-count      | "claude -p\|claude --print" scripts/ Makefile .github/ |
+| git_history          | git-log-grep    | "." |
+| max_commit_files     | git-max-commit-files | 10 |
 
 ---
 
@@ -52,10 +65,10 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 | git history exists OR sessions > 0 | ROOT: "Installation and first run" → `[✓\|historical]` |
 | sessions > 5 | A: "Common workflow patterns" → `[~\|historical]` |
 | sessions > 10 | A: "When to interrupt vs. let it run" → `[~\|historical]` |
-| sessions > 10 | A: "Iterative refinement" → `[~\|historical]` |
+| sessions > 10 | B: "Iterative refinement and course corrections" → `[~\|historical]` |
 | CLAUDE.md line count > 20 | B: "CLAUDE.md as living project memory" → `[✓\|artifact]` |
 | headless invocations > 0 | ROOT: "Core feature surface" → `[~\|historical]` |
-| max files in recent commit ≥ 3 | A: "Reading and verifying Claude's output" → `[~\|historical]` |
+| max_commit_files ≥ 3 | A: "Reading and verifying Claude's output" → `[~\|historical]` |
 
 ---
 
@@ -63,13 +76,17 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 
 | Branch | Gap | Ask this |
 |--------|-----|----------|
+| [ROOT] | What Claude Code is | "In your own words — what is Claude Code, and name one task it's the right tool for and one it isn't." |
+| [ROOT] | Installation | "Have you installed Claude Code and run it? Do you know the difference between running it interactively and in headless (`-p`) mode?" |
 | [ROOT] | No tool loop evidence | "Explain the tool loop model in your own words — what happens between when you type a prompt and when Claude writes code?" |
 | [ROOT] | No feature surface evidence | "Which Claude Code features have you used beyond basic edits — headless mode, hooks, MCP, agents? Walk me through one." |
 | [ROOT] | No memory types evidence | "Name the four ways Claude Code persists information across sessions. What goes in each one?" |
 | [A] | No workflow pattern evidence | "Walk me through the last time you used Claude Code for something beyond a simple edit. What did you ask it to do and what happened?" |
 | [A] | No interrupt/let-run evidence | "Have you ever stopped Claude mid-task? What triggered it? Have you ever let it run 10+ tool calls uninterrupted?" |
 | [A] | No verification evidence | "After Claude makes a non-trivial change, what do you do before accepting it? Be specific — what are you looking for?" |
+| [A] | Effective prompts | "What makes a good prompt for a code task? Give me the shape of one you'd write — what do you always include?" |
 | [B] | No CLAUDE.md evidence | "What's in your CLAUDE.md right now? Walk me through why each section is there." |
+| [B] | Iterative refinement | "When Claude's first attempt isn't right, what do you do — start over or correct it mid-task? Describe a time you iterated." |
 | [B] | No pitfall evidence | "What's the most common mistake developers make when using Claude Code? Name two." |
 
 ### Qualitative rubric
@@ -82,15 +99,19 @@ This file defines the curriculum for the `getting-started` topic. Covers the fou
 
 | Answer contains | Node → status |
 |-----------------|---------------|
+| Names Claude Code as an agentic CLI + a right-tool and a wrong-tool scenario | ROOT: "What Claude Code does and when to use it" → `[✓\|reported]` |
+| Confirms install + run and distinguishes interactive from headless | ROOT: "Installation and first run" → `[✓\|reported]` |
 | Specific description of tool loop (propose → approve → feedback → continue) | ROOT: "How Claude Code uses computers" → `[✓\|reported]` |
 | Vague "yes Claude proposes things and I approve" | ROOT: "How Claude Code uses computers" → `[~\|reported]` |
 | Specific use of headless/hooks/agents/MCP | ROOT: "Core feature surface" → `[✓\|reported]` |
+| Names CLAUDE.md (layered global→project→local) vs. auto-memory and who authors each | ROOT: "Memory types and scope hierarchy" → `[✓\|reported]` |
 | Specific workflow (debugging, PR, multi-file change) with detail | A: "Common workflow patterns" → `[✓\|reported]` |
 | Mentions Ctrl+C or deliberate interruption with reason | A: "When to interrupt vs. let it run" → `[✓\|reported]` |
 | Mentions reviewing diff or running tests after Claude's changes | A: "Reading and verifying" → `[✓\|reported]` |
 | Mentions context-rich prompts or acceptance criteria | A: "Writing effective prompts" → `[✓\|reported]` |
 | Describes CLAUDE.md contents specifically | B: "CLAUDE.md as living project memory" → `[✓\|reported]` |
-| Names specific pitfalls (over-trust, vague prompts, no plan mode) | B: "Recognizing common pitfalls" → `[✓\|reported]` |
+| Describes correcting Claude mid-task and iterating (not one-shot) | B: "Iterative refinement and course corrections" → `[✓\|reported]` |
+| Names specific pitfalls (over-trust, vague prompts, no plan mode) | B: "Recognizing and avoiding common pitfalls" → `[✓\|reported]` |
 
 ---
 
@@ -117,20 +138,20 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 ## Tree render template
 
 ```
-[ROOT] Core Foundations
+Core Foundations
     [?] What Claude Code does and when to use it
     [?] Installation and first run
     [?] How Claude Code uses computers (tool loop)
     [?] Core feature surface (interactive vs. headless, key tools)
     [?] Memory types and scope hierarchy
 
-[A] Working Effectively   [if locked: "(unlock: complete 3 Core Foundations)"]
+Working Effectively   [if locked: "(unlock: complete 3 Core Foundations)"]
     [?] Common workflow patterns
     [?] When to interrupt vs. let it run
     [?] Reading and verifying Claude's output
     [?] Writing effective prompts for code tasks
 
-[B] Best Practices   [if locked: "(unlock: complete 2 Working Effectively skills)"]
+Best Practices   [if locked: "(unlock: complete 2 Working Effectively skills)"]
     [?] CLAUDE.md as living project memory
     [?] Iterative refinement and course corrections
     [?] Recognizing and avoiding common pitfalls

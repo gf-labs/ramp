@@ -18,6 +18,9 @@ venv/
 # ramp: gitignored local knowledge-graph layer (per the 3-layer model)
 .claude/knowledge-graphs/local/
 
+# ramp: per-repo session workspace (worksheet/current/calibrate/scan/lessons) — regenerable
+.ramp/
+
 # Local TaskWarrior slug-mapping config (commit .tw-slugs.json.example instead)
 .tw-slugs.json
 

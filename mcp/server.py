@@ -3,7 +3,7 @@
 knowledge-graph MCP server for ramp
 
 Provides structured read/write access to Claude Code knowledge graphs.
-Backend: local files at ~/.claude/knowledge-graphs/ by default.
+Backend: local files at ~/.claude/ramp/graphs/ by default.
 Set KNOWLEDGE_GRAPH_API_URL to proxy reads/writes to a hosted backend,
 enabling cross-device sync, team skill matrices, and org analytics.
 
@@ -26,7 +26,6 @@ import json
 import logging
 import os
 import re
-import asyncio
 from datetime import date, datetime
 from pathlib import Path
 
@@ -42,6 +41,7 @@ except ImportError:
 # ramp_core (repo root) is the single source of truth for XP/SR/validation/locking,
 # shared with scripts/skill-observer.py so the hook and this server never disagree.
 import sys
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import ramp_core
 
@@ -49,7 +49,7 @@ import ramp_core
 # Configuration
 # ---------------------------------------------------------------------------
 
-GRAPH_DIR = Path.home() / ".claude" / "knowledge-graphs"
+GRAPH_DIR = Path.home() / ".claude" / "ramp" / "graphs"
 API_URL = os.environ.get("KNOWLEDGE_GRAPH_API_URL", "").rstrip("/")
 TODAY = date.today().isoformat()
 
@@ -91,18 +91,6 @@ def _parse_frontmatter(content: str) -> dict:
     return fields
 
 
-def _atomic_write(path: Path, content: str) -> None:
-    """Write content atomically via a temp file."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    try:
-        tmp.write_text(content, encoding="utf-8")
-        tmp.rename(path)
-    except Exception:
-        tmp.unlink(missing_ok=True)
-        raise
-
-
 def _safe_xp(value: str) -> int:
     try:
         return int(value)
@@ -119,7 +107,7 @@ def read_graph(topic: str) -> str:
     """
     Read the knowledge graph for a topic.
 
-    Returns the full markdown content of ~/.claude/knowledge-graphs/{topic}.md,
+    Returns the full markdown content of ~/.claude/ramp/graphs/{topic}.md,
     or 'NO_TREE_FILE' if not found. When KNOWLEDGE_GRAPH_API_URL is set,
     fetches from the remote backend instead (local file is a fallback cache).
 
@@ -151,62 +139,45 @@ def save_graph(topic: str, content: str) -> str:
     """
     Save the knowledge graph for a topic — the canonical, validated writer.
 
-    Recomputes xp: in code (overwriting any model-supplied value), refuses to
-    downgrade any node that is [✓] on disk, fills a MISSING next: date on newly
-    [✓] nodes (L1), surfaces every validate_tree problem and repair in the
-    return string, then writes atomically under a file lock. Rejects (does not
-    write) only on unrepairable structural damage: absent frontmatter.
+    Delegates to ramp_core.save_graph (the kernel-owned composition, shared
+    with the CLI `save` verb): recomputes xp: in code (overwriting any
+    model-supplied value), refuses to downgrade any node that is [✓] on disk,
+    fills a MISSING next: date on newly [✓] nodes (L1), surfaces every
+    validate_tree problem and repair in the return string, then writes
+    atomically under a file lock. Rejects (does not write) only on
+    unrepairable structural damage: absent frontmatter.
 
     Args:
         topic:   Topic name, e.g. 'claude-code'
         content: Full markdown content of the graph (version 3 format)
     """
+    result = ramp_core.save_graph(topic, content, graph_dir=GRAPH_DIR)
+    if result.startswith("REJECTED"):
+        logger.info("SAVE topic=%s rejected", topic)
+        return result
+
     path = GRAPH_DIR / f"{topic}.md"
-    if not _parse_frontmatter(content):
-        return "REJECTED: content has no YAML frontmatter — refusing to write"
-
-    notes: list = []
-    if path.exists():
-        content, preserved = ramp_core.preserve_demonstrated(
-            path.read_text(encoding="utf-8"), content
-        )
-        if preserved:
-            notes.append(f"preserved {len(preserved)} on-disk [✓]: {', '.join(preserved)}")
-
-    content, filled = ramp_core.fill_missing_review_dates(content, date.today())
-    if filled:
-        notes.append(f"filled next: on {len(filled)}: {', '.join(filled)}")
-
-    problems = ramp_core.validate_tree(content)
-    content = ramp_core.apply_frontmatter(content, date.today())
-
-    with ramp_core.file_lock(GRAPH_DIR / f".{topic}.md.lock"):
-        _atomic_write(path, content)
-
-    fm = _parse_frontmatter(content)
-    level = fm.get("level", "unknown")
-    xp = _safe_xp(fm.get("xp", "0"))
-    logger.info("SAVE topic=%s level=%s xp=%d problems=%d", topic, level, xp, len(problems))
+    saved = path.read_text(encoding="utf-8")  # the kernel-written state, for log + sync
+    fm = _parse_frontmatter(saved)
+    logger.info(
+        "SAVE topic=%s level=%s xp=%d",
+        topic, fm.get("level", "unknown"), _safe_xp(fm.get("xp", "0")),
+    )
 
     if API_URL:
         try:
             import urllib.request
             req = urllib.request.Request(
                 f"{API_URL}/graphs/{topic}",
-                data=content.encode("utf-8"),
+                data=saved.encode("utf-8"),
                 method="PUT",
                 headers={"Content-Type": "text/plain; charset=utf-8"},
             )
             urllib.request.urlopen(req, timeout=5)
         except Exception as e:
-            notes.append(f"backend sync failed: {e}")
+            result += f" · backend sync failed: {e}"
 
-    msg = f"saved · {topic} · {level} · {xp} XP → {path}"
-    if notes:
-        msg += " · " + " · ".join(notes)
-    if problems:
-        msg += " · ⚠ " + "; ".join(problems)
-    return msg
+    return result
 
 
 @mcp.tool()
@@ -225,41 +196,10 @@ def advance_review(topic: str, node_name: str, outcome: str) -> str:
         node_name: The node's name (text after the status marker)
         outcome:   'pass' or 'fail'
     """
-    if outcome not in ("pass", "fail"):
-        return f"Invalid outcome {outcome!r} — use 'pass' or 'fail'"
-    path = GRAPH_DIR / f"{topic}.md"
-    if not path.exists():
-        return f"NO_TREE_FILE: {topic}"
-
-    content = path.read_text(encoding="utf-8")
-    lines = content.splitlines()
-    today = date.today()
-    found = False
-    for i, line in enumerate(lines):
-        if not line.strip().startswith("- [✓"):
-            continue
-        # Finding #1: match the node EXACTLY by name, never a substring — else
-        # asking for "Recursion" could advance "Recursion basics" (wrong node).
-        if ramp_core.node_name(line) != node_name:
-            continue
-        parsed = ramp_core.parse_review_field(line)
-        cur_level = parsed[1] if parsed else 1
-        new_level = ramp_core.advance_level(cur_level) if outcome == "pass" else ramp_core.reset_level()
-        new_date = ramp_core.next_review_date(new_level, today)
-        lines[i] = ramp_core.set_review_field(line, new_date, new_level)
-        found = True
-        break
-    if not found:
-        return f"Node not found or not [✓]: {node_name!r}"
-
-    new_content = "\n".join(lines) + ("\n" if content.endswith("\n") else "")
-    new_content = ramp_core.apply_frontmatter(new_content, today)
-    with ramp_core.file_lock(GRAPH_DIR / f".{topic}.md.lock"):
-        _atomic_write(path, new_content)
-
-    logger.info("ADVANCE_REVIEW topic=%s node=%s outcome=%s level=%s", topic, node_name, outcome, new_level)
-    when = new_date if new_date else "permanent"
-    return f"advanced · {node_name} · {outcome} → L{new_level}, next {when}"
+    result = ramp_core.advance_review(topic, node_name, outcome, graph_dir=GRAPH_DIR)
+    logger.info("ADVANCE_REVIEW topic=%s node=%s outcome=%s result=%s",
+                topic, node_name, outcome, result)
+    return result
 
 
 @mcp.tool()
@@ -267,7 +207,7 @@ def list_topics() -> str:
     """
     List all knowledge graph topics with their current level and XP.
 
-    Scans ~/.claude/knowledge-graphs/*.md and extracts frontmatter.
+    Scans ~/.claude/ramp/graphs/*.md and extracts frontmatter.
     Returns a JSON array of objects: [{topic, level, xp, updated}].
     """
     if not GRAPH_DIR.exists():

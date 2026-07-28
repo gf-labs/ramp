@@ -4,6 +4,7 @@ node_count: 32
 version: 1
 source_url: https://code.claude.com/docs/en/sub-agents
 description: Building with Claude Code — subagents, agent teams, plugins, skills, hooks, headless mode, MCP, and output styles.
+goal: ramp them up on building with Claude Code — subagents and agent-team orchestration, authoring skills and plugins, the hooks system, headless and MCP integration, and the distribution and iterative-refinement patterns that compose them
 ---
 
 # Build Knowledge Graph Schema
@@ -18,65 +19,86 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 
 ### [ROOT] Agents and orchestration (always unlocked — 5 nodes)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Subagent basics: spawning and tool access | Has used a task where Claude spawned a subagent (via the Agent tool); can describe what tools subagents have access to and how they differ from the parent session | Historical / Exercise | subagent sessions > 3 → `[✓\|historical]`; > 0 → `[~\|historical]` | https://code.claude.com/docs/en/sub-agents |
-| Foreground vs. background subagents | Can explain the difference: foreground subagents block the parent and return results; background subagents run concurrently and the parent continues; knows when each is appropriate | Qualitative | subagent sessions > 10 → `[~\|historical]` | https://code.claude.com/docs/en/sub-agents |
-| Agent teams: orchestration patterns | Has set up or observed a task where multiple agents work in parallel on separate concerns; can describe the orchestrator/worker pattern | Historical / Exercise | subagent sessions > 20 → `[~\|historical]` | https://code.claude.com/docs/en/agent-teams |
-| Custom subagent definitions (.claude/agents/) | Created at least one custom subagent in `.claude/agents/` or `~/.claude/agents/`; can describe its system prompt, tool restrictions, and when to invoke it | Artifact | custom agent definitions > 0 → `[✓\|artifact]` | https://code.claude.com/docs/en/sub-agents |
-| Worktrees for parallel development | Ran two Claude sessions simultaneously on separate branches; knows `git worktree add` and how this enables isolation without context pollution | Historical / Exercise | git worktrees > 1 → `[✓\|historical]` | https://code.claude.com/docs/en/agent-teams |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Subagent basics: spawning and tool access | Has used a task where Claude spawned a subagent (via the Agent tool); can describe what tools subagents have access to and how they differ from the parent session | Historical / Exercise | subagent sessions > 3 → `[✓\|historical]`; > 0 → `[~\|historical]` | https://code.claude.com/docs/en/sub-agents | build-subagent-basics-spawning-and-tool-access |
+| Foreground vs. background subagents | Can explain the difference: foreground subagents block the parent and return results; background subagents run concurrently and the parent continues; knows when each is appropriate | Qualitative | subagent sessions > 10 → `[~\|historical]` | https://code.claude.com/docs/en/sub-agents | build-foreground-vs-background-subagents |
+| Agent teams: orchestration patterns | Has set up or observed a task where multiple agents work in parallel on separate concerns; can describe the orchestrator/worker pattern | Historical / Exercise | subagent sessions > 20 → `[~\|historical]` | https://code.claude.com/docs/en/agent-teams | build-agent-teams-orchestration-patterns |
+| Custom subagent definitions (.claude/agents/) | Created at least one custom subagent in `.claude/agents/` or `~/.claude/agents/`; can describe its system prompt, tool restrictions, and when to invoke it | Artifact | custom agent definitions > 0 → `[✓\|artifact]` | https://code.claude.com/docs/en/sub-agents | build-custom-subagent-definitions-claude-agents |
+| Worktrees for parallel development | Ran two Claude sessions simultaneously on separate branches; knows `git worktree add` and how this enables isolation without context pollution | Historical / Exercise | git worktrees > 1 → `[✓\|historical]` | https://code.claude.com/docs/en/agent-teams | build-worktrees-for-parallel-development |
 
 ### [A] Skills and plugins (10 nodes, unlocks when ROOT ≥ 2 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Skills (slash commands): creation and syntax | Created a custom slash command file in `.claude/commands/`; knows frontmatter fields (description, allowed-tools, argument-hint) | Artifact | `.claude/commands/` count ≥ 1 → `[✓\|artifact]` | https://code.claude.com/docs/en/skills |
-| Skill mechanics: $ARGUMENTS, !bash, @file | Has written a skill that uses at least two of: `$ARGUMENTS`, `!bash-command`, `@filename`; can describe what each injects into context | Artifact | skill files with bash injection > 0 → `[✓\|artifact]` | https://code.claude.com/docs/en/skills |
-| Skill and command composition | Has composed skills: a skill that calls another, passes `$ARGUMENTS` through, or invokes a subagent; or chains multiple data sources in one command | Artifact | command files with both `!` and `@` usage → `[✓\|artifact]` | https://code.claude.com/docs/en/skills |
-| Output styles: controlling response format | Has used output style configuration to change how Claude responds (concise, verbose, structured); knows `output-styles` frontmatter or prompt patterns | Exercise / Qualitative | None | https://code.claude.com/docs/en/output-styles |
-| Plugin discovery and installation | Has installed a plugin via the marketplace (`/plugin marketplace add` or `--plugin-dir`); knows plugin namespacing (`/plugin-name:command`) | Historical / Exercise | `enabledPlugins` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/discover-plugins |
-| Plugin manifest (plugin.json) | Has created or read a `plugin.json` manifest; understands name, version, commands, hooks, and the plugin directory structure | Artifact | `.claude-plugin/plugin.json` exists → `[✓\|artifact]` | https://code.claude.com/docs/en/plugins |
-| context: fork for skill isolation | Knows that adding `context: fork` to a skill's frontmatter runs the skill in an isolated forked context, preventing verbose output or intermediate state from polluting the main session; can describe a case where fork is the right choice (e.g., long research skills, output-heavy scripts) | Qualitative / Artifact | skill files with `context: fork` → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/skills |
-| argument-hint frontmatter for documenting expected arguments | Has used `argument-hint:` in a skill's frontmatter; knows it is a passive display hint shown in the slash-command autocomplete menu (e.g. `[issue-number]`) — it does NOT prompt for or collect input, it only signals which arguments the command expects | Artifact | skill files with `argument-hint:` → `[✓\|artifact]` | https://code.claude.com/docs/en/skills |
-| .claude/rules/ with YAML paths: glob patterns for conditional rule loading | Knows that files placed in `.claude/rules/` can include a `paths:` key with glob patterns so the rule is only injected into context when Claude is working in matching paths; understands the use case — database migration rules active only when editing `migrations/` | Qualitative / Artifact | `.claude/rules/` directory with YAML files → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/memory |
-| Skill command execution contexts (!bash vs Bash tool) | Can explain the shell environment difference: `!bash-command` in a skill runs in a fresh subshell that does NOT inherit `settings.json["env"]` vars; the Bash tool runs as a subprocess of Claude Code's process and DOES inherit them — silent failure when env vars are missing is the key gotcha | Qualitative | None (empirically-verified — no artifact trace) | *(empirically verified — undocumented behavior)* |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Skills (slash commands): creation and syntax | Created a custom slash command file in `.claude/commands/`; knows frontmatter fields (description, allowed-tools, argument-hint) | Artifact | `.claude/commands/` count ≥ 1 → `[✓\|artifact]` | https://code.claude.com/docs/en/skills | build-skills-slash-commands-creation-and-syntax |
+| Skill mechanics: $ARGUMENTS, !bash, @file | Has written a skill that uses at least two of: `$ARGUMENTS`, `!bash-command`, `@filename`; can describe what each injects into context | Artifact | skill files with bash injection > 0 → `[✓\|artifact]` | https://code.claude.com/docs/en/skills | build-skill-mechanics-arguments-bash-file |
+| Skill and command composition | Has composed skills: a skill that calls another, passes `$ARGUMENTS` through, or invokes a subagent; or chains multiple data sources in one command | Artifact | command files with both `!` and `@` usage → `[✓\|artifact]` | https://code.claude.com/docs/en/skills | build-skill-and-command-composition |
+| Output styles: controlling response format | Has used output style configuration to change how Claude responds (concise, verbose, structured); knows `output-styles` frontmatter or prompt patterns | Exercise / Qualitative | None | https://code.claude.com/docs/en/output-styles | build-output-styles-controlling-response-format |
+| Plugin discovery and installation | Has installed a plugin via the marketplace (`/plugin marketplace add` or `--plugin-dir`); knows plugin namespacing (`/plugin-name:command`) | Historical / Exercise | `enabledPlugins` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/discover-plugins | build-plugin-discovery-and-installation |
+| Plugin manifest (plugin.json) | Has created or read a `plugin.json` manifest; understands name, version, commands, hooks, and the plugin directory structure | Artifact | `.claude-plugin/plugin.json` exists → `[✓\|artifact]` | https://code.claude.com/docs/en/plugins | build-plugin-manifest-plugin-json |
+| context: fork for skill isolation | Knows that adding `context: fork` to a skill's frontmatter runs the skill in an isolated forked context, preventing verbose output or intermediate state from polluting the main session; can describe a case where fork is the right choice (e.g., long research skills, output-heavy scripts) | Qualitative / Artifact | skill files with `context: fork` → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/skills | build-context-fork-for-skill-isolation |
+| argument-hint frontmatter for documenting expected arguments | Has used `argument-hint:` in a skill's frontmatter; knows it is a passive display hint shown in the slash-command autocomplete menu (e.g. `[issue-number]`) — it does NOT prompt for or collect input, it only signals which arguments the command expects | Artifact | skill files with `argument-hint:` → `[✓\|artifact]` | https://code.claude.com/docs/en/skills | build-argument-hint-frontmatter-for-documenting-expected-arguments |
+| .claude/rules/ with YAML paths: glob patterns for conditional rule loading | Knows that files placed in `.claude/rules/` can include a `paths:` key with glob patterns so the rule is only injected into context when Claude is working in matching paths; understands the use case — database migration rules active only when editing `migrations/` | Qualitative / Artifact | `.claude/rules/` directory with YAML files → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/memory | build-claude-rules-with-yaml-paths-glob-patterns-for-conditional-rule-loading |
+| Skill command execution contexts (!bash vs Bash tool) | Can explain the shell environment difference: `!bash-command` in a skill runs in a fresh subshell that does NOT inherit `settings.json["env"]` vars; the Bash tool runs as a subprocess of Claude Code's process and DOES inherit them — silent failure when env vars are missing is the key gotcha | Qualitative | None (empirically-verified — no artifact trace) | *(empirically verified — undocumented behavior)* | build-skill-command-execution-contexts-bash-vs-bash-tool |
 
 ### [B] Hooks system (6 nodes, unlocks when Branch A ≥ 3 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| PreToolUse hooks (validation, blocking) | Has configured a PreToolUse hook; knows exit code protocol: 0 = allow, 2 = block with message to Claude; has observed a blocked tool call | Artifact | `hooks.PreToolUse` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/hooks |
-| PostToolUse hooks (linting, reactions) | Has a PostToolUse hook that fires after edits or commands; knows that on exit 0 its stdout goes to the debug log (not Claude's context) — to feed an observation back to Claude it must exit 2 with the message on stderr, or emit JSON with `hookSpecificOutput.additionalContext` | Artifact | `hooks.PostToolUse` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/hooks |
-| Stop and Notification hooks (session alerts) | Has a Stop or Notification hook; can explain when each fires (Stop = Claude done, Notification = idle alert); has received a notification from it | Artifact | `hooks.Stop` or `hooks.Notification` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/hooks |
-| Hook handler scripts (stdin, exit codes, response) | Has written a hook handler script that reads JSON from stdin, parses the tool event, processes it, and exits with the correct code; knows the full stdin schema (hook_event_name, tool_name, tool_input) | Artifact / Exercise | repo has a hook handler script with stdin JSON parsing → `[~\|artifact]` | https://code.claude.com/docs/en/hooks |
-| Scoped hooks (in skill or agent frontmatter) | Has defined a `hooks:` block inside a `.claude/commands/*.md` or `.claude/agents/*.md` file — not just in global settings; knows how scope affects which sessions the hook fires in | Artifact | `hooks:` key in any command or agent file → `[✓\|artifact]` | https://code.claude.com/docs/en/hooks-guide |
-| Hooks guide: design patterns and gotchas | Can describe at least two hooks design patterns (e.g., auto-linting, cost guardrails, notification on stop); knows the main gotchas (async execution; exit-0 stdout is logged, not injected — feedback to Claude needs exit-2 stderr or JSON `additionalContext`) | Qualitative | Any hook in settings → `[~\|historical]` | https://code.claude.com/docs/en/hooks-guide |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| PreToolUse hooks (validation, blocking) | Has configured a PreToolUse hook; knows exit code protocol: 0 = allow, 2 = block with message to Claude; has observed a blocked tool call | Artifact | `hooks.PreToolUse` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/hooks | build-pretooluse-hooks-validation-blocking |
+| PostToolUse hooks (linting, reactions) | Has a PostToolUse hook that fires after edits or commands; knows that on exit 0 its stdout goes to the debug log (not Claude's context) — to feed an observation back to Claude it must exit 2 with the message on stderr, or emit JSON with `hookSpecificOutput.additionalContext` | Artifact | `hooks.PostToolUse` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/hooks | build-posttooluse-hooks-linting-reactions |
+| Stop and Notification hooks (session alerts) | Has a Stop or Notification hook; can explain when each fires (Stop = Claude done, Notification = idle alert); has received a notification from it | Artifact | `hooks.Stop` or `hooks.Notification` in settings → `[✓\|artifact]` | https://code.claude.com/docs/en/hooks | build-stop-and-notification-hooks-session-alerts |
+| Hook handler scripts (stdin, exit codes, response) | Has written a hook handler script that reads JSON from stdin, parses the tool event, processes it, and exits with the correct code; knows the full stdin schema (hook_event_name, tool_name, tool_input) | Artifact / Exercise | repo has a hook handler script with stdin JSON parsing → `[~\|artifact]` | https://code.claude.com/docs/en/hooks | build-hook-handler-scripts-stdin-exit-codes-response |
+| Scoped hooks (in skill or agent frontmatter) | Has defined a `hooks:` block inside a `.claude/commands/*.md` or `.claude/agents/*.md` file — not just in global settings; knows how scope affects which sessions the hook fires in | Artifact | `hooks:` key in any command or agent file → `[✓\|artifact]` | https://code.claude.com/docs/en/hooks-guide | build-scoped-hooks-in-skill-or-agent-frontmatter |
+| Hooks guide: design patterns and gotchas | Can describe at least two hooks design patterns (e.g., auto-linting, cost guardrails, notification on stop); knows the main gotchas (async execution; exit-0 stdout is logged, not injected — feedback to Claude needs exit-2 stderr or JSON `additionalContext`) | Qualitative | Any hook in settings → `[~\|historical]` | https://code.claude.com/docs/en/hooks-guide | build-hooks-guide-design-patterns-and-gotchas |
 
 ### [C] Headless and MCP (7 nodes, unlocks when Branch B ≥ 3 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Headless mode (-p flag, non-interactive) | Has run `claude -p "prompt"` or `claude --print` from a script or terminal; knows it outputs to stdout and exits; can describe when headless beats interactive | Historical / Exercise | headless invocations > 0 → `[✓\|artifact]` | https://code.claude.com/docs/en/headless |
-| Piped input and CI integration | Has piped content into claude (`cat file | claude -p "..."`) or used it in a CI step; understands stdin/stdout contract | Exercise / Historical | CI workflow with claude command → `[✓\|artifact]`; headless invocations > 0 → `[~\|historical]` | https://code.claude.com/docs/en/headless |
-| --output-format json and --json-schema for structured headless output | Knows the `--output-format json` flag makes headless invocations return structured JSON; knows `--json-schema '<inline-json>'` constrains the output schema — it takes an inline JSON Schema string, NOT a file path (guaranteed valid against the schema); can describe the CI pipeline pattern: `claude -p "..." --output-format json \| jq '.field'` | Qualitative / Exercise | CI workflows with `--output-format` flag → `[✓\|artifact]` | https://code.claude.com/docs/en/headless |
-| Built-in tool selection for codebase tasks | Can explain the right tool for each codebase operation: Grep for content patterns (what's in files), Glob for path patterns (which files exist), Read for specific files (when path is known), Edit for targeted changes (smallest diff), Bash only when no dedicated tool applies; knows the incremental understanding pattern — Glob → Read → Grep sequence for unfamiliar codebases | Qualitative | None | https://docs.anthropic.com/en/docs/claude-code/built-in-tools |
-| MCP: configure and use servers | Has ≥1 MCP server configured in settings or `.mcp.json`; has made at least one query using an MCP tool; can describe what the server provides | Artifact + Exercise | MCP servers in settings → `[~\|artifact]` | https://code.claude.com/docs/en/mcp |
-| MCP project config (.mcp.json) | Has created or used a `.mcp.json` at repo root; understands it is project-scoped (committable, shared with team) vs. personal `settings.json` mcpServers | Artifact | `.mcp.json` exists at repo root → `[✓\|artifact]` | https://code.claude.com/docs/en/mcp |
-| Troubleshooting: diagnose and recover | Has used `/doctor` to check environment; can interpret its output; knows how to diagnose a stuck tool call, permission error, or context overflow | Exercise / Qualitative | None | https://code.claude.com/docs/en/troubleshooting |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Headless mode (-p flag, non-interactive) | Has run `claude -p "prompt"` or `claude --print` from a script or terminal; knows it outputs to stdout and exits; can describe when headless beats interactive | Historical / Exercise | headless invocations > 0 → `[✓\|artifact]` | https://code.claude.com/docs/en/headless | build-headless-mode-p-flag-non-interactive |
+| Piped input and CI integration | Has piped content into claude (`cat file \| claude -p "..."`) or used it in a CI step; understands stdin/stdout contract | Exercise / Historical | CI workflow with claude command → `[✓\|artifact]`; headless invocations > 0 → `[~\|historical]` | https://code.claude.com/docs/en/headless | build-piped-input-and-ci-integration |
+| --output-format json and --json-schema for structured headless output | Knows the `--output-format json` flag makes headless invocations return structured JSON; knows `--json-schema '<inline-json>'` constrains the output schema — it takes an inline JSON Schema string, NOT a file path (guaranteed valid against the schema); can describe the CI pipeline pattern: `claude -p "..." --output-format json \| jq '.field'` | Qualitative / Exercise | CI workflows with `--output-format` flag → `[✓\|artifact]` | https://code.claude.com/docs/en/headless | build-output-format-json-and-json-schema-for-structured-headless-output |
+| Built-in tool selection for codebase tasks | Can explain the right tool for each codebase operation: Grep for content patterns (what's in files), Glob for path patterns (which files exist), Read for specific files (when path is known), Edit for targeted changes (smallest diff), Bash only when no dedicated tool applies; knows the incremental understanding pattern — Glob → Read → Grep sequence for unfamiliar codebases | Qualitative | None | https://docs.anthropic.com/en/docs/claude-code/built-in-tools | build-built-in-tool-selection-for-codebase-tasks |
+| MCP: configure and use servers | Has ≥1 MCP server configured in settings or `.mcp.json`; has made at least one query using an MCP tool; can describe what the server provides | Artifact + Exercise | MCP servers in settings → `[~\|artifact]` | https://code.claude.com/docs/en/mcp | build-mcp-configure-and-use-servers |
+| MCP project config (.mcp.json) | Has created or used a `.mcp.json` at repo root; understands it is project-scoped (committable, shared with team) vs. personal `settings.json` mcpServers | Artifact | `.mcp.json` exists at repo root → `[✓\|artifact]` | https://code.claude.com/docs/en/mcp | build-mcp-project-config-mcp-json |
+| Troubleshooting: diagnose and recover | Has used `/doctor` to check environment; can interpret its output; knows how to diagnose a stuck tool call, permission error, or context overflow | Exercise / Qualitative | None | https://code.claude.com/docs/en/troubleshooting | build-troubleshooting-diagnose-and-recover |
 
 ### [D] Skills distribution and enterprise (2 nodes, unlocks when Branch C ≥ 2 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Skills distribution via plugins and managed_settings.json | Can explain how to distribute skills org-wide: bundle in a plugin (plugin.json + commands/), distribute via marketplace or --plugin-dir; knows that `managed_settings.json` allows enterprise admins to push settings (including enabledPlugins) to all users without individual configuration | Qualitative / Artifact | `managed_settings.json` in repo → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/plugins |
-| Skills as custom subagent delegation targets | Can describe wiring a SKILL.md as the target of a custom subagent: the agent's system prompt invokes the skill by name, and the skill's allowed-tools and context constraints apply to that subagent invocation; knows the use case — a specialist subagent that always runs a specific research skill | Qualitative / Artifact | custom agent definitions that reference skills → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/sub-agents |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Skills distribution via plugins and managed_settings.json | Can explain how to distribute skills org-wide: bundle in a plugin (plugin.json + commands/), distribute via marketplace or --plugin-dir; knows that `managed_settings.json` allows enterprise admins to push settings (including enabledPlugins) to all users without individual configuration | Qualitative / Artifact | `managed_settings.json` in repo → `[✓\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/plugins | build-skills-distribution-via-plugins-and-managed-settings-json |
+| Skills as custom subagent delegation targets | Can describe wiring a SKILL.md as the target of a custom subagent: the agent's system prompt invokes the skill by name, and the skill's allowed-tools and context constraints apply to that subagent invocation; knows the use case — a specialist subagent that always runs a specific research skill | Qualitative / Artifact | custom agent definitions that reference skills → `[~\|artifact]` | https://docs.anthropic.com/en/docs/claude-code/sub-agents | build-skills-as-custom-subagent-delegation-targets |
 
 ### [E] Iterative refinement workflows (2 nodes, unlocks when Branch D ≥ 1 `[✓]`)
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| Iterative refinement: sequential subagent pattern for test-driven iteration | Can describe the iterative refinement pattern: subagent 1 writes code → subagent 2 runs tests → on failure, coordinator re-delegates to subagent 1 with test output as feedback → repeat until green; knows why sequential ordering is required here (each step depends on the previous result, not parallelizable); contrasts with parallel subagents for independent concerns | Qualitative | None | https://docs.anthropic.com/en/docs/claude-code/sub-agents |
-| Interview pattern: structured questions for ambiguous analysis tasks | Can describe the interview pattern: instead of an open-ended "analyze X" task, the coordinator prompts a subagent with structured interview questions ("What are the top 3 risks? What dependencies are involved? What would you need to verify?"); knows that constraint improves output quality in ambiguous analysis tasks by preventing the model from defaulting to the most obvious surface answer | Qualitative | None | https://docs.anthropic.com/en/docs/build-with-claude/agents |
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+| Iterative refinement: sequential subagent pattern for test-driven iteration | Can describe the iterative refinement pattern: subagent 1 writes code → subagent 2 runs tests → on failure, coordinator re-delegates to subagent 1 with test output as feedback → repeat until green; knows why sequential ordering is required here (each step depends on the previous result, not parallelizable); contrasts with parallel subagents for independent concerns | Qualitative | None | https://docs.anthropic.com/en/docs/claude-code/sub-agents | build-iterative-refinement-sequential-subagent-pattern-for-test-driven-iteration |
+| Interview pattern: structured questions for ambiguous analysis tasks | Can describe the interview pattern: instead of an open-ended "analyze X" task, the coordinator prompts a subagent with structured interview questions ("What are the top 3 risks? What dependencies are involved? What would you need to verify?"); knows that constraint improves output quality in ambiguous analysis tasks by preventing the model from defaulting to the most obvious surface answer | Qualitative | None | https://docs.anthropic.com/en/docs/build-with-claude/agents | build-interview-pattern-structured-questions-for-ambiguous-analysis-tasks |
+
+---
+
+## Probes
+
+| name | primitive | args |
+|------|-----------|------|
+| agent_sessions     | glob-count         | ~/.claude/projects/**/agent-*.jsonl |
+| custom_agents      | glob-count         | .claude/agents/*.md |
+| custom_agents_home | glob-count         | ~/.claude/agents/*.md |
+| worktrees          | git-worktree-count | — |
+| slash_commands     | glob-count         | .claude/commands/*.md |
+| skill_bash_injection | grep-count       | "^\s*!" .claude/commands .claude/agents |
+| hooks_pretooluse   | json-has-key       | .claude/settings.json hooks.PreToolUse |
+| hooks_posttooluse  | json-has-key       | .claude/settings.json hooks.PostToolUse |
+| hooks_stop         | json-has-key       | .claude/settings.json hooks.Stop |
+| hooks_notification | json-has-key       | .claude/settings.json hooks.Notification |
+| hooks_global       | json-has-key       | ~/.claude/settings.json hooks |
+| mcp_project        | json-has-key       | .mcp.json mcpServers |
+| mcp_user           | json-has-key       | ~/.claude.json mcpServers |
+| hist_cc_commits    | git-log-grep       | "worktree\|mcp\|hook\|claude -p\|subagent" |
 
 ---
 
@@ -84,20 +106,20 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 
 | Collected evidence | Node → status |
 |--------------------|---------------|
-| subagent sessions > 3 | ROOT: "Subagent basics" → `[✓\|historical]` |
-| subagent sessions > 0 (≤3) | ROOT: "Subagent basics" → `[~\|historical]` |
-| subagent sessions > 10 | ROOT: "Foreground vs. background subagents" → `[~\|historical]` |
-| subagent sessions > 20 | ROOT: "Agent teams: orchestration patterns" → `[~\|historical]` |
-| custom agent definitions > 0 | ROOT: "Custom subagent definitions" → `[✓\|artifact]` |
-| git worktrees > 1 | ROOT: "Worktrees for parallel development" → `[✓\|historical]` |
-| `.claude/commands/` count ≥ 1 | A: "Skills: creation and syntax" → `[✓\|artifact]` |
-| skill files with bash injection > 0 | A: "Skill mechanics: $ARGUMENTS, !bash, @file" → `[✓\|artifact]` |
+| agent_sessions > 3 | ROOT: "Subagent basics" → `[✓\|historical]` |
+| agent_sessions > 0 (≤3) | ROOT: "Subagent basics" → `[~\|historical]` |
+| agent_sessions > 10 | ROOT: "Foreground vs. background subagents" → `[~\|historical]` |
+| agent_sessions > 20 | ROOT: "Agent teams: orchestration patterns" → `[~\|historical]` |
+| custom_agents > 0 OR custom_agents_home > 0 | ROOT: "Custom subagent definitions" → `[✓\|artifact]` |
+| worktrees > 1 | ROOT: "Worktrees for parallel development" → `[✓\|historical]` |
+| slash_commands ≥ 1 | A: "Skills (slash commands): creation and syntax" → `[✓\|artifact]` |
+| skill_bash_injection > 0 | A: "Skill mechanics: $ARGUMENTS, !bash, @file" → `[✓\|artifact]` |
 | command files with both `!` and `@` usage | A: "Skill and command composition" → `[✓\|artifact]` |
 | `enabledPlugins` in settings | A: "Plugin discovery and installation" → `[✓\|artifact]` |
 | `.claude-plugin/plugin.json` exists | A: "Plugin manifest (plugin.json)" → `[✓\|artifact]` |
-| `hooks.PreToolUse` in settings | B: "PreToolUse hooks" → `[✓\|artifact]` |
-| `hooks.PostToolUse` in settings | B: "PostToolUse hooks" → `[✓\|artifact]` |
-| `hooks.Stop` or `hooks.Notification` in settings | B: "Stop and Notification hooks" → `[✓\|artifact]` |
+| `hooks_pretooluse` = true | B: "PreToolUse hooks" → `[✓\|artifact]` |
+| `hooks_posttooluse` = true | B: "PostToolUse hooks" → `[✓\|artifact]` |
+| `hooks_stop` = true OR `hooks_notification` = true | B: "Stop and Notification hooks" → `[✓\|artifact]` |
 | hook handler script with stdin JSON parsing in repo | B: "Hook handler scripts" → `[~\|artifact]` |
 | `hooks:` key in any command or agent file | B: "Scoped hooks" → `[✓\|artifact]` |
 | Any hook configured in settings | B: "Hooks guide: design patterns" → `[~\|historical]` |
@@ -108,7 +130,7 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | `.mcp.json` exists at repo root | C: "MCP project config (.mcp.json)" → `[✓\|artifact]` |
 | skill files with `context: fork` | A: "context: fork for skill isolation" → `[✓\|artifact]` |
 | skill files with `argument-hint:` | A: "argument-hint frontmatter" → `[✓\|artifact]` |
-| `.claude/rules/` directory with YAML files | A: ".claude/rules/ with paths: glob patterns" → `[~\|artifact]` |
+| `.claude/rules/` directory with YAML files | A: ".claude/rules/ with YAML paths: glob patterns" → `[~\|artifact]` |
 | `managed_settings.json` in repo | D: "Skills distribution via plugins and managed_settings.json" → `[✓\|artifact]` |
 
 ---
@@ -118,14 +140,37 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 | Branch | Gap | Ask this |
 |--------|-----|----------|
 | [ROOT] | No subagent evidence | "Have you used a task where Claude spawned multiple subagents in parallel? Walk me through what the task was and how you could tell subagents were involved." |
+| [ROOT] | Foreground vs. background | "What's the difference between a foreground and a background subagent? When would you reach for each?" |
+| [ROOT] | Agent teams | "Have you run multiple agents in parallel on separate concerns? Describe the orchestrator/worker split." |
+| [ROOT] | Custom subagents | "Have you defined a custom subagent in `.claude/agents/`? What's its system prompt and tool restrictions, and when do you invoke it?" |
 | [ROOT] | No worktree evidence | "Have you ever run two Claude sessions simultaneously on separate git branches? If so, what were you doing in each?" |
 | [A] | No skill evidence | "Have you written any custom slash commands? Walk me through one — what does it do, what syntax does it use, and what does invoking it feel like vs. typing the same prompt?" |
+| [A] | Skill mechanics | "Have you used `$ARGUMENTS`, `!bash`, or `@file` in a skill? What does each one inject into the prompt?" |
+| [A] | Skill composition | "Have you composed skills — one skill calling another, passing `$ARGUMENTS` through, or invoking a subagent? What did you chain?" |
+| [A] | Output styles | "Have you changed how Claude formats its responses with an output style — concise, verbose, structured? How did you set it?" |
 | [A] | No plugin evidence | "Have you installed any plugins? How did you discover them and what did the plugin add to your workflow?" |
-| [B] | No hook evidence | "Have you configured any hooks — automation that fires before or after Claude uses a tool? Walk me through what the hook does and when it fires." |
-| [B] | No handler evidence | "Have you written the actual hook handler script — the Python or shell code that reads stdin JSON and responds? Walk me through how your handler works." |
+| [A] | Plugin manifest | "Have you written or read a `plugin.json`? What does it declare — name, version, commands, hooks — and how is the plugin directory laid out?" |
+| [A] | context: fork | "What does `context: fork` do in a skill's frontmatter, and when is running a skill in an isolated context the right call?" |
+| [A] | argument-hint | "What does `argument-hint:` do in a skill's frontmatter? Does it collect input, or just display something?" |
+| [A] | .claude/rules/ paths | "How do `paths:` globs in a `.claude/rules/` file work? When does a rule get injected into context?" |
 | [A] | Execution context | "You have a skill command and a PostToolUse hook, both of which need an env var you've set in `settings.json['env']`. Will both reliably receive it? What's the difference between how `!bash` and the Bash tool inherit environment?" |
+| [B] | PreToolUse hooks | "Have you configured a PreToolUse hook to validate or block a tool call? What exit code blocks it, and what did you gate?" |
+| [B] | PostToolUse hooks | "Have you configured a hook that fires after Claude uses a tool — say auto-linting after edits? Walk me through what it does and how its output reaches Claude." |
+| [B] | Stop / Notification | "Have you set up a Stop or Notification hook? When does each fire, and what did you get notified about?" |
+| [B] | No handler evidence | "Have you written the actual hook handler script — the Python or shell code that reads stdin JSON and responds? Walk me through how your handler works." |
+| [B] | Scoped hooks | "Have you defined a `hooks:` block inside a command or agent file rather than global settings? How does that scope which sessions it fires in?" |
+| [B] | Hooks guide | "Name two hook design patterns you'd use, and the main gotcha about where a hook's stdout goes on exit 0." |
 | [C] | No headless evidence | "Have you run `claude -p` or `claude --print` outside of an interactive session? What was the use case?" |
+| [C] | Piped input / CI | "Have you piped content into `claude -p` or used it in a CI step? What's the stdin/stdout contract?" |
+| [C] | Structured output | "Have you used `--output-format json` or `--json-schema` for a headless run? What pipeline pattern does that enable?" |
+| [C] | Tool selection | "For an unfamiliar codebase, which built-in tool do you reach for — Grep, Glob, Read, Edit, Bash — and in what order? Why not just Bash for everything?" |
 | [C] | No MCP evidence | "Do you have any MCP servers configured? What do they expose to Claude and how do you invoke them?" |
+| [C] | MCP project config | "Have you used a `.mcp.json` at repo root? How's that different from personal `settings.json` mcpServers?" |
+| [C] | Troubleshooting | "Have you used `/doctor`? How do you diagnose a stuck tool call, a permission error, or context overflow?" |
+| [D] | Skills distribution | "How would you distribute skills org-wide? What role does `managed_settings.json` play for enterprise admins?" |
+| [D] | Delegation targets | "How do you wire a SKILL.md as the target of a custom subagent? What constraints carry over to that invocation?" |
+| [E] | Iterative refinement | "Describe the sequential subagent pattern for test-driven iteration — who writes, who tests, and why it can't be parallelized." |
+| [E] | Interview pattern | "What's the interview pattern for an ambiguous analysis task, and why do structured questions beat an open-ended 'analyze X'?" |
 
 ### Qualitative rubric
 
@@ -137,19 +182,38 @@ This file defines the curriculum for the `build` topic. Covers the "Build with C
 
 | Answer contains | Node → status |
 |-----------------|---------------|
-| Specific description of parallel subagents with task detail | ROOT: "Subagent basics" → `[✓\|reported]`; ROOT: "Agent teams" → `[~\|reported]` |
+| Specific description of parallel subagents with task detail | ROOT: "Subagent basics" → `[✓\|reported]` |
 | Specific description of foreground vs. background behavior | ROOT: "Foreground vs. background" → `[✓\|reported]` |
-| Description of worktree usage with two branches | ROOT: "Worktrees" → `[✓\|reported]` (if specific) or `[~\|reported]` (if vague) |
-| Description of a slash command with syntax detail | A: "Skills: creation and syntax" → `[✓\|reported]` |
+| Describes an orchestrator/worker parallel pattern across agents | ROOT: "Agent teams" → `[✓\|reported]` |
+| Describes a custom `.claude/agents/` definition (system prompt, tool limits, when to invoke) | ROOT: "Custom subagent definitions" → `[✓\|reported]` |
+| Description of worktree usage with two branches | ROOT: "Worktrees" → `[✓\|reported]` |
+| Description of a slash command with syntax detail | A: "Skills (slash commands): creation and syntax" → `[✓\|reported]` |
 | Description of !bash, @file, or $ARGUMENTS in a skill | A: "Skill mechanics" → `[✓\|reported]` |
+| Describes composing skills (one calling another, passing $ARGUMENTS, invoking a subagent) | A: "Skill and command composition" → `[✓\|reported]` |
+| Describes changing response format via an output style | A: "Output styles: controlling response format" → `[✓\|reported]` |
 | Description of plugin install or usage | A: "Plugin discovery" → `[✓\|reported]` |
-| Description of hook firing with specific tool or pattern | B: "PostToolUse hooks" or "PreToolUse hooks" → `[✓\|reported]` |
+| Describes a plugin.json manifest (name/version/commands/hooks, directory layout) | A: "Plugin manifest (plugin.json)" → `[✓\|reported]` |
+| Explains `context: fork` isolation and a case where it's the right choice | A: "context: fork for skill isolation" → `[✓\|reported]` |
+| Explains argument-hint is a passive display hint that does not collect input | A: "argument-hint frontmatter" → `[✓\|reported]` |
+| Explains `paths:` globs gate when a `.claude/rules/` rule loads | A: ".claude/rules/ with YAML paths" → `[✓\|reported]` |
+| Correct explanation of !bash vs Bash tool env inheritance with the gotcha (vague → `[~]`) | A: "Skill command execution contexts" → `[✓\|reported]` |
+| Describes a PreToolUse hook gating/blocking a call with the exit-code protocol | B: "PreToolUse hooks" → `[✓\|reported]` |
+| Description of a post-edit hook firing with specific tool or pattern | B: "PostToolUse hooks" → `[✓\|reported]` |
+| Describes a Stop or Notification hook and when each fires | B: "Stop and Notification hooks" → `[✓\|reported]` |
 | Description of hook handler with stdin JSON parsing | B: "Hook handler scripts" → `[✓\|reported]` |
+| Describes a `hooks:` block scoped in a command or agent file | B: "Scoped hooks" → `[✓\|reported]` |
+| Names ≥2 hook design patterns and the exit-0-stdout-is-logged gotcha | B: "Hooks guide: design patterns" → `[✓\|reported]` |
 | Description of `claude -p` use case | C: "Headless mode" → `[✓\|reported]` |
+| Describes piping into claude or a CI step with the stdin/stdout contract | C: "Piped input and CI integration" → `[✓\|reported]` |
+| Describes `--output-format json`/`--json-schema` and the jq pipeline pattern | C: "--output-format json and --json-schema" → `[✓\|reported]` |
+| Names the right built-in tool per operation (Grep/Glob/Read/Edit/Bash) with the Glob→Read→Grep pattern | C: "Built-in tool selection for codebase tasks" → `[✓\|reported]` |
 | Description of MCP server and its tools | C: "MCP: configure and use servers" → `[✓\|reported]` |
 | Description of .mcp.json at project root | C: "MCP project config" → `[✓\|reported]` |
-| Correct explanation of !bash vs Bash tool env inheritance with the gotcha | A: "Skill command execution contexts" → `[✓\|reported]` |
-| Affirmative but without the env-var gotcha detail | A: "Skill command execution contexts" → `[~\|reported]` |
+| Describes using `/doctor` and diagnosing a stuck call, permission error, or context overflow | C: "Troubleshooting: diagnose and recover" → `[✓\|reported]` |
+| Explains org-wide skill distribution via plugins + managed_settings.json | D: "Skills distribution via plugins and managed_settings.json" → `[✓\|reported]` |
+| Describes wiring a SKILL.md as a custom subagent delegation target | D: "Skills as custom subagent delegation targets" → `[✓\|reported]` |
+| Describes the sequential subagent test-driven iteration loop and why it's not parallelizable | E: "Iterative refinement: sequential subagent pattern for test-driven iteration" → `[✓\|reported]` |
+| Describes the interview pattern (structured questions) and why it beats open-ended analysis | E: "Interview pattern: structured questions for ambiguous analysis tasks" → `[✓\|reported]` |
 
 ---
 
@@ -179,14 +243,14 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
 ## Tree render template
 
 ```
-[ROOT] Agents and Orchestration
+Agents and Orchestration
     [?] Subagent basics: spawning and tool access
     [?] Foreground vs. background subagents
     [?] Agent teams: orchestration patterns
     [?] Custom subagent definitions (.claude/agents/)
     [?] Worktrees for parallel development
 
-[A] Skills and Plugins   [if locked: "(unlock: complete 2 Agents & Orchestration skills)"]
+Skills and Plugins   [if locked: "(unlock: complete 2 Agents & Orchestration skills)"]
     [?] Skills (slash commands): creation and syntax
     [?] Skill mechanics: $ARGUMENTS, !bash, @file
     [?] Skill and command composition
@@ -198,7 +262,7 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
     [?] .claude/rules/ with YAML paths: glob patterns for conditional rule loading
     [?] Skill command execution contexts (!bash vs Bash tool)
 
-[B] Hooks System   [if locked: "(unlock: complete 3 Skills & Plugins)"]
+Hooks System   [if locked: "(unlock: complete 3 Skills & Plugins)"]
     [?] PreToolUse hooks (validation, blocking)
     [?] PostToolUse hooks (linting, reactions)
     [?] Stop and Notification hooks (session alerts)
@@ -206,7 +270,7 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
     [?] Scoped hooks (in skill or agent frontmatter)
     [?] Hooks guide: design patterns and gotchas
 
-[C] Headless and MCP   [if locked: "(unlock: complete 3 Hooks System skills)"]
+Headless and MCP   [if locked: "(unlock: complete 3 Hooks System skills)"]
     [?] Headless mode (-p flag, non-interactive)
     [?] Piped input and CI integration
     [?] --output-format json and --json-schema for structured headless output
@@ -215,11 +279,11 @@ Both `[✓]` and `[~]` count toward unlock thresholds.
     [?] MCP project config (.mcp.json)
     [?] Troubleshooting: diagnose and recover
 
-[D] Skills Distribution and Enterprise   [if locked: "(unlock: complete 2 Headless & MCP skills)"]
+Skills Distribution and Enterprise   [if locked: "(unlock: complete 2 Headless & MCP skills)"]
     [?] Skills distribution via plugins and managed_settings.json
     [?] Skills as custom subagent delegation targets
 
-[E] Iterative Refinement Workflows   [if locked: "(unlock: complete 1 Distribution skill)"]
+Iterative Refinement Workflows   [if locked: "(unlock: complete 1 Distribution skill)"]
     [?] Iterative refinement: sequential subagent pattern for test-driven iteration
     [?] Interview pattern: structured questions for ambiguous analysis tasks
 ```
