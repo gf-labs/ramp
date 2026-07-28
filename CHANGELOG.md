@@ -5,11 +5,14 @@ All notable changes to `ramp` are documented here. This project follows
 
 ## [Unreleased]
 
-**Honest contracts, discoverability tail, and the legible workspace.** Accumulating
-changes for the next release (version intentionally not yet bumped): fixes that make
+## [1.3.0] — 2026-07-28
+
+**Honest contracts, discoverability tail, and the legible workspace.** Fixes that make
 existing promises true (the Python-version floor; the review/XP claim), the
 single-sourced knowledge-graph read path, and the workspace slice — learning state
-moves out of chat scrollback into two inspectable homes.
+moves out of chat scrollback into two inspectable homes. Also the first tagged
+release: `main` previously carried a manifest divorced from history, so `1.3.0`
+starts the tag lineage clean rather than retro-tagging old commits.
 
 ### Added
 - `~/.claude/ramp/` global home (`graphs/` + `schemas/`), with automatic byte-for-byte
