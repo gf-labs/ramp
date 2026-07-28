@@ -114,6 +114,13 @@ moves out of chat scrollback into two inspectable homes.
   CLI), commands treat deferred MCP tools as loadable rather than absent, check-back
   verifies factual corrections against the node's reference before teaching them,
   and the tier label derives strictly from the active topic's tree.
+- CI gained a `ruff check .` lint job ahead of the pytest matrix, configured by a new
+  root `pyproject.toml` (`select = E,F,W,I,UP,B`; `target-version = "py38"` so
+  pyupgrade never proposes syntax the 3.8 floor leg would reject — the file is tooling
+  config only, the kernel stays a stdlib-only single file with no packaging metadata).
+  The repo is ruff-clean: import blocks sorted, six compound statements split, an
+  in-loop closure in the schema linter hoisted to module scope as `_row_cell` (behavior
+  unchanged — it never escaped its iteration), and unused imports dropped.
 
 ### Fixed
 - Ten stale node references across six shipped schemas — title-drift danglers in
@@ -155,6 +162,11 @@ moves out of chat scrollback into two inspectable homes.
   keep the codes (the kernel parses them).
 - `/ramp:help`'s command map omitted `/ramp:calibrate` and `/ramp:check`, the two
   workspace-slice commands — now listed under **Start**.
+- Doc drift: the README topics badge read `topics-5` while eight topics ship, and the
+  topic table omitted `git` (27), `bash` (29), and `python` (31) entirely. CLAUDE.md's
+  structure list carried stale `after v0.16.0` / `after v0.17.0` node-count qualifiers
+  inherited from the pre-1.0 private lineage. The counts themselves were verified
+  correct against `ramp_core.py catalog`; only the annotations were wrong.
 
 ## [1.2.0] — 2026-06-25
 
