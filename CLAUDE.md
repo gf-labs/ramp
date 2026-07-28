@@ -39,18 +39,18 @@ commands/wrap.md             # End-of-session knowledge harvest — node upgrade
 .claude-plugin/plugin.json   # Plugin manifest (name, version, description)
 .claude-plugin/marketplace.json # Marketplace catalog (source, category, install metadata)
 hooks/hooks.json             # Plugin hook config (PostToolUse + SessionStart)
-.github/workflows/test.yml   # CI — pytest matrix (3.8 floor + current) on develop/main + PRs
+.github/workflows/test.yml   # CI — ruff lint + pytest matrix (3.8 floor + current) on develop/main + PRs
 .github/workflows/release-gate.yml # CI — manifest ↔ CHANGELOG ↔ tag consistency for → main
 .github/dependabot.yml       # Weekly SHA-pin bumps for GitHub Actions
 .claude/settings.json        # Project hook config (file-size-warn + skill-observer)
 topics/claude-code.md        # Claude Code meta-topic (sources 5 sub-topics, 81 nodes total)
 topics/getting-started.md    # Getting started sub-topic (12 nodes)
-topics/build.md              # Build sub-topic (32 nodes after v0.17.0)
+topics/build.md              # Build sub-topic (32 nodes)
 topics/configuration.md      # Configuration sub-topic (13 nodes)
 topics/deployment.md         # Deployment sub-topic (11 nodes)
 topics/administration.md     # Administration sub-topic (13 nodes)
 topics/best-practices.md     # Best practices topic schema (15 nodes)
-topics/mcp-development.md    # MCP development topic schema (29 nodes after v0.16.0)
+topics/mcp-development.md    # MCP development topic schema (29 nodes)
 topics/anthropic-api.md      # Anthropic API topic schema (18 nodes)
 topics/claude-code-internals.md # Empirically-verified Claude Code internals (5 nodes — undocumented behaviors)
 topics/git.md                # Git version control topic schema (27 nodes — standalone, Pro Git-sourced; first breadth topic)
@@ -65,6 +65,7 @@ ramp_core.py                 # stdlib-only kernel — write side (XP · SR dates
 tests/                       # stdlib pytest suite (ramp_core, xp, detection, schema-lint, normalization, symlinks, setup-mcp, file-size-warn) + server tests under .venv — importlib-loaded
 requirements.txt             # MCP server deps — only to run mcp/server.py, not to test
 requirements-dev.txt         # pytest (test suite)
+pyproject.toml               # Tooling config — ruff lint rules (target py38; no packaging, kernel is stdlib-only)
 docs/tree-format.md          # Annotated v3 knowledge graph format example
 docs/docs-map.md             # Maps all doc pages to topics and nodes
 docs/topic-authoring.md      # Normative topic-authoring contract — skill definition, schema anatomy, probe/reference grammar, validation gate (lint-checked)
@@ -109,7 +110,7 @@ Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a struc
 
 **Tree structure (81 nodes across 5 sub-topics — claude-code topic):**
 - **[Getting Started]** Core Foundations, Working Effectively, Best Practices — what Claude Code is, tool loop, memory, workflow patterns (12 nodes)
-- **[Build]** Agents and Orchestration, Skills and Plugins, Hooks System, Headless and MCP — subagents, slash commands, hooks, headless mode (32 nodes after v0.17.0 additions)
+- **[Build]** Agents and Orchestration, Skills and Plugins, Hooks System, Headless and MCP — subagents, slash commands, hooks, headless mode (32 nodes)
 - **[Configuration]** Settings Fundamentals, Permissions and Security, Interface Customization — settings hierarchy, allow/deny rules, keybindings (13 nodes)
 - **[Deployment]** Cloud Provider Integration, Network and Infrastructure, Deployment Patterns — Bedrock, Vertex, Foundry, LLM gateways, CI/CD (11 nodes)
 - **[Administration]** Setup and Authentication, Data and Compliance, Cost and Usage Management — org setup, ZDR, analytics, chargeback (13 nodes)

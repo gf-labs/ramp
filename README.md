@@ -8,7 +8,7 @@
   <a href="https://github.com/gf-labs/ramp/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/gf-labs/ramp/test.yml?branch=develop&style=flat-square&label=tests" alt="tests"></a>
   <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Code plugin">
   <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.8+">
-  <img src="https://img.shields.io/badge/topics-5-6366f1?style=flat-square" alt="topics">
+  <img src="https://img.shields.io/badge/topics-8-6366f1?style=flat-square" alt="topics">
 </p>
 
 <p align="center">Built by <a href="https://github.com/berniegreen">Bernie Green</a> · <a href="https://github.com/gf-labs">Greenfield Labs</a></p>
@@ -100,6 +100,9 @@ Eleven commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, re
 | `mcp-development`           | `/ramp:up mcp-development`   | 29  | Building MCP servers: tools, resources, prompts, distribution |
 | `anthropic-api`             | `/ramp:up anthropic-api`    | 18  | Claude API: completions, tool use, agentic loops, production patterns |
 | `claude-code-internals`     | `/ramp:up claude-code-internals` | 5 | Empirically-verified, undocumented Claude Code behaviors |
+| `git`                       | `/ramp:up git`              | 27  | Version control: snapshot model, branching, history rewrite & recovery, internals |
+| `bash`                      | `/ramp:up bash`             | 29  | Shell scripting: language model, control flow, robustness, redirection, expansions |
+| `python`                    | `/ramp:up python`           | 31  | The language: object model, control flow, functions, containers, classes, robustness |
 | *(your topic)*              | `/ramp:up [topic]`          | any | Install a schema → it just works |
 
 The `claude-code` meta-topic spans five sub-topics — **Getting Started · Build · Configuration · Deployment · Administration** — gated so you progress through them in order.
