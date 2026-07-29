@@ -5,6 +5,12 @@ All notable changes to `ramp` are documented here. This project follows
 
 ## [Unreleased]
 
+### Fixed
+- README truth sweep: roadmap no longer lists shipped topics (`bash`, `git`) as unbuilt;
+  the repo-structure tree now includes the kernel (`ramp_core.py`), `tests/`, and CI;
+  scan-count claims replaced with number-free phrasing; version badge is now dynamic
+  (`github/v/release`) and the tests badge tracks `main`.
+
 ## [1.3.1] — 2026-07-28
 
 **Delivery plumbing only — no change to the plugin's behaviour.** A patch rather than a

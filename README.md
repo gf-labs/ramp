@@ -3,9 +3,9 @@
 <p align="center"><em>Adaptive, repo-grounded learning mode for Claude Code — it measures what you can <strong>do</strong>, not what you've clicked through.</em></p>
 
 <p align="center">
-  <a href="https://github.com/gf-labs/ramp"><img src="https://img.shields.io/badge/version-1.3.1-3b82f6?style=flat-square" alt="version"></a>
+  <a href="https://github.com/gf-labs/ramp/releases/latest"><img src="https://img.shields.io/github/v/release/gf-labs/ramp?style=flat-square&color=3b82f6&label=version" alt="version"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" alt="license"></a>
-  <a href="https://github.com/gf-labs/ramp/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/gf-labs/ramp/test.yml?branch=develop&style=flat-square&label=tests" alt="tests"></a>
+  <a href="https://github.com/gf-labs/ramp/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/gf-labs/ramp/test.yml?branch=main&style=flat-square&label=tests" alt="tests"></a>
   <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Code plugin">
   <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.8+">
   <img src="https://img.shields.io/badge/topics-8-6366f1?style=flat-square" alt="topics">
@@ -73,7 +73,7 @@ Eleven commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, re
 
 ## Design principles
 
-**Detect before interrogating.** Over 40 shell commands run at invocation — CLAUDE.md content, hook configs, MCP servers, worktree count, session history, headless invocations. By the time you see a question, `/ramp:up` has already determined your level and identified your gaps. You answer at most three questions, and they're specific.
+**Detect before interrogating.** A battery of environment scans runs at invocation — CLAUDE.md content, hook configs, MCP servers, worktree count, session history, headless invocations — plus every probe the topic schema declares. By the time you see a question, `/ramp:up` has already determined your level and identified your gaps. You answer at most three questions, and they're specific.
 
 **Demonstrated over claimed.** The graph distinguishes `[✓]` (demonstrated) from `[~]` (self-reported). A hook in `settings.json` is `[✓|artifact]`. Saying "yes, I've used hooks" is `[~|reported]`. A `[✓]` requires at least one verifiable detail — a flag, an observed behavior, a tradeoff navigated. The difference between "I've heard of hooks" and "I have a PostToolUse hook that fires my linter" is the entire gap between knowledge and practice.
 
@@ -340,15 +340,17 @@ One schema per topic. `topics/claude-code.md` → `schemas/claude-code.md` → u
 
 ```
 ramp/
-├── .claude-plugin/
-│   ├── plugin.json        # Plugin manifest (name, version, description)
-│   └── marketplace.json   # Single-plugin marketplace catalog
-├── commands/              # Command source — up, list, help, tree, review, cheatsheet, pin, wrap, ingest
+├── .claude-plugin/        # plugin.json (manifest) + marketplace.json (single-plugin catalog)
+├── .github/workflows/     # CI/CD — test.yml (ruff + pytest, 3.8/3.13), release-gate.yml, release.yml
+├── commands/              # Command source — one .md per command (see the table above)
 ├── topics/                # Schema source → symlinked to ~/.claude/ramp/schemas/
 ├── hooks/hooks.json       # Plugin hooks (PostToolUse + SessionStart)
 ├── scripts/               # skill-observer.py, file-size-warn.py, setup-mcp.py
 ├── mcp/                   # knowledge-graph MCP server (server.py, start.sh)
-└── docs/                  # tree-format.md, docs-map.md
+├── ramp_core.py           # Deterministic stdlib kernel — XP, spaced repetition, validation, detection, lint
+├── tests/                 # stdlib pytest suite for the kernel and hooks
+├── pyproject.toml         # ruff config (target py38)
+└── docs/                  # tree-format.md, docs-map.md, topic-authoring.md
 ```
 
 ### Working on ramp itself
@@ -367,7 +369,7 @@ claude --plugin-dir /path/to/ramp
 
 `ramp` is a working demonstration of Claude Code's extension model — a stateful, adaptive, curriculum-aware learning system built **entirely from Markdown and a little Python**, with no application runtime. The mechanisms at work:
 
-- **`!bash` injection** — the 40+ scanning commands run *before* Claude reads a single token, injecting structured context. Pre-computation, not agentic tool use: fast, deterministic, cheap.
+- **`!bash` injection** — the environment scans run *before* Claude reads a single token, injecting structured context. Pre-computation, not agentic tool use: fast, deterministic, cheap.
 - **Topic-schema loading** — a bash command reads the requested topic from `$ARGUMENTS` and `cat`s the matching schema as static text. The engine (`up.md`) holds zero topic-specific content.
 - **`$ARGUMENTS`** — the topic keyword plus free-form context the user types after `/ramp:up`.
 - **`allowed-tools`** — scoped to `Read, Glob, Grep, Bash, Write, Edit` so Claude can navigate the repo, run exercises, write `ONBOARDING.md`, and update the graph — without unlimited access.
@@ -391,7 +393,7 @@ Topics planned but not yet built:
 | `claude-cli`      | CLI flags (`-p`, `--model`, `--output-format`, `--resume`), headless scripting, CI |
 | `claude-settings` | settings.json, permissions, hook syntax, MCP config, CLAUDE.md hierarchy |
 | `claude-features` | In-app modes: plan mode, `/compact`, memory, subagents, skills |
-| `bash` · `react` · `typescript` · `git` · `dsa` | General developer topics |
+| `react` · `typescript` · `dsa` | General developer topics |
 
 To contribute a schema, follow the format in [`topics/claude-code.md`](topics/claude-code.md) — or generate a first draft with `/ramp:ingest`.
 
