@@ -46,7 +46,7 @@ That's it. `ramp` detects your level, renders your personalized knowledge graph,
 
 ## The commands
 
-Eleven commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, reinforce, and maintain your graph.
+Twelve commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, reinforce, and maintain your graph.
 
 | Command | What it does |
 |---------|--------------|
@@ -55,6 +55,7 @@ Eleven commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, re
 | `/ramp:check [note]`      | Check back the active task — grades the worksheet, persists through the validated writer, reports the XP delta |
 | `/ramp:list`              | Browse every topic and where you've started — read-only catalog |
 | `/ramp:help`              | A 60-second orientation — what ramp is and the full command map |
+| `/ramp:tour`              | **Guided tour.** A single-pass walk of the loop (`list → up → tree → pin → review`) with try-it beats — read-only |
 | `/ramp:tree [topic\|all]`  | Read-only view of your knowledge graph — no inference, no writes |
 | `/ramp:review [topic]`    | Spaced-repetition review of `[✓]` nodes due today — pass to advance, fail to reset |
 | `/ramp:cheatsheet [topic]`| A scannable personal reference built from your own evidence trails |

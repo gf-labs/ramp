@@ -30,6 +30,7 @@ commands/calibrate.md        # Placement worksheet front door — writes .ramp/c
 commands/check.md            # Check back the active task — grade the worksheet, persist via save_graph, report the XP delta
 commands/list.md             # Read-only topic catalog (CLI-backed) — what exists, where you've started
 commands/help.md             # 60-second orientation — what ramp is + the command map
+commands/tour.md             # Guided single-pass tour of the loop — read-only, try-it beats, dynamic next step
 commands/tree.md             # Read-only knowledge graph viewer
 commands/review.md           # Spaced repetition review command
 commands/cheatsheet.md       # Personal reference: demonstrated skills + evidence trails

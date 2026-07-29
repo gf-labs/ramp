@@ -5,6 +5,11 @@ All notable changes to `ramp` are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+- `/ramp:tour` — a guided, read-only walk of the whole loop (`list → up → tree → pin →
+  review`) with try-it beats and a state-aware opening and next step. The long-form twin
+  of `/ramp:help`; the in-session twin of `GETTING-STARTED.md`.
+
 ### Fixed
 - README truth sweep: roadmap no longer lists shipped topics (`bash`, `git`) as unbuilt;
   the repo-structure tree now includes the kernel (`ramp_core.py`), `tests/`, and CI;
