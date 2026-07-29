@@ -40,7 +40,7 @@ Then, in any repo:
 /ramp:up
 ```
 
-That's it. `ramp` detects your level, renders your personalized knowledge graph, and hands you your first mastery mission grounded in the actual files in front of you.
+That's it. `ramp` detects your level, renders your personalized knowledge graph, and hands you your first mastery mission grounded in the actual files in front of you. Prefer to read the loop before you install — or want the guided version after? **[GETTING-STARTED.md](./GETTING-STARTED.md)** walks it end to end; `/ramp:tour` is its in-session twin.
 
 ---
 
