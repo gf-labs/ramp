@@ -11,6 +11,8 @@ All notable changes to `ramp` are documented here. This project follows
   of `/ramp:help`; the in-session twin of `GETTING-STARTED.md`.
 - `GETTING-STARTED.md` (guided pre-install walk), `docs/design-notes.md` (architecture
   rationale), and `CONTRIBUTING.md` (branch flow + CI gates).
+- `scripts/check-docs.py` — CI gate asserting README tables, the topics badge, the
+  CLAUDE.md structure listing, and relative links against the tree.
 
 ### Fixed
 - README truth sweep: roadmap no longer lists shipped topics (`bash`, `git`) as unbuilt;

@@ -61,10 +61,11 @@ topics/python.md             # Python language topic schema (31 nodes — standa
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + SessionStart)
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
 scripts/setup-mcp.py         # Provisions .venv + registers MCP server (opt-in — run manually, not on SessionStart)
+scripts/check-docs.py        # Docs-consistency gate — README tables/badges ↔ tree; CI step in test.yml lint job
 mcp/server.py                # knowledge-graph MCP server (read/write graphs; swappable backend)
 mcp/start.sh                 # MCP launch wrapper — .venv python; avoids macOS symlink trap
 ramp_core.py                 # stdlib-only kernel — write side (XP · SR dates · validate · lock) + read side (catalog · summary · node_count · graph_nodes) + detect side (schema ## Probes → run_detection) + lint side (schema conformance — problems vs advisories); imported by skill-observer + mcp/server; CLI-backed for list/help/tree/detect/lint
-tests/                       # stdlib pytest suite (ramp_core, xp, detection, schema-lint, normalization, symlinks, setup-mcp, file-size-warn) + server tests under .venv — importlib-loaded
+tests/                       # stdlib pytest suite (ramp_core, xp, detection, schema-lint, normalization, symlinks, setup-mcp, file-size-warn, check-docs) + server tests under .venv — importlib-loaded
 requirements.txt             # MCP server deps — only to run mcp/server.py, not to test
 requirements-dev.txt         # pytest (test suite) — installed by the matrix, incl. the 3.8 leg
 requirements-lint.txt        # ruff pin — shared by test.yml's lint job and release.yml, kept out of the 3.8 leg
