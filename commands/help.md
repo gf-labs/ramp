@@ -38,6 +38,7 @@ self-reported, and keeps skills alive with spaced repetition.
   /ramp:check            Check back your active task — grade it, save, report the XP delta
   /ramp:list             See every topic and where you've started
   /ramp:help             This 60-second orientation
+  /ramp:tour             Guided walk of the whole loop — the long-form twin of this card
 
 **Review & reference**
   /ramp:review        Run spaced-repetition review of what's due
