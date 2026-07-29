@@ -40,7 +40,7 @@ Then, in any repo:
 /ramp:up
 ```
 
-That's it. `ramp` detects your level, renders your personalized knowledge graph, and hands you your first mastery mission grounded in the actual files in front of you.
+That's it. `ramp` detects your level, renders your personalized knowledge graph, and hands you your first mastery mission grounded in the actual files in front of you. Prefer to read the loop before you install — or want the guided version after? **[GETTING-STARTED.md](./GETTING-STARTED.md)** walks it end to end; `/ramp:tour` is its in-session twin.
 
 ---
 
@@ -351,7 +351,7 @@ ramp/
 ├── ramp_core.py           # Deterministic stdlib kernel — XP, spaced repetition, validation, detection, lint
 ├── tests/                 # stdlib pytest suite for the kernel and hooks
 ├── pyproject.toml         # ruff config (target py38)
-└── docs/                  # tree-format.md, docs-map.md, topic-authoring.md
+└── docs/                  # tree-format.md, docs-map.md, topic-authoring.md, design-notes.md
 ```
 
 ### Working on ramp itself
@@ -378,7 +378,8 @@ claude --plugin-dir /path/to/ramp
 - **Spaced repetition as pure file I/O** — `| next: YYYY-MM-DD [LN]` fields encode the schedule. No database, no external state.
 - **Hooks** — a passive observer across `PostToolUse` and `SessionStart` updates the graph with zero user action.
 - **MCP server** — an optional structured backend that makes the storage layer swappable.
-- **One deterministic kernel** — `ramp_core.py` (stdlib-only) is the single source of truth for XP, the spaced-repetition ladder, and graph validation. Both the passive-observer hook and the MCP server import it, so the Markdown commands *render* computed results instead of re-deriving them — mastery scoring is identical whether or not a session has the MCP server.
+- **One deterministic kernel** — `ramp_core.py` (stdlib-only) is the single source of truth for XP, the spaced-repetition ladder, graph validation and locking, schema-declared detection probes, and the topic linter. The hook, the MCP server, and the read-only commands all import or shell into it, so the Markdown commands *render* computed results instead of re-deriving them — prompts propose status and evidence; they never compute XP or dates. The kernel and hooks are covered by a stdlib pytest suite run in CI on the 3.8 floor and current Python.
+- **Release discipline as code** — CI lints and tests every PR; a release gate asserts the CHANGELOG section at PR time and the manifest↔tag invariant on `main`; releases cut from tags with generated notes. The docs you're reading are checked too (`scripts/check-docs.py` — counts, tables, and links).
 - **Branch logic in natural language** — the phase structure (detect → assess → infer → output → artifacts) is expressed as instructions. There's no interpreter, no state machine. The prompt *is* the program.
 
 This is the [custom slash commands](https://docs.anthropic.com/en/docs/claude-code/slash-commands) feature pushed to its edge.
@@ -403,6 +404,12 @@ To contribute a schema, follow the format in [`topics/claude-code.md`](topics/cl
 ## Accuracy & versioning
 
 The curriculum is validated against the [Claude Code docs](https://code.claude.com/docs) as of **June 2026**. Claude Code ships frequently — events, settings keys, and flags evolve. If you spot drift, open an issue or regenerate the affected schema with `/ramp:ingest`.
+
+---
+
+## Contributing
+
+Issues and PRs welcome — [`CONTRIBUTING.md`](./CONTRIBUTING.md) covers the branch flow, the CI gates (including the CHANGELOG release gate and the docs checker), and how to add a topic.
 
 ---
 

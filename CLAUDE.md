@@ -72,7 +72,10 @@ pyproject.toml               # Tooling config — ruff lint rules (target py38; 
 docs/tree-format.md          # Annotated v3 knowledge graph format example
 docs/docs-map.md             # Maps all doc pages to topics and nodes
 docs/topic-authoring.md      # Normative topic-authoring contract — skill definition, schema anatomy, probe/reference grammar, validation gate (lint-checked)
+docs/design-notes.md         # Why: kernel, evidence-over-declaration, schema-declared probes
 BACKLOG.md                   # Pointer to TaskWarrior backlog (task project:business.ramp)
+CONTRIBUTING.md              # Branch flow, CI gates, topic authoring entry point
+GETTING-STARTED.md           # Guided pre-install walk of the loop — the doc twin of /ramp:tour
 .mcp.json.example            # MCP server config template (copy → .mcp.json, fill in paths)
 README.md                    # Install instructions, modes, company deployment guide
 LICENSE                      # MIT license

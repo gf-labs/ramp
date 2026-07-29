@@ -9,6 +9,8 @@ All notable changes to `ramp` are documented here. This project follows
 - `/ramp:tour` — a guided, read-only walk of the whole loop (`list → up → tree → pin →
   review`) with try-it beats and a state-aware opening and next step. The long-form twin
   of `/ramp:help`; the in-session twin of `GETTING-STARTED.md`.
+- `GETTING-STARTED.md` (guided pre-install walk), `docs/design-notes.md` (architecture
+  rationale), and `CONTRIBUTING.md` (branch flow + CI gates).
 
 ### Fixed
 - README truth sweep: roadmap no longer lists shipped topics (`bash`, `git`) as unbuilt;

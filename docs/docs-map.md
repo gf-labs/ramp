@@ -99,6 +99,7 @@ source base. Purpose: human-readable reference now; machine-parseable foundation
 | URL | Notes |
 |-----|-------|
 | https://code.claude.com/docs/en/legal-and-compliance | Legal reference; relevant to administration topic context |
+| [`design-notes.md`](design-notes.md) | Repo doc — architecture rationale (kernel, evidence model, schema-declared probes); no external source |
 
 ---
 
