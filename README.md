@@ -351,7 +351,7 @@ ramp/
 ├── ramp_core.py           # Deterministic stdlib kernel — XP, spaced repetition, validation, detection, lint
 ├── tests/                 # stdlib pytest suite for the kernel and hooks
 ├── pyproject.toml         # ruff config (target py38)
-└── docs/                  # tree-format.md, docs-map.md, topic-authoring.md
+└── docs/                  # tree-format.md, docs-map.md, topic-authoring.md, design-notes.md
 ```
 
 ### Working on ramp itself
