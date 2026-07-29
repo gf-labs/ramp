@@ -407,6 +407,12 @@ The curriculum is validated against the [Claude Code docs](https://code.claude.c
 
 ---
 
+## Contributing
+
+Issues and PRs welcome — [`CONTRIBUTING.md`](./CONTRIBUTING.md) covers the branch flow, the CI gates (including the CHANGELOG release gate and the docs checker), and how to add a topic.
+
+---
+
 ## License
 
 [MIT](./LICENSE) © 2026 Greenfield Labs
