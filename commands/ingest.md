@@ -1,5 +1,5 @@
 ---
-description: Generate knowledge-graph schemas from an external source — course curriculum, API docs, or technical specs
+description: Generate knowledge-graph topic schemas from an external source — book, docs site, spec, or file
 argument-hint: "[topic-name] [/path/to/source.pdf or https://...]"
 allowed-tools: Read, Glob, Grep, Bash, Write, Edit, WebFetch
 ---
@@ -10,345 +10,477 @@ allowed-tools: Read, Glob, Grep, Bash, Write, Edit, WebFetch
 
 **Today's date**: !`date +%Y-%m-%d`
 
-**Existing topic schemas**:
-!`ls ~/.claude/ramp/schemas/ 2>/dev/null || ls "${CLAUDE_PLUGIN_ROOT}/topics/"*.md 2>/dev/null | xargs -I{} basename {} .md | sort || echo "none found"`
+**Resolved schema dir** (what the kernel CLI reads — first match wins):
+!`python3 -c "import os,sys; sys.path.insert(0, os.environ.get('CLAUDE_PLUGIN_ROOT','.')); import ramp_core; print(ramp_core._schema_dir())" 2>/dev/null || echo "UNRESOLVED"`
 
-**Current plugin version**:
-!`python3 -c "import json,os; root=os.environ.get('CLAUDE_PLUGIN_ROOT',''); d=json.load(open(os.path.join(root,'.claude-plugin','plugin.json'))); print(d['version'])" 2>/dev/null || echo "unknown"`
+**Existing topics** (name · node_count):
+!`python3 "${CLAUDE_PLUGIN_ROOT}/ramp_core.py" catalog 2>/dev/null | python3 -c "import json,sys; [print(t['name'], t['node_count'], sep=' · ') for t in json.load(sys.stdin)]" 2>/dev/null || echo "CATALOG_UNAVAILABLE"`
+
+**Plugin root**: !`echo "${CLAUDE_PLUGIN_ROOT:-unset}"`
+
+**Authoring contract**: `${CLAUDE_PLUGIN_ROOT}/docs/topic-authoring.md` — the normative
+standard. Read it in Phase 0 before generating anything. This command implements it; on any
+disagreement between this file and that one, **the contract wins**.
 
 ---
 
 ## Your role
 
-You are the `/ramp:ingest` command. Your job is to generate a complete, high-quality knowledge-graph schema for a new topic by reading external source material and applying ramp's v3 schema format.
+You are the `/ramp:ingest` command. You generate a complete, **contract-conformant** topic
+schema from external source material.
 
-Work through the 7 phases below sequentially. **Do not write any files until Phase 3 approval.** After Phase 3, proceed autonomously through Phases 4–7.
+The definition of done is mechanical and non-negotiable: `ramp_core.py lint <topic>` reports
+**zero problems and zero advisories**. A schema that does not pass is not delivered.
+
+Work through the phases sequentially. **Write no files until the Phase 3 gate.** After that
+gate, run to completion without further prompting.
 
 ---
 
-## Phase 0 — Parse arguments and detect source type
+## Phase 0 — Arguments, contract, and target
+
+**Read `docs/topic-authoring.md` in full before anything else.** It is the specification you
+are implementing; the templates below are a summary of it, not a replacement for it.
 
 Parse `$ARGUMENTS`: first word = `topic-name`, remainder = `source`.
 
-**Argument checks:**
-- If no `topic-name`: ask "What topic name should I use? (e.g., `aws-solutions-architect`)" and wait.
-- If no `source`: ask "What source material should I read? Provide a file path or URL." and wait.
-- If `topic-name` already appears in **Existing topic schemas** above: warn — "Topic `[name]` already exists. Extend it, or abort?" Wait for user reply. If extend: proceed with a gap-fill focus in Phase 2. If abort: stop.
+- No `topic-name`: ask "What topic name should I use? (e.g. `object-oriented-design`)" and wait.
+- No `source`: ask "What source material should I read? A file path or URL." and wait.
+- `topic-name` already in **Existing topics**: warn — "Topic `[name]` already exists. Extend it,
+  or abort?" Wait. On extend, proceed with a gap-fill focus in Phase 2.
+- `topic-name` must be a valid filename stem: lowercase, hyphens, no spaces. It becomes the
+  `topic:` frontmatter value and the node-id prefix, and both are frozen after ship.
 
-**Source type detection:**
-- Path ending `.pdf` → use Read tool (paginated; up to 20 pages per call — read in chunks)
-- URL (`http://` or `https://`) → use WebFetch
-- Path ending `.md`, `.txt`, or any local file → use Read tool
+**Source type:**
+- `.pdf` → Read tool, paginated (max 20 pages/call; read in chunks until covered)
+- `http://` / `https://` → WebFetch
+- any other local file → Read tool
 
-Proceed to Phase 1 once arguments are validated.
+### Choose the target (ask — never assume)
+
+A schema can live in three places. Ask which, and state the consequence of each:
+
+```
+Where should this topic live?
+
+  a) Plugin repo — topics/[name].md
+     Ships as a default topic with ramp. Public. Requires the full wiring
+     checklist (docs-map, CLAUDE.md, CHANGELOG) and review before merge.
+
+  b) Project-local — .claude/knowledge-graphs/schemas/[name].md
+     Committed to THIS repo, for its team. Not shipped with ramp.
+
+  c) Personal — ~/.claude/ramp/schemas/[name].md
+     Yours only, on this machine. Never committed anywhere.
+
+Which? (a/b/c)
+```
+
+Record the answer as `TARGET_DIR`. Every later phase honors it.
+
+⚠️ **Never write to the plugin repo unless the user chose (a).** A personal or project topic
+that lands in `topics/` becomes a public shipped curriculum.
+
+⚠️ **Never modify `.claude-plugin/plugin.json`.** Version bumps are release decisions, held
+until a batch is release-ready. Adding a topic is not a release.
 
 ---
 
-## Phase 1 — Read and internalize source material
+## Phase 1 — Read and internalize the source
 
-Read the full source using the appropriate tool. For long PDFs, read pages 1–20, then continue in 20-page chunks until you have covered the full document.
+Read the full source with the appropriate tool. For long PDFs, read pages 1–20, then continue
+in 20-page chunks until covered.
 
 Extract and display:
-- Title of the source
-- High-level structure: sections, domains, chapters — with page numbers if available
-- Key concepts per section: what topics and skills each section covers
-- Any explicit learning objectives, task statements, or assessment criteria
+- Title, author, edition/date, and **license** (an openly-licensed source is preferred — record it)
+- High-level structure: parts, chapters, sections, with page numbers or anchors
+- Key concepts per section
+- Any stated learning objectives or competency statements
 
-Display a brief inventory:
+Display the inventory:
+
 ```
-Source: [title]
+Source: [title] ([license])
 Sections (N):
-  1. [Section name] — [key concepts]
-  2. ...
+  1. [Section] — [key concepts]
+  ...
 
 Does this look right? Any sections to skip or prioritize?
 ```
 
-Wait for user confirmation before proceeding to Phase 2.
+Wait for confirmation before Phase 2.
 
 ---
 
 ## Phase 2 — Coverage audit
 
-Load all existing ramp topic schemas (Glob `topics/*.md`, Read each). Map each source section/domain to existing schema nodes. For each source section:
-- Count matching nodes in existing schemas
-- Compute rough coverage: 0 nodes = zero, 1–2 nodes = partial, 3+ nodes covering the criterion = solid
+Glob and Read every schema in the **resolved schema dir** (shown above) — not just the plugin's
+`topics/`. Map each source section to existing nodes across all topics.
 
-Display a coverage table:
+Display:
+
 ```
 | Source section | Existing nodes | Coverage | Gap |
-|----------------|---------------|---------|-----|
-| [Section 1]    | N from [schema] | XX% | [what's missing] |
+|----------------|---------------|----------|-----|
+| [Section]      | N from [topic] | none/partial/solid | [what's missing] |
 ```
 
-Identify:
-- New schemas to create (zero-coverage sections)
-- Existing schemas to patch (partial coverage — add nodes)
-- Whether a meta-topic aggregator is warranted (source has 3+ distinct domains)
+Coverage: 0 nodes = none · 1–2 = partial · 3+ covering the criterion = solid.
 
-Do not ask the user anything here — proceed to Phase 3.
+Identify new schemas to create, existing schemas to extend, and whether a **composite** is
+warranted (3+ distinct domains). Ask nothing here — proceed to Phase 3.
 
 ---
 
-## Phase 3 — Scope proposal (gate before writing)
+## Phase 3 — Scope proposal (gate — no writes before this passes)
 
-Present the full proposed scope:
+Present the full scope, including the branch topology and the OUT-list:
+
 ```
-Ready to generate — here's what I'll create:
+Ready to generate.
 
-New files:
-  topics/[name].md  (~N nodes, M branches)
-  [if additional schemas:]
-  topics/[name2].md  (~N nodes)
+Target: [TARGET_DIR]  (from Phase 0)
 
-Edits to existing files:
-  topics/[existing].md  (+N nodes to [Branch])
+New:
+  [TARGET_DIR]/[name].md   — N nodes across M branches
+      ROOT [title] (n) · A [title] (n) · B [title] (n) · ...
+  [if composite:]
+  [TARGET_DIR]/[meta].md   — composite over [subs]
 
-[if meta-topic:]
-  topics/[topic-name]-meta.md  (aggregator)
+Edits:
+  [TARGET_DIR]/[existing].md   +N nodes to Branch [X]
 
-Source registry:
-  docs/[topic-name]-sources.md
+Out of scope (deliberately): [the OUT-list — what this topic excludes and where it would go]
 
-Total: ~N new nodes across M schemas
+Source of record: [title] — [url]
 
-Continue? Reply `yes` to generate, or describe any scope adjustments.
+Continue? `yes` to generate, or describe scope adjustments.
 ```
 
-**Do not write any files until the user replies `yes` (or approves with adjustments).**
+**Write nothing until the user replies `yes`.** The OUT-list is required — §10 of the contract:
+a map without one can't be judged for coverage.
 
 ---
 
-## Phase 4 — Generate new topic schemas
+## Phase 4 — Generate the schema
 
-For each new schema, write `topics/[name].md` following the v3 schema format exactly. Reference `topics/build.md` as the canonical multi-branch example and `topics/mcp-development.md` as a second reference.
+Write `[TARGET_DIR]/[name].md` in the canonical section order. Use `topics/git.md` as the
+reference implementation — it is contract-clean and shows every section in its final form.
 
-**Required sections in every schema file:**
+### Frontmatter — all six fields required
 
-```markdown
+```yaml
 ---
-topic: [name]
+topic: [name]                 # equals the filename stem
+node_count: [N]               # MUST equal the number of node rows below
 version: 1
-source_url: [primary URL for this topic's official docs, or "*(see docs/[name]-sources.md)*"]
-description: [one-sentence description of what this schema covers]
+source_url: [canonical source URL]
+goal: ramp them up on [...]   # the role goal /ramp:up reads
+description: [one sentence — rendered by /ramp:list]
 ---
+```
 
-# [Topic Name] Knowledge Graph Schema
+`node_count` and `goal` are the two fields the old version of this command omitted. A missing
+`node_count` is a lint **problem** (exit 1); a missing `goal` is an advisory. Both block delivery.
 
-[1-2 sentence intro — what the schema covers, how many nodes, primary use case]
+### Intro prose
 
----
+Two to four sentences: what the topic covers, the source it follows, **the explicit OUT-list**,
+and the node/branch count.
 
-## Node definitions
+### `## Node definitions`
 
-[N] nodes across [M] branches.
+Open with `[N] nodes across [M] branches.` Then one `### [X] Title (…)` subheader per branch,
+`X` from `ROOT A B C D E` in order:
 
-### [ROOT] [Branch Name] (always unlocked — [N] nodes)
+- `### [ROOT] [Title] (always unlocked — [n] nodes)`
+- `### [A] [Title] ([n] nodes, unlocks when ROOT ≥ [k] `[✓]`)`
 
-| Node | Mastery criterion | Type | Auto-detect signal | source_url |
-|------|-------------------|------|-------------------|-----------|
-| [Node name] | [Specific, testable behavior] | [Qualitative / Artifact / Exercise / Historical] | [signal → `[status]`] or None | [URL] |
+Every branch table uses **exactly these six columns**:
 
-### [A] [Branch Name] ([N] nodes, unlocks when ROOT ≥ [N] `[✓]`)
+```
+| Node | Mastery criterion | Type | Auto-detect signal | source_url | id |
+|------|-------------------|------|-------------------|-----------|-----|
+```
 
-[... repeat for each branch ...]
+- **Node** — the skill title. Must pass the four tests in §1 of the contract: verb test,
+  evidence test, atomicity test, teeth test.
+- **Mastery criterion** — one or two sentences *including the teeth*: the element surface
+  familiarity gets wrong. "Can explain X **and** why Y-nuance", never "understands X".
+- **Type** — `/`-separated from exactly: `Artifact`, `Exercise`, `Qualitative`, `Historical`.
+- **Auto-detect signal** — `None`, or `evidence → [status|type]` matching a Detection signals row.
+- **source_url** — the canonical reference **for this node**. Fetch every URL before shipping
+  (Phase 7 checks this); never write one from memory.
+- **id** — `[topic]-[kebab-title]`. Generate with the kernel, never by hand:
 
----
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/ramp_core.py" ids [name] 2>/dev/null | python3 -c "import json,sys; [print(r['title'],'->',r['suggested']) for r in json.load(sys.stdin)['rows']]"
+```
 
-## Detection signals
+Escape any literal pipe in a cell as `\|`.
 
+### `## Probes`
+
+```
+| name | primitive | args |
+```
+
+The primitive set is **closed** — exactly these ten, and extending it is a kernel change:
+
+`file-exists` · `file-lines` · `glob-count` · `dir-count` · `json-has-key` · `json-value` ·
+`grep-count` · `git-log-grep` · `git-worktree-count` · `git-max-commit-files`
+
+Gotchas that have each bitten before:
+- Args parse with `shlex.split` — **quote any regex containing spaces or backslashes**.
+- `grep-count` needs a regex **plus one or more explicit path bases**; it cannot take a glob,
+  and with no path it is a dead probe the lint rejects.
+- `glob-count` skips dot-directories; pair with `--exclude` where a vendor dir would inflate it.
+- `—` in the args cell means "no args". A literal `|` in a regex is written `\|`.
+- A missing path yields 0, not an error. Probes are **precision-biased**: prefer a signal that
+  under-fires to one that false-positives.
+
+Close with a **Notes** paragraph explaining every non-obvious threshold.
+
+If the topic has no detectable environmental signal, omit the section — but say so explicitly in
+the Phase 8 report, because it is an advisory the user is accepting knowingly.
+
+### `## Detection signals`
+
+```
 | Collected evidence | Node → status |
-|--------------------|---------------|
-| [signal] | [branch: "Node name"] → `[✓|artifact]` |
-
----
-
-## Gap questions
-
-| Branch | Gap | Ask this |
-|--------|-----|----------|
-| [ROOT] | [what's missing] | "[teach-it-back question]" |
-
-### Qualitative rubric
-
-- **`[✓]` Demonstrated**: [what detail distinguishes demonstrated from claimed]
-- **`[~]` Self-reported**: [what a vague answer looks like]
-- **`[ ]` Not yet**: Negative or no exposure.
-
-### Answer → node mapping
-
-| Answer contains | Node → status |
-|-----------------|---------------|
-| [specific detail] | [branch: "Node"] → `[✓|reported]` |
-
----
-
-## Unlock thresholds
-
-- Branch A unlocks when ROOT ≥ [N] `[✓]`
-- Branch B unlocks when Branch A ≥ [N] `[✓]`
-[... etc ...]
-
-Both `[✓]` and `[~]` count toward unlock thresholds.
-
----
-
-## Tier definitions
-
-| Tier | Criterion |
-|------|-----------|
-| Explorer | ROOT incomplete |
-| Builder | Branch A in progress |
-| Practitioner | Branch B+ active |
-| Expert | All branches demonstrated |
-
----
-
-## Tree render template
-
-\`\`\`
-[ROOT] [Branch Name]
-    [?] [Node name]
-    ...
-
-[A] [Branch Name]   [if locked: "(unlock: complete N [Branch] skills)"]
-    [?] [Node name]
-    ...
-\`\`\`
-
----
-
-## Saved tree file template
-
-\`\`\`markdown
----
-version: 3
-topic: [name]
-user: [git config user.name or "unknown"]
-email: [git config user.email or "unknown"]
-updated: [today's date YYYY-MM-DD]
-level: [Explorer / Builder / Practitioner / Expert]
-xp: [CURRENT_XP]
----
-
-# [Topic Name] Knowledge Graph
-
-*[✓] Demonstrated · [~] Self-reported · [ ] Not yet · [★] Mastery target · [·] Locked*
-
-## [ROOT] [Branch Name]
-- [STATUS|TYPE] [Node name]
-...
-
-## Frontier
-- [frontier node name] — [criterion one-liner]
-
-## Notes
-<!-- Add personal notes here -->
-\`\`\`
 ```
 
-**Node design rules:**
-- ROOT: always unlocked; 4–6 nodes covering fundamentals that apply to all learners
-- Branches A–E: progressively advanced; each branch unlocks the next
-- Mastery criterion: one specific testable behavior per node — not "understands X" but "can describe the difference between X and Y" or "has done Z"
-- Type: Qualitative (judgment call), Exercise (do it live), Artifact (file exists), Historical (past evidence)
-- source_url: closest official doc URL for this specific node's concept; leave blank if empirically-verified
+Evidence names the probe and threshold (`git_history > 0`). The status cell is
+`BRANCH: "Node title" → [status|type]` with the pipe escaped.
+
+**The direct-witness rule (§6):** seed `[✓]` **only when the evidence witnesses the criterion's
+act**. A linked worktree does not witness "has used `git worktree`" — agent tooling creates them.
+Evidence merely *consistent with* the skill seeds `[~]`. Doubt → `[~]`.
+
+**Reference grammar — two ways this silently breaks:**
+- The branch label must be exactly `ROOT` or `A`–`E` followed by `:`. `Root:` or `ROOT :` is
+  harvested by the loose matcher and flagged as malformed.
+- A multi-fragment cell registers **only the first quoted title** unless each carries its own
+  label. Write `A: "X" + A: "Y"`, never `A: "X" + "Y"`.
+
+### `## Gap questions` + two subsections
+
+The question table is `| Branch | Gap | Ask this |` with **one row per node, in node order**.
+Branch row counts must equal that branch's node count *exactly* — anything else is an advisory
+that blocks delivery. Write questions teach-back style, aimed at the criterion's teeth: pose the
+scenario where the nuance bites, and ask for the *why*.
+
+`### Qualitative rubric` — canonically:
+- **`[✓]` Demonstrated**: at least one specific verifiable detail — the actual command/flag, an
+  observed behavior, a tradeoff navigated, or a causal *why*.
+- **`[~]` Self-reported**: affirmative but vague — no mechanism, no scenario.
+- **`[ ]` Not yet**: negative, "not sure", or "heard of it".
+
+`### Answer → node mapping` — `| Answer contains | Node → status |`, **one row per node**, same
+reference grammar. One explicit `Branch: "title"` per node; matching is by substring, so a
+fragment that matches two nodes in a branch is ambiguous — use enough of the title to be unique.
+
+### `## Unlock thresholds`
+
+One bullet per non-ROOT branch, ascending. Pick roughly N−2 of the branch's node count so a
+learner unlocks the next branch before exhausting the current one. Close with the literal line:
+
+``Both `[✓]` and `[~]` count toward unlock thresholds.``
+
+### `## Tier definitions`
+
+The standard four-tier table (Explorer · Builder · Practitioner · Expert), adapted to the
+branch letters.
+
+### `## Tree render template`
+
+A fenced block, plain branch titles, `[?]` node lines, `[if locked: …]` hints.
+
+⚠️ **No bracket tier codes** (`[ROOT]`, `[A]`) anywhere in this block — codes leaking into
+user-facing output is a lint **problem**.
+
+### `## Saved tree file template`
+
+A fenced ```markdown block: frontmatter placeholders, the status legend, then `## [X] Branch
+Title` headers — **bracket codes required here**, the kernel's header regex parses them — with
+`- [STATUS|TYPE] Node title` lines, then `## Frontier` and `## Notes`.
+
+⚠️ Node titles must match `## Node definitions` **exactly, one line per node**. The lint
+enforces parity in both directions, and this is the single most common failure.
 
 ---
 
-## Phase 5 — Patch existing schemas
+## Phase 5 — Extend existing schemas
 
-For each existing schema with coverage gaps, use the Edit tool to:
-1. Add new node rows to the appropriate branch table (preserve table formatting exactly)
-2. Update the branch node count in its section header (e.g., `5 nodes` → `7 nodes`)
-3. Update the file-level node count in `## Node definitions` (e.g., `20 nodes across 5 branches`)
-4. Add new rows to the Detection signals table for any artifact-detectable new nodes
-5. Add new Gap questions for the new nodes
-6. Add the new nodes to the Tree render template and Saved tree file template sections
+For each schema with a coverage gap, use targeted Edit calls — never a rewrite:
 
-Do not rewrite the entire file — use targeted Edit calls for each section.
+1. Add node rows to the right branch table (all six columns, id included)
+2. Update the branch's node count in its `###` header
+3. Update `node_count:` in frontmatter **and** the `[N] nodes across [M] branches` line
+4. Add Detection signals rows for anything probe-detectable
+5. Add one Gap question row **and** one Answer-mapping row **per new node**
+6. Add the new nodes to **both** templates
+7. Re-check the unlock threshold if the branch grew substantially
 
----
-
-## Phase 6 — Meta-topic (if 3+ distinct domains)
-
-If the source has 3 or more distinct domains, create `topics/[topic-name].md` as an aggregator meta-topic. Reference `topics/claude-code.md` as the canonical meta-topic template (it sources several sub-topics). The meta-topic must include:
-
-- Domains table with weights (if the source specifies them) and sub-topic schema mappings
-- Course/prerequisite section (if applicable)
-- Course-to-node pre-population mapping (which nodes to mark `[~|reported]` per completed course)
-- Session structure for `/ramp:up [topic-name]`: Phase 0 (source detection) through Phase 4 (node upgrade and save)
-- Scenario exercise templates (one per major domain) in a scenario-based format
-- Saved tree format showing cross-topic aggregation
+Adding nodes is a **safe** change under §10 — do not bump the schema `version:`. Bump only on a
+removal, an id change, or a branch restructure, and write the migration note when you do.
 
 ---
 
-## Phase 7 — Finalize
+## Phase 6 — Composite topic (3+ distinct domains)
 
-**Source registry** — write `docs/[topic-name]-sources.md`:
-```markdown
-# [Topic Name] — Source Registry
+A composite carries **only** frontmatter, prose, and a composite saved-tree template. The map
+and instrumentation live in the sub-schemas — it has no node tables, probes, or questions of its
+own. Reference `topics/claude-code.md`.
 
-## Primary source
-- **Title**: [source title]
-- **Path / URL**: [path or URL]
-- **Type**: [PDF / webpage / file]
-- **Read**: [today's date]
-
-## Section map
-
-| Section | Nodes created | Coverage |
-|---------|--------------|---------|
-| [Section] | [schema.md: N nodes] | [%] |
-
-## Official doc URLs per domain
-
-| Domain | URL |
-|--------|-----|
-| [Domain] | [URL] |
-
-## Audit notes
-- [Any caveats, skipped sections, ambiguous mappings]
+```yaml
+---
+topic: [meta-name]
+node_count: [MUST equal the sum of the sources' node_counts]
+version: 1
+source_url: [...]
+goal: ramp them up on [...]
+description: [...]
+sources: [sub-a, sub-b, sub-c]
+---
 ```
 
-**CLAUDE.md updates** — edit the Structure section to add:
-- New `topics/[name].md` file(s) with node count and description
-- `commands/ingest.md` if not already listed (this command itself)
-- New `docs/[topic-name]-sources.md` entry
+Probes and node ids are unioned across sources at runtime, **first declaration of a name wins** —
+so a probe name colliding across two sub-schemas silently drops one. Keep probe names unique
+across the family.
 
-**Plugin version bump** — increment the patch version in `.claude-plugin/plugin.json`:
-```json
-"version": "[current-version + 0.0.1]"
+---
+
+## Phase 7 — Make it resolvable, then validate (the gate)
+
+### 7a — Make the schema visible to the CLI
+
+`_schema_dir()` returns the **first** existing candidate, in this order:
+
+1. `.claude/knowledge-graphs/schemas/` (project-local, relative to cwd)
+2. `~/.claude/ramp/schemas/`
+3. `$CLAUDE_PLUGIN_ROOT/topics/`
+
+So a schema freshly written to the plugin's `topics/` is **invisible** to `lint`, `ids`, and
+`detect` whenever `~/.claude/ramp/schemas/` exists — which it does on every plugin install. The
+SessionStart hook symlinks new topics, but not until the *next* session.
+
+For target (a), link it now so validation reads the file you just wrote:
+
+```bash
+ln -sfn "${CLAUDE_PLUGIN_ROOT}/topics/[name].md" "$HOME/.claude/ramp/schemas/[name].md"
 ```
 
-**Display summary:**
+The observer leaves manually-placed files and valid symlinks alone, so this is stable.
+
+For targets (b) and (c) the file is already on the resolution path — but note that a
+project-local schema dir **shadows the global one entirely**, hiding every personal topic while
+cwd is that repo. Say so in the report if you created one.
+
+Confirm resolution before proceeding:
+
+```bash
+python3 -c "import os,sys; sys.path.insert(0, os.environ.get('CLAUDE_PLUGIN_ROOT','.')); import ramp_core; print(ramp_core._schema_dir() / '[name].md')"
+```
+
+### 7b — Run the gate
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/ramp_core.py" lint [name]      # zero problems AND zero advisories
+python3 "${CLAUDE_PLUGIN_ROOT}/ramp_core.py" ids [name]       # "problems": []
+python3 "${CLAUDE_PLUGIN_ROOT}/ramp_core.py" detect [name]    # probes execute, values sane
+python3 "${CLAUDE_PLUGIN_ROOT}/ramp_core.py" catalog          # topic registered, node_count correct
+```
+
+**Loop until `lint` is clean.** Read each finding, fix the schema, re-run. Do not rationalize a
+finding away and do not report partial success — an unclean lint means the work is not done.
+
+Common failures and their causes:
+
+| Finding | Cause |
+|---------|-------|
+| `node_count N != M node rows` | Frontmatter not updated after adding/removing a row |
+| `parity: 'X' in Node definitions but not the saved-tree template` | Title drift between the two — they must match character for character |
+| `detection signal: A: "X" matches no node` | Typo, or the title was reworded in one place only |
+| `malformed node reference` | Branch label not exactly `ROOT`/`A`–`E` + `:` |
+| `probe 'p': grep-count needs ≥2 arg(s) — dead probe` | Regex with no path base |
+| `tree render template: bracket tier codes leak` | `[ROOT]`/`[A]` left in the render block |
+| `gap questions: branch A has 3 row(s) for 5 node(s)` | Not one question per node |
+
+### 7c — The two checks the lint cannot make
+
+- **Fetch every `source_url`** against the live source with WebFetch. A 404 in a shipped schema
+  is a broken promise to the learner. Fix or remove — never leave an unverified URL.
+- **Prove every grep probe against a fixture**: create a scratch directory containing a
+  known-positive file, run `detect`, confirm the probe fires. A probe that can never fire is
+  dead weight the lint cannot see.
+
+Then run the suite:
+
+```bash
+python3 -m pytest tests/ -q
+```
+
+---
+
+## Phase 8 — Wire and report
+
+**Wiring checklist — target (a) only**, all in the same change:
+
+- `docs/docs-map.md` — URL→node section + a row in the topics table
+- `CLAUDE.md` — Structure listing line + Topics section line
+- `CHANGELOG.md` — a bullet under `## [Unreleased]` → `### Added`
+
+**Do not touch `.claude-plugin/plugin.json`.**
+
+For targets (b) and (c), skip the checklist entirely — those schemas are not part of the
+plugin's shipped surface.
+
+Report:
+
 ```
 Done.
 
 Created:
-  topics/[name].md  (N nodes, M branches)
-  [...]
-  docs/[topic-name]-sources.md
+  [path]   N nodes across M branches
+  [if composite:] [path]   composite over [subs]
 
 Edited:
-  topics/[existing].md  (+N nodes)
-  CLAUDE.md  (structure section)
-  .claude-plugin/plugin.json  ([old] → [new])
+  [path]   +N nodes to Branch [X]
+  [wiring files, target (a) only]
 
-Total: N new nodes. Topic coverage: ~X%
+Validation:
+  lint     0 problems, 0 advisories
+  ids      0 problems
+  detect   [N] probes executed — [what fired in this environment]
+  catalog  registered, node_count [N]
+  pytest   [result]
+  URLs     [N]/[N] fetched and verified
 
-Run `/ramp:up [topic-name]` to start a learning session with this schema.
+Source of record: [title] — [url] ([license])
+Out of scope: [the OUT-list]
+
+Start a session:  /ramp:up [name]
 ```
+
+If anything was accepted below standard — no `## Probes`, an unverifiable URL — say so plainly
+here. Never report a clean gate you did not get.
 
 ---
 
 ## Constraints
 
-- Never write topic files or patch existing schemas before Phase 3 user approval
-- Follow the v3 schema format exactly — use `topics/build.md` as the reference if uncertain
-- One schema per distinct domain — do not conflate unrelated topics into a single file
-- Mastery criteria must be specific and falsifiable — reject criteria like "understands X" or "is familiar with Y"
-- source_url must be a real URL to official docs — leave empty rather than invent one
-- If the source is a PDF and too long to read in one call: read in 20-page chunks; synthesize before proceeding
-- **PDF prerequisite:** PDF reading requires `poppler-utils` — if the Read tool returns a `pdftoppm is not installed` error, tell the user to run `brew install poppler` (macOS) or `apt-get install poppler-utils` (Linux) before retrying
-- If any phase fails (source unreadable, schema format error): surface the problem and ask the user how to proceed
+- **Zero problems and zero advisories, or it is not delivered.** No partial-credit reporting.
+- Read `docs/topic-authoring.md` before generating; on conflict, the contract wins.
+- No writes before the Phase 3 gate.
+- **Never write to the plugin repo unless the user chose target (a).**
+- **Never modify `plugin.json`.** Version bumps are release decisions.
+- Mastery criteria must be specific and falsifiable, with teeth. Reject "understands X".
+- `source_url` must be fetched, never recalled. Leave it out rather than invent it.
+- Node ids come from `ramp_core.py ids`, never hand-written, and are frozen once shipped.
+- Adding nodes is safe and does not bump the schema `version:`; removals and id changes do, and
+  require a migration note.
+- PDF reading needs `poppler-utils` — on a `pdftoppm is not installed` error, tell the user to
+  run `brew install poppler` (macOS) or `apt-get install poppler-utils` (Linux).
+- If a phase fails — source unreadable, lint unfixable, URLs dead — surface it and ask. Never
+  paper over it.

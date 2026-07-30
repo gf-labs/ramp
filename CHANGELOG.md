@@ -15,6 +15,16 @@ All notable changes to `ramp` are documented here. This project follows
   CLAUDE.md structure listing, and relative links against the tree.
 
 ### Fixed
+- `/ramp:ingest` emitted schemas that failed the project's own validation gate. Its
+  template predated both `docs/topic-authoring.md` and the kernel `lint` verb, so it
+  omitted `node_count:` (a lint **problem** — exit 1), `goal:`, the node `id` column, and
+  `## Probes`, wrote per-branch rather than per-node gap questions, and left bracket tier
+  codes in the render template. It also wrote to the plugin repo unconditionally and
+  bumped `plugin.json`. The command now asks where the schema should live (plugin /
+  project-local / personal), emits the contract's anatomy in full, symlinks a new plugin
+  topic into the resolved schema dir so the CLI can see it, and ends on a mandatory
+  `lint` → `ids` → `detect` → `catalog` gate that must report zero problems **and** zero
+  advisories before it reports done. It no longer touches `plugin.json`.
 - README truth sweep: roadmap no longer lists shipped topics (`bash`, `git`) as unbuilt;
   the repo-structure tree now includes the kernel (`ramp_core.py`), `tests/`, and CI;
   scan-count claims replaced with number-free phrasing; version badge is now dynamic
