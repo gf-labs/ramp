@@ -210,6 +210,40 @@ Standalone topic (not part of the `claude-code` composite). Source base: https:/
 
 ---
 
+## Object-Oriented Design (`topics/object-oriented-design.md`) — OORP, RDD, Nystrom, Fowler
+
+Standalone topic (not part of the `claude-code` composite). **Source set rather than a single spine** — a design discipline has canonical literature, not a reference manual: Object-Oriented Reengineering Patterns (CC-BY-SA 4.0) is the declared canonical source, with Wirfs-Brock's Responsibility-Driven Design grounding Branch A, Nystrom's *Game Programming Patterns* grounding Branch D, and Fowler's catalogue and bliki supplying the repair vocabulary. Martin's 2000 SOLID paper is deliberately limited to two nodes because its original host is gone and only a course mirror survives. 29 nodes across 6 branches · id-native with schema-declared `## Probes`. Scoped to object-level design (DDD-style domain modelling, data structures and algorithms, language-specific object mechanics, system-scale architecture, UML notation, and functional design are out of scope).
+
+| URL | Nodes informed |
+|-----|---------------|
+| https://martinfowler.com/bliki/AnemicDomainModel.html | What an object is: behavior over data |
+| https://www.wirfs-brock.com/PDFs/Responsibility-Driven.pdf | Responsibilities: doing, knowing, deciding; Finding candidate objects in a problem statement |
+| https://refactoring.com/catalog/encapsulateRecord.html | Encapsulation and information hiding |
+| https://martinfowler.com/bliki/TellDontAsk.html | Tell, don't ask |
+| https://martinfowler.com/bliki/CommandQuerySeparation.html | Command-query separation |
+| https://www.wirfs-brock.com/PDFs/A%20Brief%20Tour%20of%20RDD%20in%202004.pdf | CRC cards: class, responsibility, collaborator; Role stereotypes |
+| https://www.wirfs-brock.com/resp_driven_design.html | Assigning a responsibility to the right object |
+| http://scg.unibe.ch/download/oorp/OORP.pdf | Walking a scenario to validate a model; God class and data class as one problem |
+| https://refactoring.com/catalog/replaceSuperclassWithDelegate.html | Composition over inheritance |
+| https://staff.cs.utu.fi/~jounsmed/doos_06/material/DesignPrinciplesAndPatterns.pdf | Substitutability: when inheritance is right; Open-closed: extending without editing |
+| https://martinfowler.com/ieeeSoftware/coupling.pdf | Coupling: naming it and reducing it |
+| https://refactoring.com/catalog/extractClass.html | Cohesion: one class, one job |
+| https://refactoring.com/catalog/hideDelegate.html | Law of Demeter and train-wreck chains |
+| https://martinfowler.com/articles/injection.html | Dependency inversion and injection |
+| https://blog.cleancoder.com/uncle-bob/2020/10/18/Solid-Relevance.html | Single responsibility as one reason to change |
+| https://refactoring.com/catalog/replaceConditionalWithPolymorphism.html | Replacing conditionals with polymorphism |
+| https://martinfowler.com/bliki/Yagni.html | Speculative generality and YAGNI |
+| https://gameprogrammingpatterns.com/state.html | State: modelling modes as objects |
+| https://gameprogrammingpatterns.com/observer.html | Observer: decoupling a notifier from listeners |
+| https://gameprogrammingpatterns.com/command.html | Command: turning a request into an object |
+| https://gameprogrammingpatterns.com/component.html | Components over deep hierarchies |
+| https://gameprogrammingpatterns.com/architecture-performance-and-games.html | Knowing when a pattern is the wrong answer |
+| https://martinfowler.com/bliki/CodeSmell.html | Reading smells as design signals |
+| https://refactoring.com/catalog/moveFunction.html | Refactoring toward responsibilities in safe steps |
+| https://martinfowler.com/bliki/DesignStaminaHypothesis.html | Design as an investment in change |
+
+---
+
 ## Existing specialized topics
 
 These topics are independently maintained (not sourced by `claude-code` meta-topic):
@@ -219,6 +253,7 @@ These topics are independently maintained (not sourced by `claude-code` meta-top
 | `topics/git.md` | Git version control (full URL→node map above) | https://git-scm.com/book/en/v2 |
 | `topics/bash.md` | Bash scripting (full URL→node map above) | https://www.gnu.org/software/bash/manual/ |
 | `topics/python.md` | Python language fundamentals (full URL→node map above) | https://docs.python.org/3/ |
+| `topics/object-oriented-design.md` | Object-oriented design (full URL→node map above) | http://scg.unibe.ch/download/oorp/ |
 | `topics/best-practices.md` | CLAUDE.md design, config hygiene | https://docs.anthropic.com/en/docs/claude-code/ |
 | `topics/mcp-development.md` | Building MCP servers | https://modelcontextprotocol.io/ |
 | `topics/anthropic-api.md` | Claude API usage | https://docs.anthropic.com/en/api/ |
