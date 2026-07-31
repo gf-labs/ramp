@@ -15,6 +15,18 @@ All notable changes to `ramp` are documented here. This project follows
   CLAUDE.md structure listing, and relative links against the tree.
 
 ### Fixed
+- Topic arguments spelled as separate words did not resolve. Every command matched only
+  the **first word** of its arguments against schema names, so a kebab-case topic was
+  unreachable however it was typed: `/ramp:up object oriented design` matched `object`,
+  found nothing, and silently fell back to `claude-code` — rendering the wrong tree with
+  no indication anything had gone wrong. Resolution now lives in the kernel
+  (`ramp_core.py resolve`), which consumes the longest leading run of words that
+  kebab-joins to a known topic (`claude code internals` beats `claude code`), tolerates
+  case and trailing punctuation, and returns the unconsumed remainder as free-form
+  context. The 22 duplicated shell snippets across seven command files that each
+  reimplemented this now call the kernel. `/ramp:up` additionally receives a `matched`
+  flag, so it can distinguish a topic the user actually named from a silent fallback —
+  the signal its newcomer front door was already written to depend on.
 - `/ramp:ingest` emitted schemas that failed the project's own validation gate. Its
   template predated both `docs/topic-authoring.md` and the kernel `lint` verb, so it
   omitted `node_count:` (a lint **problem** — exit 1), `goal:`, the node `id` column, and
