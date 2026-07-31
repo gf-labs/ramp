@@ -8,17 +8,17 @@ allowed-tools: Read, Write, Bash, mcp__knowledge-graph__read_graph, mcp__knowled
 
 **Today's date**: !`date +%Y-%m-%d`
 
-**Active topic** (first word of the arguments if a schema exists for it, else getting-started):
-!`T=$(printf '%s' "$ARGUMENTS" | awk '{print $1}'); [ -n "$T" ] && [ -f "$HOME/.claude/ramp/schemas/$T.md" ] && echo "$T" || echo "getting-started"`
+**Active topic** (the topic the arguments name — multi-word names resolve, e.g. "object oriented design"; else getting-started):
+!`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve --default getting-started -- "$ARGUMENTS" 2>/dev/null || echo "getting-started"`
 
 **Project** (workspace home + evidence trail):
 !`P=$(cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)" && pwd -P); echo "$P (repo: $(basename "$P"))"`
 
 **Topic schema** (node map + detection-signal table):
-!`T=$(printf '%s' "$ARGUMENTS" | awk '{print $1}'); { [ -n "$T" ] && [ -f "$HOME/.claude/ramp/schemas/$T.md" ]; } || T="getting-started"; cat "$HOME/.claude/ramp/schemas/$T.md" 2>/dev/null || echo "NO_SCHEMA:$T"`
+!`T=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve --default getting-started -- "$ARGUMENTS" 2>/dev/null || echo "getting-started"); cat "$HOME/.claude/ramp/schemas/$T.md" 2>/dev/null || echo "NO_SCHEMA:$T"`
 
 **Your saved graph** (merge base — nothing here is ever downgraded):
-!`T=$(printf '%s' "$ARGUMENTS" | awk '{print $1}'); { [ -n "$T" ] && [ -f "$HOME/.claude/ramp/schemas/$T.md" ]; } || T="getting-started"; cat "$HOME/.claude/ramp/graphs/$T.md" 2>/dev/null || echo "NO_TREE_FILE:$T"`
+!`T=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve --default getting-started -- "$ARGUMENTS" 2>/dev/null || echo "getting-started"); cat "$HOME/.claude/ramp/graphs/$T.md" 2>/dev/null || echo "NO_TREE_FILE:$T"`
 
 **Scan signals** (raw evidence the schema's detection table consumes):
 !`echo "CLAUDE.md lines: $([ -f CLAUDE.md ] && wc -l < CLAUDE.md | tr -d ' ' || echo 0)"; echo "git commits: $(git rev-list --count HEAD 2>/dev/null || echo 0)"; echo "claude sessions: $(find "$HOME/.claude/projects" -maxdepth 2 -name '*.jsonl' 2>/dev/null | wc -l | tr -d ' ')"; echo "project commands: $(ls .claude/commands/*.md 2>/dev/null | wc -l | tr -d ' ')"; echo "project hooks: $(python3 -c "import json;print(sorted(json.load(open('.claude/settings.json')).get('hooks',{}).keys()))" 2>/dev/null || echo none)"; echo "user mcp servers: $(python3 -c "import json,os;print(len(json.load(open(os.path.expanduser('~/.claude.json'))).get('mcpServers',{})))" 2>/dev/null || echo 0)"; echo "identity: $(git config user.name 2>/dev/null || echo unknown) <$(git config user.email 2>/dev/null || echo unknown)>"`

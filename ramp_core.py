@@ -554,6 +554,61 @@ def list_catalog(schema_dir, graph_dir, today: date) -> list:
     return catalog
 
 
+# Punctuation a topic word may carry when it is typed as prose ("git, how do I
+# rebase?"). Stripped for MATCHING only — the remainder is returned verbatim,
+# because up.md's consultant mode keys on a literal "?" surviving in it.
+_TOPIC_TRIM = " \t\r\n,.;:!?\"'`()[]"
+
+
+def known_topics(schema_dir, graph_dir=None) -> set:
+    """Every name a topic argument may legitimately resolve to: schema stems,
+    plus graph stems so a topic whose schema went away still opens in a
+    viewer. Unreadable dirs contribute nothing rather than raising."""
+    names = set()
+    for directory in (schema_dir, graph_dir):
+        if directory is None:
+            continue
+        try:
+            names.update(p.stem for p in Path(directory).glob("*.md"))
+        except OSError:
+            continue
+    return {n for n in names if n and not n.startswith(".")}
+
+
+def resolve_topic(arguments, schema_dir, graph_dir=None, default="claude-code"):
+    """Map a free-form argument string onto a topic name.
+
+    Topic names are kebab-case, so a user who types one as separate words —
+    "object oriented design", "mcp development" — must still land on it;
+    matching only the first word makes any hyphenated topic unreachable.
+    Consumes the LONGEST leading run of words that kebab-joins to a known
+    name, so "claude code internals" beats "claude code". Everything after
+    the match is free-form context, returned verbatim.
+
+    Returns {"topic", "remainder", "matched"}. `matched` distinguishes a
+    deliberate topic choice from a silent fallback to `default` — the
+    difference between routing a newcomer to placement and dumping the
+    default topic's tree at them.
+    """
+    words = (arguments or "").split()
+    names = known_topics(schema_dir, graph_dir)
+    # A name can hold more hyphen segments than the words that spell it
+    # ("object-oriented design" is 2 words, 3 segments), so bound the scan by
+    # segments — always >= the words needed to reach the longest name.
+    longest = max((n.count("-") + 1 for n in names), default=1)
+    for size in range(min(len(words), longest), 0, -1):
+        candidate = "-".join(
+            w.lower().strip(_TOPIC_TRIM) for w in words[:size]
+        ).strip("-")
+        if candidate in names:
+            return {
+                "topic": candidate,
+                "remainder": " ".join(words[size:]),
+                "matched": True,
+            }
+    return {"topic": default, "remainder": " ".join(words), "matched": False}
+
+
 # ---------------------------------------------------------------------------
 # Detection probe layer — the topic-driven half of environment detection.
 # up.md used to hardcode ~15 Claude-Code-specific !bash scans; those move into
@@ -1495,6 +1550,10 @@ def _main(argv) -> int:
     p_ids.add_argument("topic")
     p_lint = sub.add_parser("lint")
     p_lint.add_argument("topic")
+    p_res = sub.add_parser("resolve")
+    p_res.add_argument("--default", default="claude-code")
+    p_res.add_argument("--json", action="store_true")
+    p_res.add_argument("arguments", nargs="*")
     args = parser.parse_args(argv)
 
     if args.cmd == "catalog":
@@ -1512,6 +1571,14 @@ def _main(argv) -> int:
         result = advance_review(args.topic, args.node, args.outcome)
         print(result)
         return 0 if result.startswith("advanced") else 2
+
+    if args.cmd == "resolve":
+        # Bare form prints just the name (what the commands' !bash sites
+        # interpolate); --json adds the remainder and the matched flag.
+        result = resolve_topic(
+            " ".join(args.arguments), _schema_dir(), _graph_dir(), args.default)
+        print(json.dumps(result) if args.json else result["topic"])
+        return 0
 
     if args.cmd == "detect":
         print(format_detection(run_detection(args.topic, _schema_dir())))
