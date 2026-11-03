@@ -8,7 +8,7 @@
   <a href="https://github.com/gf-labs/ramp/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/gf-labs/ramp/test.yml?branch=main&style=flat-square&label=tests" alt="tests"></a>
   <img src="https://img.shields.io/badge/Claude_Code-plugin-d97757?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Code plugin">
   <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.8+">
-  <img src="https://img.shields.io/badge/topics-8-6366f1?style=flat-square" alt="topics">
+  <img src="https://img.shields.io/badge/topics-9-6366f1?style=flat-square" alt="topics">
 </p>
 
 <p align="center">Built by <a href="https://github.com/berniegreen">Bernie Green</a> · <a href="https://github.com/gf-labs">Greenfield Labs</a></p>
@@ -104,6 +104,7 @@ Twelve commands, all namespaced `/ramp:*`. `up` is the engine; the rest read, re
 | `git`                       | `/ramp:up git`              | 27  | Version control: snapshot model, branching, history rewrite & recovery, internals |
 | `bash`                      | `/ramp:up bash`             | 29  | Shell scripting: language model, control flow, robustness, redirection, expansions |
 | `python`                    | `/ramp:up python`           | 31  | The language: object model, control flow, functions, containers, classes, robustness |
+| `object-oriented-design`    | `/ramp:up object-oriented-design` | 29 | Designing with objects: responsibilities, CRC modelling, relationships, change, patterns, repair |
 | *(your topic)*              | `/ramp:up [topic]`          | any | Install a schema → it just works |
 
 The `claude-code` meta-topic spans five sub-topics — **Getting Started · Build · Configuration · Deployment · Administration** — gated so you progress through them in order.

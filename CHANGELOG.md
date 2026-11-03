@@ -6,6 +6,16 @@ All notable changes to `ramp` are documented here. This project follows
 ## [Unreleased]
 
 ### Added
+- `object-oriented-design` topic schema (29 nodes across 6 branches) — responsibilities
+  and encapsulation, turning a requirement into a model with CRC cards, structural
+  relationships, designing for change, patterns as vocabulary, and repairing decayed
+  design. First topic grounded in a **source set** rather than a single spine: a design
+  discipline has canonical literature, not a reference manual. Sources are
+  [Object-Oriented Reengineering Patterns](http://scg.unibe.ch/download/oorp/) (CC-BY-SA
+  4.0), Wirfs-Brock's Responsibility-Driven Design, Nystrom's *Game Programming
+  Patterns*, Fowler's refactoring catalogue and bliki, and Martin's 2000 SOLID paper
+  (limited to two nodes — its original host is gone). The deviation is documented in the
+  schema's intro prose.
 - `/ramp:tour` — a guided, read-only walk of the whole loop (`list → up → tree → pin →
   review`) with try-it beats and a state-aware opening and next step. The long-form twin
   of `/ramp:help`; the in-session twin of `GETTING-STARTED.md`.

@@ -58,6 +58,7 @@ topics/claude-code-internals.md # Empirically-verified Claude Code internals (5 
 topics/git.md                # Git version control topic schema (27 nodes — standalone, Pro Git-sourced; first breadth topic)
 topics/bash.md               # Bash scripting topic schema (29 nodes — standalone, GNU Bash Reference Manual-sourced)
 topics/python.md             # Python language topic schema (31 nodes — standalone, Python Tutorial + Language Reference-sourced)
+topics/object-oriented-design.md # Object-oriented design topic schema (29 nodes — standalone; source set, not a single spine: OORP CC-BY-SA + Wirfs-Brock RDD + Nystrom + Fowler)
 scripts/skill-observer.py    # Passive observer hook (PostToolUse + SessionStart)
 scripts/file-size-warn.py    # PostToolUse hook — warns when .md files exceed 600 lines
 scripts/setup-mcp.py         # Provisions .venv + registers MCP server (opt-in — run manually, not on SessionStart)
@@ -176,6 +177,7 @@ Topic schemas live in `topics/` and are symlinked into `~/.claude/ramp/schemas/`
 `git` (27 nodes) — version control from the snapshot model through branching, recovery, and internals (Pro Git-sourced; first breadth topic beyond Claude Code)
 `bash` (29 nodes) — shell scripting from the language model through control flow, functions, robustness (strict mode, quoting, traps, ShellCheck), redirection and pipelines, and expansions (GNU Bash Reference Manual-sourced)
 `python` (31 nodes) — the language from the object model through control flow and iteration, functions and scope, the workhorse containers, classes and the object protocol, and robustness (exceptions, context managers, generators, decorators) (Python Tutorial + Language Reference-sourced)
+`object-oriented-design` (29 nodes) — designing with objects: responsibilities and encapsulation, turning a requirement into a model with CRC cards, structural relationships, designing for change, patterns as vocabulary, and repairing decayed design. First topic grounded in a **source set** rather than a single spine (OORP CC-BY-SA · Wirfs-Brock RDD · Nystrom · Fowler), because a design discipline has canonical literature, not a reference manual
 
 ## Knowledge graph file
 
