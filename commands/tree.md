@@ -9,20 +9,20 @@ model: claude-haiku-4-5-20251001
 
 **Requested topic**: $ARGUMENTS
 
-**Active topic** (first word if it matches a known topic/graph, "all", otherwise "claude-code"):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ "$FIRST" = "all" ]; then echo "all"; elif [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f "$HOME/.claude/ramp/graphs/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
+**Active topic** (the topic the arguments name — multi-word names resolve, e.g. "object oriented design"; "all", otherwise "claude-code"):
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ "$FIRST" = "all" ]; then echo "all"; else python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"; fi`
 
 **Topic catalog** (levels, XP, due — for the summary line and the "all" list):
 !`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" catalog 2>/dev/null || echo "CATALOG_UNAVAILABLE"`
 
 **Structured nodes** (the data this view renders; empty array if the topic has no graph yet):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ "$FIRST" = "all" ]; then echo "SEE_CATALOG"; else if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f "$HOME/.claude/ramp/graphs/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" nodes "$TOPIC" 2>/dev/null || echo "NODES_UNAVAILABLE"; fi`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ "$FIRST" = "all" ]; then echo "SEE_CATALOG"; else TOPIC=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"); python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" nodes "$TOPIC" 2>/dev/null || echo "NODES_UNAVAILABLE"; fi`
 
 **Summary** (level/xp/due for the active topic):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ "$FIRST" = "all" ]; then echo "{}"; else if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f "$HOME/.claude/ramp/graphs/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" summary "$TOPIC" 2>/dev/null || echo "{}"; fi`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ "$FIRST" = "all" ]; then echo "{}"; else TOPIC=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"); python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" summary "$TOPIC" 2>/dev/null || echo "{}"; fi`
 
 **Raw graph (fallback only — use if Structured nodes is `NODES_UNAVAILABLE`)**:
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ "$FIRST" = "all" ]; then for f in ~/.claude/ramp/graphs/*.md; do [ -f "$f" ] && echo "=== $(basename $f .md) ===" && cat "$f" && echo; done; elif [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ] || [ -f "$HOME/.claude/ramp/graphs/$FIRST.md" ]; }; then cat ~/.claude/ramp/graphs/$FIRST.md 2>/dev/null || echo "NO_TREE_FILE:$FIRST"; else cat ~/.claude/ramp/graphs/claude-code.md 2>/dev/null || echo "NO_TREE_FILE:claude-code"; fi`
+!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ "$FIRST" = "all" ]; then for f in ~/.claude/ramp/graphs/*.md; do [ -f "$f" ] && echo "=== $(basename $f .md) ===" && cat "$f" && echo; done; else TOPIC=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"); cat ~/.claude/ramp/graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"; fi`
 
 ---
 

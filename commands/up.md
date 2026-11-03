@@ -40,30 +40,33 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 **Source files (sampled)**:
 !`find . -maxdepth 3 \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.py" -o -name "*.go" -o -name "*.rs" \) 2>/dev/null | grep -v node_modules | grep -v ".git" | head -20`
 
-**Active topic** (derived from first word of $ARGUMENTS if it matches a known topic keyword):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
+**Active topic** (the topic $ARGUMENTS names — kebab-case names match when typed as words, e.g. "object oriented design"; otherwise "claude-code"):
+!`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"`
+
+**Topic resolution** (`matched: false` ⇒ no topic was named and the active topic is a fallback; `remainder` is $ARGUMENTS with the topic name removed):
+!`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve --json -- "$ARGUMENTS" 2>/dev/null || echo '{"topic": "claude-code", "remainder": "", "matched": false}'`
 
 **Detected signals (topic-scoped)** (schema-declared probes for the active topic):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" detect "$TOPIC" 2>/dev/null || echo "DETECT_UNAVAILABLE"`
+!`TOPIC=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"); python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" detect "$TOPIC" 2>/dev/null || echo "DETECT_UNAVAILABLE"`
 
 **Topic schema** (project/global schemas, then the plugin's bundled `topics/` — composite if sources: declared):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; SCHEMA=$(cat .claude/knowledge-graphs/schemas/$TOPIC.md 2>/dev/null || cat ~/.claude/ramp/schemas/$TOPIC.md 2>/dev/null || cat "$CLAUDE_PLUGIN_ROOT/topics/$TOPIC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: Create a schema at .claude/knowledge-graphs/schemas/$TOPIC.md (project-local) or ~/.claude/ramp/schemas/$TOPIC.md (global)"); echo "$SCHEMA"; if echo "$SCHEMA" | grep -q "^sources:"; then for SRC in $(echo "$SCHEMA" | grep "^sources:" | head -1 | sed 's/sources: *//' | tr -d '[]' | tr ',' '\n' | tr -d ' '); do [ -n "$SRC" ] && { echo ""; echo "---"; echo "# Sourced schema: $SRC"; cat ".claude/knowledge-graphs/schemas/$SRC.md" 2>/dev/null || cat "$HOME/.claude/ramp/schemas/$SRC.md" 2>/dev/null || cat "$CLAUDE_PLUGIN_ROOT/topics/$SRC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: $SRC"; }; done; fi`
+!`TOPIC=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"); SCHEMA=$(cat .claude/knowledge-graphs/schemas/$TOPIC.md 2>/dev/null || cat ~/.claude/ramp/schemas/$TOPIC.md 2>/dev/null || cat "$CLAUDE_PLUGIN_ROOT/topics/$TOPIC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: Create a schema at .claude/knowledge-graphs/schemas/$TOPIC.md (project-local) or ~/.claude/ramp/schemas/$TOPIC.md (global)"); echo "$SCHEMA"; if echo "$SCHEMA" | grep -q "^sources:"; then for SRC in $(echo "$SCHEMA" | grep "^sources:" | head -1 | sed 's/sources: *//' | tr -d '[]' | tr ',' '\n' | tr -d ' '); do [ -n "$SRC" ] && { echo ""; echo "---"; echo "# Sourced schema: $SRC"; cat ".claude/knowledge-graphs/schemas/$SRC.md" 2>/dev/null || cat "$HOME/.claude/ramp/schemas/$SRC.md" 2>/dev/null || cat "$CLAUDE_PLUGIN_ROOT/topics/$SRC.md" 2>/dev/null || echo "SCHEMA_NOT_FOUND: $SRC"; }; done; fi`
 
 
 **Existing knowledge graph** (for active topic):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/ramp/graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE"`
+!`TOPIC=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"); cat ~/.claude/ramp/graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE"`
 
 **Project-local knowledge graph** (team layer — at .claude/knowledge-graphs/ in this repo, committed):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat .claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_PROJECT_TREE"`
+!`TOPIC=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"); cat .claude/knowledge-graphs/$TOPIC.md 2>/dev/null || echo "NO_PROJECT_TREE"`
 
 **Local knowledge graph** (personal layer — at .claude/knowledge-graphs/local/, gitignored):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat .claude/knowledge-graphs/local/$TOPIC.md 2>/dev/null || echo "NO_LOCAL_TREE"`
+!`TOPIC=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"); cat .claude/knowledge-graphs/local/$TOPIC.md 2>/dev/null || echo "NO_LOCAL_TREE"`
 
 **Knowledge graph freshness** (days since last update — for returning-user path):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; TREE="$HOME/.claude/ramp/graphs/$TOPIC.md"; if [ -f "$TREE" ]; then UPDATED=$(python3 -c "import re; lines=open('$TREE').read(); m=re.search(r'^updated: (.+)$', lines, re.M); print(m.group(1).strip() if m else '')" 2>/dev/null); [ -n "$UPDATED" ] && python3 -c "from datetime import date; d=date.fromisoformat('$UPDATED'); print((date.today()-d).days, 'days since update')" 2>/dev/null || echo "unknown"; else echo "NO_TREE_FILE"; fi`
+!`TOPIC=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"); TREE="$HOME/.claude/ramp/graphs/$TOPIC.md"; if [ -f "$TREE" ]; then UPDATED=$(python3 -c "import re; lines=open('$TREE').read(); m=re.search(r'^updated: (.+)$', lines, re.M); print(m.group(1).strip() if m else '')" 2>/dev/null); [ -n "$UPDATED" ] && python3 -c "from datetime import date; d=date.fromisoformat('$UPDATED'); print((date.today()-d).days, 'days since update')" 2>/dev/null || echo "unknown"; else echo "NO_TREE_FILE"; fi`
 
 **Review-due nodes** (nodes with next: date ≤ today):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; TODAY=$(date +%Y-%m-%d); TREE="$HOME/.claude/ramp/graphs/$TOPIC.md"; if [ -f "$TREE" ]; then DUE=$(grep -E "^\- \[✓" "$TREE" | grep -oE "next: [0-9]{4}-[0-9]{2}-[0-9]{2}" | sed 's/next: //' | awk -v today="$TODAY" '$1 <= today' | wc -l | tr -d ' '); [ "$DUE" -gt 0 ] && echo "REVIEW_DUE: $DUE node(s) due for review" || echo "REVIEW_DUE: 0"; else echo "REVIEW_DUE: 0"; fi`
+!`TOPIC=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"); TODAY=$(date +%Y-%m-%d); TREE="$HOME/.claude/ramp/graphs/$TOPIC.md"; if [ -f "$TREE" ]; then DUE=$(grep -E "^\- \[✓" "$TREE" | grep -oE "next: [0-9]{4}-[0-9]{2}-[0-9]{2}" | sed 's/next: //' | awk -v today="$TODAY" '$1 <= today' | wc -l | tr -d ' '); [ "$DUE" -gt 0 ] && echo "REVIEW_DUE: $DUE node(s) due for review" || echo "REVIEW_DUE: 0"; else echo "REVIEW_DUE: 0"; fi`
 
 **All topics** (available knowledge graphs):
 !`ls ~/.claude/ramp/graphs/*.md 2>/dev/null | xargs -I{} sh -c 'echo -n "{}: "; python3 -c "import re; lines=open(\"{}\").read(); m=re.search(r\"^level: (.+)$\", lines, re.M); print(m.group(1) if m else \"unknown\")" 2>/dev/null || echo "?"' || echo "none yet"`
@@ -89,11 +92,11 @@ argument-hint: [topic?] [optional: who you are, what you're starting, what you w
 
 **Front door — read the First-run signal before any Phase or Mode branching:**
 
-- `FIRST_RUN` **and** no explicitly-typed known topic (the user gave no arguments, or their first word didn't match a schema so Active topic silently fell back to the default): **route to placement instead of proceeding.** Say:
+- `FIRST_RUN` **and** no explicitly-typed known topic (Topic resolution reports `matched: false` — they gave no arguments, or what they typed matched no schema, so Active topic is a fallback): **route to placement instead of proceeding.** Say:
 
   > 👋 New here? Let's place you first: run **`/ramp:calibrate`**. It writes a 2-minute placement worksheet (starting topic: **getting-started**), records what you already know, and your first lesson starts where your knowledge actually ends.
 
-  If they typed an unknown topic, open with: "**[first word]** isn't a topic I know — `/ramp:list` shows what's available." Then **stop** — no gap questions, no tree render, no default-topic dump.
+  If they typed something that looks like a topic, open with: "**[what they typed]** isn't a topic I know — `/ramp:list` shows what's available." Then **stop** — no gap questions, no tree render, no default-topic dump.
 - `FIRST_RUN` with an explicitly-typed known topic: emit this banner once at the very top, then proceed normally:
   > 👋 New to ramp? `/ramp:help` for a 60-second orientation · `/ramp:list` to see topics.
 - `HAS_GRAPHS`: proceed normally — returning users reach the engine directly.
@@ -106,13 +109,13 @@ Your goal is the active topic's **goal** — read the `goal:` line from the load
 
 ## Phase 0: Mode detection (silent — do not display)
 
-**Step 0a — Identify active topic.** Read the "Active topic" value injected above. This is the topic that will be used for all phases. If the first word of `$ARGUMENTS` was a known topic keyword, that is the active topic; otherwise it is `claude-code`. Strip the topic keyword from `$ARGUMENTS` before using it for anything else (free-form context and consultant mode detection).
+**Step 0a — Identify active topic.** Read the "Active topic" value injected above. This is the topic that will be used for all phases. Its companion "Topic resolution" line tells you *how* it was reached: `matched: true` means the user named that topic (a kebab-case name counts however they spelled it — `object-oriented-design`, `object oriented design`, and `Object Oriented Design` all resolve), and `matched: false` means nothing they typed named a topic, so the active topic is a fallback. Use `remainder` — `$ARGUMENTS` with the topic name already removed — wherever this command needs the free-form context (consultant-mode detection, the user's stated goal); never re-strip it yourself.
 
 **Step 0b — Check for review-due nodes.** Read the "Review-due nodes" value injected above. If it shows `REVIEW_DUE: N` where N > 0, set a flag `HAS_REVIEW_DUE = true` and store the count. This will be surfaced in Phase 3 output. It does NOT change the flow — just annotates the output.
 
 **Step 0e — XP is computed in code, not here.** Do not compute or hand-write XP. For the Phase 3 "Level · XP" line, read `CURRENT_XP` from the tree's `xp:` frontmatter field (the value the code last wrote); for a brand-new tree with no prior `xp:`, show the tier without a number and report the authoritative XP from `save_graph`'s confirmation after Phase 4. `save_graph` recomputes and overwrites `xp:` on every write — never propose a number.
 
-**Step 0c — Check for Mode D (consultant mode).** Check the remaining `$ARGUMENTS` (after stripping topic keyword, if any).
+**Step 0c — Check for Mode D (consultant mode).** Check the `remainder` from Topic resolution (the arguments with any topic name already removed).
 
 If the remaining text contains any of: `?`, `tips`, `apply`, `relevant`, `which skills`, `what skills`, `how should`, `can you help with`, `advice` — activate **Mode D** immediately and skip all other phases. See "Mode D: Consultant" section below.
 
@@ -132,7 +135,7 @@ If the remaining text contains any of: `?`, `tips`, `apply`, `relevant`, `which 
 This mode replaces all other phases. Do not ask assessment questions. Do not render the full tree. Do not update the tree.
 
 1. Read the active topic's knowledge graph from the "Existing knowledge graph" auto-collected above.
-2. Read the situation described in `$ARGUMENTS` (minus topic keyword).
+2. Read the situation described in the `remainder` from Topic resolution.
 3. Identify 2–3 knowledge graph nodes most relevant to the task at hand. Use the loaded schema to know the full node list. Consider both demonstrated `[✓]` nodes (can apply right now) and frontier `[★]` nodes (good moment to practice).
 4. For each node, output:
    - **Node name** (exact, from tree)

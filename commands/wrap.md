@@ -9,12 +9,12 @@ allowed-tools: Bash, Read, Write, Edit, mcp__knowledge-graph__read_graph, mcp__k
 **Requested topic**: $ARGUMENTS
 
 **Active topic**:
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then echo "$FIRST"; else echo "claude-code"; fi`
+!`python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"`
 
 **Today's date**: !`date +%Y-%m-%d`
 
 **Knowledge graph** (active topic):
-!`FIRST=$(echo "$ARGUMENTS" | awk '{print tolower($1)}'); if [ -n "$FIRST" ] && { [ -f "$HOME/.claude/ramp/schemas/$FIRST.md" ] || [ -f ".claude/knowledge-graphs/schemas/$FIRST.md" ]; }; then TOPIC="$FIRST"; else TOPIC="claude-code"; fi; cat ~/.claude/ramp/graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
+!`TOPIC=$(python3 "$CLAUDE_PLUGIN_ROOT/ramp_core.py" resolve -- "$ARGUMENTS" 2>/dev/null || echo "claude-code"); cat ~/.claude/ramp/graphs/$TOPIC.md 2>/dev/null || echo "NO_TREE_FILE:$TOPIC"`
 
 **All available topics**:
 !`ls ~/.claude/ramp/graphs/*.md 2>/dev/null | xargs -I{} basename {} .md | sort || echo "none"`
