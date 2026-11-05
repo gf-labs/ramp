@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-r"""Docs-consistency gate: README tables/badges, CLAUDE.md structure listing, links.
+r"""Docs-consistency gate: README tables/badges, repo-manifest file listing, links.
 
 Checks (all mechanical; prose truthfulness is out of scope):
   1. Every `commands/*.md` has a `| \`/ramp:` row in README "## The commands" — and
@@ -7,7 +7,7 @@ Checks (all mechanical; prose truthfulness is out of scope):
   2. Every backticked topic row in README "## Topics" has `topics/<name>.md`, and the
      `topics-N` badge equals the row count. (The `*(your topic)*` row has no backtick
      and is skipped — sub-topic schemas are internal detail, per docs-standard.md.)
-  3. Every path token in CLAUDE.md's "## Structure" code block exists.
+  3. Every path token in docs/repo-manifest.md's "## Files" code block exists.
   4. Every relative link in README.md, GETTING-STARTED.md, and docs/*.md resolves —
      each checked relative to its containing file's directory.
 
@@ -47,17 +47,17 @@ def check_topics(repo, readme, problems):
 
 
 def check_structure_listing(repo, problems):
-    claude = repo / "CLAUDE.md"
-    if not claude.exists():
+    manifest = repo / "docs" / "repo-manifest.md"
+    if not manifest.exists():
         return
-    block = section(claude.read_text(encoding="utf-8"), "## Structure")
+    block = section(manifest.read_text(encoding="utf-8"), "## Files")
     for line in block.splitlines():
         m = re.match(r"^([A-Za-z0-9_.\-/]+?)\s{2,}#", line.strip())
         if not m:
             continue
         token = m.group(1)
         if not (repo / token).exists():
-            problems.append(f"CLAUDE.md Structure lists a missing path: {token}")
+            problems.append(f"docs/repo-manifest.md Files lists a missing path: {token}")
 
 
 def check_links(repo, problems):
@@ -90,7 +90,7 @@ def main():
         for p in problems:
             print("  - " + p)
         return 1
-    print("check-docs: OK (commands, topics badge, structure listing, links)")
+    print("check-docs: OK (commands, topics badge, manifest file listing, links)")
     return 0
 
 

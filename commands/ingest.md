@@ -428,7 +428,8 @@ python3 -m pytest tests/ -q
 **Wiring checklist — target (a) only**, all in the same change:
 
 - `docs/docs-map.md` — URL→node section + a row in the topics table
-- `CLAUDE.md` — Structure listing line + Topics section line
+- `docs/repo-manifest.md` — Files listing line (CI-asserted)
+- `CLAUDE.md` — Topics section line
 - `CHANGELOG.md` — a bullet under `## [Unreleased]` → `### Added`
 
 **Do not touch `.claude-plugin/plugin.json`.**

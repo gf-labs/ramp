@@ -23,6 +23,11 @@ See [docs/notes.md](docs/notes.md).
 
 CLAUDE_MD = """# CLAUDE.md
 ## Structure
+See [docs/repo-manifest.md](docs/repo-manifest.md).
+"""
+
+MANIFEST_MD = """# Repo manifest
+## Files
 ```
 commands/up.md               # engine
 topics/alpha.md              # schema
@@ -31,7 +36,7 @@ docs/                        # docs
 """
 
 
-def make_repo(tmp_path, readme=README, claude=CLAUDE_MD):
+def make_repo(tmp_path, readme=README, claude=CLAUDE_MD, manifest=MANIFEST_MD):
     repo = tmp_path / "repo"
     for d in ("commands", "topics", "docs"):
         (repo / d).mkdir(parents=True)
@@ -42,6 +47,7 @@ def make_repo(tmp_path, readme=README, claude=CLAUDE_MD):
     (repo / "docs" / "notes.md").write_text("x")
     (repo / "README.md").write_text(readme)
     (repo / "CLAUDE.md").write_text(claude)
+    (repo / "docs" / "repo-manifest.md").write_text(manifest)
     return repo
 
 
@@ -101,6 +107,6 @@ def test_structure_listing_missing_path_fails(tmp_path):
     repo = make_repo(tmp_path)
     (repo / "topics" / "alpha.md").unlink()
     (repo / "topics" / "gamma.md").write_text("x")     # keep topic tables valid?  no —
-    # alpha is in both the Topics table and the Structure block; removing it must fail
+    # alpha is in both the Topics table and the manifest's Files block; removing it must fail
     result = run(repo)
     assert result.returncode == 1
