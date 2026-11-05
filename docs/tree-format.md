@@ -111,6 +111,19 @@ Example:
 
 `[~]` and `[ ]` nodes have no evidence trail and no `next:` field.
 
+### Node id field
+
+The kernel stamps every node line whose title the schema declares with a frozen id as its
+**last** field (custom nodes carry none):
+```
+- [✓|artifact] CLAUDE.md as living project memory — my-repo, 2026-03-04: 80+ lines | next: 2026-03-05 [L1] | id: getting-started-claude-md-as-living-project-memory
+```
+
+The id is `<leaf-topic>-<slug>`, taken from the schema that declares the node, and is the
+join key between a schema and a graph: when a node is retitled, the id — not the title —
+carries the demonstration forward. Ids are written by `save_graph`, never by hand; the
+example tree above omits them for readability.
+
 ---
 
 ## XP system

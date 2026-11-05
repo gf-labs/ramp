@@ -37,3 +37,22 @@ def test_reported_never_downgrades_demonstrated(observer):
     )
     assert not changed
     assert "[✓|artifact]" in new
+
+
+def _rules_for(observer, node):
+    return [r for r in observer.DETECTION_RULES if r["node"] == node]
+
+
+def test_mcp_rules_watch_the_registries_not_settings_json(observer):
+    """Claude Code registers MCP servers in .mcp.json / ~/.claude.json (or via
+    `claude mcp add`), never in settings.json — a settings.json rule never fires on a correct registration."""
+    rules = _rules_for(observer, "MCP: configure and use servers")
+    project = {"file_path": "/repo/.mcp.json", "content": '{"mcpServers": {"kg": {}}}'}
+    assert any(observer.matches_rule(r, "Write", project) for r in rules)
+    user = {"file_path": "/Users/me/.claude.json", "new_string": '"mcpServers": {'}
+    assert any(observer.matches_rule(r, "Edit", user) for r in rules)
+    cli = {"command": "claude mcp add -s user knowledge-graph -- /x/start.sh"}
+    assert any(observer.matches_rule(r, "Bash", cli) for r in rules)
+    settings = {"file_path": "/repo/.claude/settings.json", "content": '{"mcpServers": {}}'}
+    assert not any(observer.matches_rule(r, "Write", settings) for r in rules)
+    assert not any(observer.matches_rule(r, "Bash", {"command": "claude mcp list"}) for r in rules)

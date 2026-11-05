@@ -31,21 +31,21 @@ instead of reimplementing: the observer hook imports the kernel, the MCP server 
 the same writer as a tool, and sessions without the server pipe the tree into
 `ramp_core.py save` — where a rejection is an exit code, not a shrug.
 
-## Evidence over declaration (the event-sourced tree)
+## Evidence over declaration (the evidence trail)
 
-A knowledge graph you can hand-edit is a knowledge graph you can lie to. The tree moved
-to an event-shaped model: nodes carry *evidence trails* (who observed what, when, how),
-statuses are derived from evidence, and `[✓]` is never downgraded — new evidence appends.
+A knowledge graph you can hand-edit is a knowledge graph you can lie to. Every demonstrated
+node carries an *evidence trail* (who observed what, when, how), and `[✓]` is never
+downgraded — new evidence appends.
 
 A mutable status flag records a conclusion and forgets the reasons. An evidence trail
 records facts: each entry names the context, the date, and the method — `artifact`,
-`exercise`, `historical`, or merely `reported`. Status is then *derived*: any
-demonstration outranks any claim, so a `[✓|artifact]` earned by a file you wrote cannot
-be argued back down by a later hesitant answer. Never-downgrade stops being a rule the
+`exercise`, `historical`, or merely `reported`. Any demonstration outranks any
+claim, so a `[✓|artifact]` earned by a file you wrote can't be argued back down by a later
+hesitant answer. Never-downgrade stops being a rule the
 prompts must remember and becomes a property of the data — evidence only accumulates,
-appended to the trail, and the writer refuses any write that would lower an on-disk
-`[✓]`. The practical payoff: "did XP move?" is no longer a prompt-discipline question.
-XP is computed from the derived statuses on every write; demonstrating something always
+appended to the trail, and the writer restores any on-disk `[✓]` a caller tries to
+lower. The practical payoff: "did XP move?" is no longer a prompt-discipline question.
+XP is computed from the statuses on every write; demonstrating something always
 moves the number, because there is no step to forget.
 
 The format got here incrementally, and old files ride along: version-1 trees carried bare
@@ -64,12 +64,12 @@ topic can't ship probes the runner can't execute.
 
 The grammar is a table: each row wires a probe *name* to one of a small set of read-only
 primitives — `file-exists`, `file-lines`, `glob-count`, `json-has-key`, `grep-count`,
-`git-log-grep`, and friends — each returning a scalar. None execute arbitrary shell (a
-`cmd` escape hatch exists, trust-gated to bundled schemas), and a probe that can't run —
-missing file, not a git repo — degrades to its zero value rather than erroring. The
-realization that made expansion cheap: a new topic needs new *declarations*, not new
-primitive *types*. "Session count" is a glob over history files; a shell topic's
-equivalent is the same primitive pointed at different paths.
+`git-log-grep`, and friends — each returning a scalar. None execute arbitrary shell —
+there is no command escape hatch — and a probe that can't run (missing file, not a git
+repo) degrades to its zero value rather than erroring. The realization that made
+expansion cheap: a new topic needs new *declarations*, not new primitive *types*.
+"Session count" is a glob over history files; a shell topic's equivalent is the same
+primitive pointed at different paths.
 
 Probes produce evidence; the schema's `## Detection signals` table gives it meaning,
 mapping quantities to nodes and statuses — a CLAUDE.md above a threshold flips its node

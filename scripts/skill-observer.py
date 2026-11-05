@@ -249,11 +249,20 @@ DETECTION_RULES = [
         "content_pattern": r'"hooks"',
         "node": "PostToolUse hooks (linting, reactions)",
     },
-    # Write/Edit to settings.json with 'mcpServers' → Build C: MCP servers
+    # MCP registries are .mcp.json (project) and ~/.claude.json (user/project scope) —
+    # Claude Code never registers servers in settings.json. Write/Edit to a registry with
+    # 'mcpServers', or a `claude mcp add`, → Build C: MCP servers (`add\b` also matches
+    # `claude mcp add-json` — intended)
+    {
+        "tool": "Bash",
+        "field": "command",
+        "pattern": r"claude\s+mcp\s+add\b",
+        "node": "MCP: configure and use servers",
+    },
     {
         "tool": "Write",
         "field": "file_path",
-        "pattern": r"settings\.json$",
+        "pattern": r"(\.mcp\.json|\.claude\.json)$",
         "content_field": "content",
         "content_pattern": r'"mcpServers"',
         "node": "MCP: configure and use servers",
@@ -261,7 +270,7 @@ DETECTION_RULES = [
     {
         "tool": "Edit",
         "field": "file_path",
-        "pattern": r"settings\.json$",
+        "pattern": r"(\.mcp\.json|\.claude\.json)$",
         "content_field": "new_string",
         "content_pattern": r'"mcpServers"',
         "node": "MCP: configure and use servers",

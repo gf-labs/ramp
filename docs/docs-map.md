@@ -1,6 +1,8 @@
 # Claude Code Docs Map
 
-Generated: 2026-03-05 · Last verified against schemas: 2026-06-26 | Source: https://code.claude.com/docs/en/
+Generated: 2026-03-05 · Claude Code sections last verified against their schemas:
+2026-06-26; the `git`, `bash`, `python`, and `object-oriented-design` sections were written
+alongside their schemas (2026-07) | Source: https://code.claude.com/docs/en/
 
 This file maps documentation pages to their topic schema and the nodes they inform — the
 Claude Code docs below, plus standalone topics like `git` (Pro Git book) that carry their own
@@ -27,14 +29,12 @@ source base. Purpose: human-readable reference now; machine-parseable foundation
 
 | URL | Nodes informed |
 |-----|---------------|
-| https://code.claude.com/docs/en/sub-agents | Subagent basics: spawning and tool access; Foreground vs. background subagents; Custom subagent definitions (.claude/agents/) |
+| https://code.claude.com/docs/en/sub-agents | Subagent basics: spawning and tool access; Foreground vs. background subagents; Custom subagent definitions (.claude/agents/); Skills as custom subagent delegation targets; Iterative refinement: sequential subagent pattern for test-driven iteration |
 | https://code.claude.com/docs/en/agent-teams | Agent teams: orchestration patterns; Worktrees for parallel development |
-| https://code.claude.com/docs/en/plugins | Plugin manifest (plugin.json) |
-| https://docs.anthropic.com/en/docs/claude-code/plugins | Skills distribution via plugins and managed_settings.json |
+| https://code.claude.com/docs/en/plugins | Plugin manifest (plugin.json); Skills distribution via plugins and managed_settings.json |
 | https://code.claude.com/docs/en/discover-plugins | Plugin discovery and installation |
-| https://code.claude.com/docs/en/skills | Skills (slash commands): creation and syntax; Skill mechanics: $ARGUMENTS, !bash, @file; Skill and command composition; argument-hint frontmatter for documenting expected arguments |
-| https://docs.anthropic.com/en/docs/claude-code/skills | context: fork for skill isolation |
-| https://docs.anthropic.com/en/docs/claude-code/memory | .claude/rules/ with YAML paths: glob patterns for conditional rule loading |
+| https://code.claude.com/docs/en/skills | Skills (slash commands): creation and syntax; Skill mechanics: $ARGUMENTS, !bash, @file; Skill and command composition; argument-hint frontmatter for documenting expected arguments; context: fork for skill isolation |
+| https://code.claude.com/docs/en/memory | .claude/rules/ with YAML paths: glob patterns for conditional rule loading |
 | https://code.claude.com/docs/en/output-styles | Output styles: controlling response format |
 | https://code.claude.com/docs/en/hooks-guide | Hooks guide: design patterns and gotchas; Scoped hooks (in skill or agent frontmatter) |
 | https://code.claude.com/docs/en/hooks | PreToolUse hooks (validation, blocking); PostToolUse hooks (linting, reactions); Stop and Notification hooks (session alerts); Hook handler scripts (stdin, exit codes, response) |
@@ -42,8 +42,7 @@ source base. Purpose: human-readable reference now; machine-parseable foundation
 | https://docs.anthropic.com/en/docs/claude-code/built-in-tools | Built-in tool selection for codebase tasks |
 | https://code.claude.com/docs/en/mcp | MCP: configure and use servers; MCP project config (.mcp.json) |
 | https://code.claude.com/docs/en/troubleshooting | Troubleshooting: diagnose and recover |
-| https://docs.anthropic.com/en/docs/claude-code/sub-agents | Skills as custom subagent delegation targets; Iterative refinement: sequential subagent pattern for test-driven iteration |
-| https://docs.anthropic.com/en/docs/build-with-claude/agents | Interview pattern: structured questions for ambiguous analysis tasks |
+| https://platform.claude.com/docs/en/build-with-claude/agents | Interview pattern: structured questions for ambiguous analysis tasks |
 | *(empirically verified — no canonical doc page)* | Skill command execution contexts (!bash vs Bash tool) |
 
 ---
@@ -255,9 +254,9 @@ These topics are independently maintained (not sourced by `claude-code` meta-top
 | `topics/bash.md` | Bash scripting (full URL→node map above) | https://www.gnu.org/software/bash/manual/ |
 | `topics/python.md` | Python language fundamentals (full URL→node map above) | https://docs.python.org/3/ |
 | `topics/object-oriented-design.md` | Object-oriented design (full URL→node map above) | http://scg.unibe.ch/download/oorp/ |
-| `topics/best-practices.md` | CLAUDE.md design, config hygiene | https://docs.anthropic.com/en/docs/claude-code/ |
+| `topics/best-practices.md` | CLAUDE.md design, config hygiene | https://code.claude.com/docs/en/ |
 | `topics/mcp-development.md` | Building MCP servers | https://modelcontextprotocol.io/ |
-| `topics/anthropic-api.md` | Claude API usage | https://docs.anthropic.com/en/api/ |
+| `topics/anthropic-api.md` | Claude API usage | https://platform.claude.com/docs/en/api/ |
 | `topics/claude-code-internals.md` | Empirically-verified Claude Code behaviors not in official docs | *(none — verified by experiment)* |
 
 ---

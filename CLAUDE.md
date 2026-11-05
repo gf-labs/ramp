@@ -14,7 +14,7 @@ When making prioritization decisions, ask: **what best advances that capability-
 
 `ramp` activates a **learning mode** — Claude becomes a co-pilot for ramping developers up on Claude Code as an organizational tool, the codebase, and the team's workflows (commits, PRs, testing, CI). It scans the environment, assesses the user, delivers a personalized knowledge graph and learning path, then stays engaged to work through exercises together. Writes an `ONBOARDING.md` artifact and updates `~/.claude/ramp/graphs/[topic].md`.
 
-Companies deploy it as a project-level command for engineer onboarding. Solo devs use it to level up.
+Companies deploy it — the plugin plus a committed project schema — for engineer onboarding. Solo devs use it to level up.
 
 ### Three operating modes
 
@@ -27,9 +27,10 @@ Companies deploy it as a project-level command for engineer onboarding. Solo dev
 Directory-level orientation: README.md § Repo structure. The exhaustive, CI-asserted
 file-by-file manifest: [`docs/repo-manifest.md`](docs/repo-manifest.md).
 
-`commands/` at root is the source of truth for command files — used by the plugin system
-and company deployment (copy to a team repo's `.claude/commands/`). `.claude/commands/`
-is gitignored.
+`commands/` at root is the source of truth for command files, loaded by the plugin system.
+They are not copyable into a team repo's `.claude/commands/`: every command shells into
+`$CLAUDE_PLUGIN_ROOT/ramp_core.py`, which only a plugin load sets. `.claude/commands/` is
+gitignored.
 
 No *application* is built — the engine is prompts. The deterministic kernel (the `scripts/`
 hooks, `mcp/server.py`, and `ramp_core.py`) is code: it single-sources XP, spaced-repetition
@@ -62,7 +63,7 @@ ramp adapts at three levels of scope:
 Injected into every `/ramp:up` session and the generated `ONBOARDING.md`.
 
 **2. Project curriculum** — commit a schema to `.claude/knowledge-graphs/schemas/[topic].md`:
-Engineers run `/ramp:up [topic]` and get a codebase-grounded learning path with exercises, evidence tracking, and spaced repetition. Auto-discovered from the project-local path — no install step. See `topics/claude-code.md` for the schema format.
+Engineers run `/ramp:up [topic]` and get a codebase-grounded learning path with exercises, evidence tracking, and spaced repetition. Auto-discovered from the project-local path — no install step. The schema format is the authoring contract in `docs/topic-authoring.md`.
 
 **3. Backend / org-wide** — set `KNOWLEDGE_GRAPH_API_URL` (via `mcp/server.py`):
 Graphs are loaded from a central backend at session start and synced back on save. Enables org-level curricula, team skill matrices, and cross-device sync. Without this env var, ramp runs fully local — no setup required.
@@ -98,7 +99,7 @@ Both `/ramp:up` and `/ramp:tree` render and update a knowledge graph — a struc
 - **Historical** — evidence from past work (git log, session files, worktree directories)
 
 **Inference priority (highest to lowest, used only by `/ramp:up`):**
-1. Environmental signals — CLAUDE.md content, hooks/MCP in settings.json, commands in `.claude/commands/`, history scans
+1. Environmental signals — CLAUDE.md content, hooks in settings.json, MCP servers in `.mcp.json` / `~/.claude.json`, commands in `.claude/commands/`, history scans
 2. Saved graph file — `~/.claude/ramp/graphs/[topic].md` persists progress from prior sessions; `[✓]` nodes are never downgraded
 3. Self-reported assessment — fills gaps via targeted gap questions using teach-back framing ("explain X as you'd teach it") — teaching-level answers earn `[✓]`, surface-level answers stay `[~]`
 
