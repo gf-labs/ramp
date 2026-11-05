@@ -18,8 +18,9 @@ the rules below are checked by machines, so knowing them saves you a rejected PR
   pytest tests/ -q && ruff check .`
 - **release-gate.yml** — a PR into `main` must have a `## [<manifest version>]` section
   in `CHANGELOG.md`; a push to `main` must match the nearest reachable tag.
-- **check-docs.py** — README tables, count badges, the CLAUDE.md structure listing, and
-  relative links must match the tree. Run locally: `python3 scripts/check-docs.py`
+- **check-docs.py** — README tables, count badges, the `docs/repo-manifest.md` file
+  listing, and relative links must match the tree. Run locally:
+  `python3 scripts/check-docs.py`
 - Actions are SHA-pinned; Dependabot maintains them. Don't hand-edit pins.
 
 ## Changes

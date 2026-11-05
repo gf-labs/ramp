@@ -309,7 +309,8 @@ Plus the two non-mechanical checks:
 Wiring checklist for a new topic (same commit):
 
 - `docs/docs-map.md` — URL→node section + a row in the topics table
-- `CLAUDE.md` — Structure listing line + Topics section line
+- `docs/repo-manifest.md` — Files listing line (CI-asserted)
+- `CLAUDE.md` — Topics section line
 - `CHANGELOG.md` — bullet under `## [Unreleased]` → `### Added`
 
 ---

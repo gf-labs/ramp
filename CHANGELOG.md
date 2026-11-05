@@ -20,9 +20,10 @@ All notable changes to `ramp` are documented here. This project follows
   review`) with try-it beats and a state-aware opening and next step. The long-form twin
   of `/ramp:help`; the in-session twin of `GETTING-STARTED.md`.
 - `GETTING-STARTED.md` (guided pre-install walk), `docs/design-notes.md` (architecture
-  rationale), and `CONTRIBUTING.md` (branch flow + CI gates).
+  rationale), `CONTRIBUTING.md` (branch flow + CI gates), and `docs/repo-manifest.md`
+  (the annotated file inventory, moved out of CLAUDE.md and CI-asserted).
 - `scripts/check-docs.py` — CI gate asserting README tables, the topics badge, the
-  CLAUDE.md structure listing, and relative links against the tree.
+  `docs/repo-manifest.md` file listing, and relative links against the tree.
 
 ### Fixed
 - Topic arguments spelled as separate words did not resolve. Every command matched only
