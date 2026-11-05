@@ -208,7 +208,7 @@ Do not prompt for more specifics. Accept the answer as given.
 
 ### Knowledge graph schema reference
 
-The node definitions, detection signals, gap questions, and answer mappings for the active topic are loaded from the "Topic schema" injected above. Use that content as the authoritative reference for all inference. If the schema shows `SCHEMA_NOT_FOUND`, tell the user: "No schema found for **[topic]**. Place a schema file at `.claude/knowledge-graphs/schemas/[topic].md` (project-local) or `~/.claude/ramp/schemas/[topic].md` (global). See `topics/claude-code.md` in the ramp repo for the format." Then stop — do not proceed with inference.
+The node definitions, detection signals, gap questions, and answer mappings for the active topic are loaded from the "Topic schema" injected above. Use that content as the authoritative reference for all inference. If the schema shows `SCHEMA_NOT_FOUND`, tell the user: "No schema found for **[topic]**. Place a schema file at `.claude/knowledge-graphs/schemas/[topic].md` (project-local) or `~/.claude/ramp/schemas/[topic].md` (global). See `docs/topic-authoring.md` in the ramp repo for the format." Then stop — do not proceed with inference.
 
 The schema file contains:
 - **Node definitions** — all nodes with mastery criterion, type, auto-detect signal
@@ -315,7 +315,7 @@ If CLAUDE.md has a `## Onboarding` section, show it verbatim under **"Team onboa
 
 **Compact mode:** Show the always-unlocked first branch + the next unlocked branch only. Locked branches: omit entirely.
 
-**Standard mode:** Show all unlocked branches with status markers. Locked branches: collapse to one line (branch header only, with unlock requirement). Format: `[·] Agents and Orchestration (unlock: complete 4 Code Change skills)`
+**Standard mode:** Show all unlocked branches with status markers. Locked branches: collapse to one line (branch header only, with unlock requirement). Format: `[·] Hooks System (unlock: complete 3 Skills and Plugins skills)`
 
 **Full mode:** Render the complete tree using the "Tree render template" from the loaded schema. Replace every `[?]` with the correct marker. Locked branches collapsed to header line.
 

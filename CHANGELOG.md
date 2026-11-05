@@ -20,7 +20,8 @@ All notable changes to `ramp` are documented here. This project follows
   review`) with try-it beats and a state-aware opening and next step. The long-form twin
   of `/ramp:help`; the in-session twin of `GETTING-STARTED.md`.
 - `GETTING-STARTED.md` (guided pre-install walk), `docs/design-notes.md` (architecture
-  rationale), `CONTRIBUTING.md` (branch flow + CI gates), and `docs/repo-manifest.md`
+  rationale), `CONTRIBUTING.md` (branch flow + CI gates), `BACKLOG.md` (the curated public
+  backlog — bugs, features, planned topics, maintenance), and `docs/repo-manifest.md`
   (the annotated file inventory, moved out of CLAUDE.md and CI-asserted).
 - `scripts/check-docs.py` — CI gate asserting README tables, the topics badge, the
   `docs/repo-manifest.md` file listing, and relative links against the tree.
@@ -52,6 +53,21 @@ All notable changes to `ramp` are documented here. This project follows
   the repo-structure tree now includes the kernel (`ramp_core.py`), `tests/`, and CI;
   scan-count claims replaced with number-free phrasing; version badge is now dynamic
   (`github/v/release`) and the tests badge tracks `main`.
+- Docs truth sweep against the current code. README: the company-deployment recipe told
+  teams to copy command files into `.claude/commands/`, which no longer works — every
+  command shells into the plugin's kernel, so a bare copy silently falls back to
+  its default topic; the section now says to install the plugin and documents the
+  personal / team / local graph layers. The non-MCP write path is the kernel's validated
+  writer, not the Write tool; the gating example named a node that doesn't exist; the
+  roadmap listed Claude Code sub-topics the curriculum already covers, plus general topics
+  with no planned schema, and now points at `BACKLOG.md`;
+  schema-format pointers go to the authoring contract; the repo tree lists every
+  user-facing top-level doc and links the manifest. `docs/design-notes.md` claimed a `cmd`
+  probe escape hatch that was never built. `docs/tree-format.md` now documents the `| id:`
+  field the kernel stamps on schema-declared node lines. `CONTRIBUTING.md`'s local check
+  installs ruff. The passive
+  observer's MCP rule watched `settings.json`, where Claude Code never registers servers;
+  it now watches `.mcp.json`, `~/.claude.json`, and `claude mcp add`.
 
 ## [1.3.1] — 2026-07-28
 

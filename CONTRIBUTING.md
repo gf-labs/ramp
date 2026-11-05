@@ -14,8 +14,8 @@ the rules below are checked by machines, so knowing them saves you a rejected PR
 ## The gates (what CI will hold you to)
 
 - **test.yml** — ruff lint + the stdlib pytest suite on Python 3.8 (the floor) and
-  current. Run locally: `python3 -m pip install -r requirements-dev.txt && python3 -m
-  pytest tests/ -q && ruff check .`
+  current. Run locally: `python3 -m pip install -r requirements-dev.txt -r
+  requirements-lint.txt`, then `python3 -m pytest tests/ -q && ruff check .`
 - **release-gate.yml** — a PR into `main` must have a `## [<manifest version>]` section
   in `CHANGELOG.md`; a push to `main` must match the nearest reachable tag.
 - **check-docs.py** — README tables, count badges, the `docs/repo-manifest.md` file
